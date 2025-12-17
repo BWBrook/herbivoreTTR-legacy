@@ -1,0 +1,121 @@
+# Architecture — herbivoreTTR
+
+## Overview
+herbivoreTTR is a coupled simulation with two interacting subsystems:
+
+- **Plants**: a spatial grid of plants updated daily via a Thornley Transport Resistance (TTR) growth model.
+- **Herbivores**: one or more individual agents that move and feed at minute resolution and track daily energy and water budgets.
+
+A typical day:
+1. Apply daily plant growth update (TTR) for all plants given environmental drivers.
+2. Simulate herbivore minute-by-minute behavior (movement + intake decisions).
+3. Advance digestion hourly compartments, accumulate energy intake and metabolic water.
+4. Update daily energy/water balance summary.
+
+## Core data model (state objects)
+
+### `conditions` (environmental drivers)
+A `data.frame` with at least:
+- `day` (int)
+- `temp_mean` (deg C)
+- `sw` (standing water; units documented)
+- `N` (available soil nitrogen; units documented)
+
+### `plants` (plant grid state)
+A `data.frame` with:
+- Identifiers and geometry:
+  - `plant_id`, `xcor`, `ycor` (toroidal environment)
+  - `veg_type`, `height` (as applicable)
+- Biomass pools (units documented, typically kg DM):
+  - `ms`, `mr` (shoot/root mass)
+  - `bleaf`, `bstem`, `bdef` (sub-pools used for herbivory + defence)
+- Nutrient pools (e.g., `cs`, `cr`, `ns`, `nr`) and derived concentrations
+- Daily TTR flux/resistance/derivative columns used during update
+
+Key invariant: biomass and nutrient pools must remain finite and non-negative (within tolerance).
+
+### `herbivore` (individual agent state)
+A `list` with:
+- Identity and strategy:
+  - `id` (when multi-herbivore is enabled)
+  - `herb_type` (0=grazer, 1=browser, 2=mixed)
+  - strategy parameters (e.g., browse height constraints, preference weights)
+- Spatial state:
+  - `xcor`, `ycor`, `selected_plant_id`, `behaviour`
+- Physiological traits:
+  - `mass` (g), `gut_capacity` (g), `bite_size`, `handling_time`, `foraging_velocity`
+- Digestion queues:
+  - hourly vectors of ingested material and digestible carb/protein
+- Daily trackers:
+  - `intake_*`, `distance_moved`, `energy_balance`, `water_balance`, etc.
+
+Key invariant: gut content never exceeds capacity beyond tolerance; daily intakes are non-negative; energy/water updates are finite.
+
+## Module boundaries (logical, not necessarily directory-based)
+
+### 1) Plant subsystem (TTR)
+Responsibilities:
+- Compute resistances, transport, uptake, growth, and RHS derivatives.
+- Apply a daily update across all plants with robust numeric guards.
+
+Interfaces:
+- `init_plants(veg_types=...) -> plants`
+- `transport_resistance(plants, conditions_row, ...) -> plants` (or equivalent daily updater)
+
+### 2) Herbivore subsystem
+Responsibilities:
+- Allometric trait calculation from body mass
+- Candidate plant detection within range (toroidal distance)
+- Plant choice using nutritional mismatch + distance + defence
+- Movement and intake mechanics (handling time, bite size, gut capacity constraints)
+- Digestion advancement and daily budget bookkeeping
+
+Interfaces:
+- `init_herbivore(mass, herb_type, MRT, ...) -> herbivore`
+- `herbivore_step(herbivore, plants) -> list(herbivore, plants)`
+- `hourly_digestion_step(herbivore) -> herbivore`
+- `calc_daily_energy_balance(herbivore) -> herbivore`
+- `check_daily_water_balance(herbivore, ...) -> herbivore`
+
+### 3) Simulation orchestration
+Responsibilities:
+- Couple plant daily update and herbivore within-day loop
+- Multi-day wrapper
+- Optional diagnostics logging
+
+Interfaces:
+- `run_daily_herbivore_simulation(herbivore, plants, conditions, day_of_simulation, minute_limit, ...)`
+- `run_herbivore_days(days, minute_limit, ...)`
+
+For Beta:
+- `run_daily_simulation_population(herbivores, plants, conditions, ...)`
+- Deterministic update ordering rules (documented)
+
+### 4) IO and artefacts
+Responsibilities:
+- Write stable-schema snapshots and logs
+- Version output schemas and document column meanings
+
+Interfaces:
+- `write_*_snapshot_*()` helpers (targets-friendly)
+- `summarise_hourly_herbivore_record()` and `write_hourly_herbivore_log()`
+
+### 5) Reproducibility workflows
+- `{targets}` is the canonical pipeline for repeatable runs and artefact generation.
+- `renv` locks dependencies for reproducibility and CI parity.
+
+## Determinism rules
+- A fixed seed must reproduce:
+  - random choices (plant selection, movement randomness if any)
+  - pipeline outputs (CSV snapshots)
+- Floating point tolerance rules must be explicitly documented for any approximate comparisons.
+
+## Extension points
+- New herbivore types: implement as strategy parameters plus a documented “selection + bite allocation” policy.
+- New climate drivers: extend `conditions` schema and plant update function(s).
+- New output products: add targets that consume stable-schema snapshots rather than ad hoc side effects.
+
+## Performance notes (design intent)
+- Keep hot loops (minute-resolution stepping) free of heavy tidyverse transforms.
+- Prefer precomputed vectors and base R operations in the inner loop.
+- Profile before optimizing; avoid premature refactors that change scientific meaning.

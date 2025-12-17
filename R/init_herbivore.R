@@ -10,7 +10,7 @@
 #' @examples
 #' h <- init_herbivore()
 #' @export
-init_herbivore <- function(mass = 5e5, herb_type = 0, MRT = 48) {
+init_herbivore <- function(mass = 5e5, herb_type = 0, MRT = 24) {
   
   herbivore <- list(
     mass = mass,                                   # [g] average white rhino is 2.18e6 (Steuer et al. 2010)
