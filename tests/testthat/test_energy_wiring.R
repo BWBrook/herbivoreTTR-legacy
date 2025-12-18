@@ -35,4 +35,3 @@ test_that("daily run after spin-up yields nonzero energy with MRT=1", {
                                         day_of_simulation = day0, minute_limit = 60)
   expect_true(res$herbivore$intake_PE_day + res$herbivore$intake_NPE_day > 0)
 })
-

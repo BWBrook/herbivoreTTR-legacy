@@ -1,6 +1,20 @@
 linters:
   lintr::linters_with_defaults(
-    line_length_linter = lintr::line_length_linter(100),
-    object_length_linter = NULL
+    # Keep linting focused on hygiene/safety rather than forcing a full
+    # style refactor of the legacy scientific codebase.
+    line_length_linter = lintr::line_length_linter(200),
+    object_length_linter = NULL,
+    object_name_linter = NULL,
+    object_usage_linter = NULL,
+    semicolon_linter = NULL,
+    commented_code_linter = NULL,
+    pipe_consistency_linter = NULL,
+    indentation_linter = NULL,
+    return_linter = NULL,
+    assignment_linter = NULL,
+    infix_spaces_linter = NULL,
+    commas_linter = NULL,
+    brace_linter = NULL,
+    seq_linter = NULL
   )
 exclusions: list()

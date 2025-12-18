@@ -11,7 +11,7 @@
 #' h <- init_herbivore()
 #' @export
 init_herbivore <- function(mass = 5e5, herb_type = 0, MRT = 24) {
-  
+
   herbivore <- list(
     mass = mass,                                   # [g] average white rhino is 2.18e6 (Steuer et al. 2010)
     herb_type = herb_type,                         # GRAZER, BROWSER, MIXED
@@ -53,6 +53,6 @@ init_herbivore <- function(mass = 5e5, herb_type = 0, MRT = 24) {
   # Calculated parameters
   herbivore <- calc_foraging_traits(herbivore)
   herbivore$daily_water_requirement <- calc_water_requirement(mass)
-  
+
   return(herbivore)
 }

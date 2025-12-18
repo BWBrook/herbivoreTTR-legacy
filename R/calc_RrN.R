@@ -1,7 +1,7 @@
 #' Root N resistance (skeleton)
 #'
 #' @inheritParams calc_RsN
-#' @param Mr Numeric: root biomass mass [kg].
+#' @param Mr Numeric: root biomass mass (kg).
 #' @note Write-target: plant$rrN
 calc_RrN <- function(TR_N, Mr, Q_SNP) {
   TR_N <- pmax(TR_N, 0)

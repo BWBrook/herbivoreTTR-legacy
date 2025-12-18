@@ -3,7 +3,7 @@
 #' Computes nitrogen uptake into the root compartment.
 #'
 #' @param plant_row Single-row data.frame or named list for a plant.
-#' @param N0 Numeric: available nitrogen in soil [kg N].
+#' @param N0 Numeric: available nitrogen in soil (kg N).
 #' @param K_M Numeric: Michaelis-Menten/Monod constant (unit depends on formulation).
 #' @param PI_N Numeric: driver for N uptake (unit depends on formulation).
 #' @return numeric scalar (stub returns NA_real_).

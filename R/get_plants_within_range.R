@@ -12,22 +12,22 @@
 #' @return data.frame subset of `plants` within range, with an added
 #'   numeric `distance` column (meters).
 #' @examples
-#' 
+#'
 #' # Assuming `herb` and `plants` created via init_* helpers:
 #' # near <- get_plants_within_range(herb, plants)
 #' @export
 get_plants_within_range <- function(herbivore, plants) {
   plot_width <- sqrt(CONSTANTS$PLOT_SIZE)
   plot_height <- sqrt(CONSTANTS$PLOT_SIZE)
-  
+
   distances <- calc_toroidal_distance(
     herbivore$xcor, herbivore$ycor,
     plants$xcor, plants$ycor,
     plot_width, plot_height
   )
-  
+
   keep <- distances <= CONSTANTS$DETECTION_DISTANCE & plants$ms > 0
-  
+
   # For browsers (herb_type == 1), enforce browse height limit
   if (!is.null(herbivore$herb_type) && isTRUE(herbivore$herb_type == 1)) {
     reachable <- CONSTANTS$LEAF_HEIGHT * plants$height <= CONSTANTS$BROWSE_HEIGHT
@@ -35,6 +35,6 @@ get_plants_within_range <- function(herbivore, plants) {
   }
   within_range <- plants[keep, ]
   within_range$distance <- distances[keep]
-  
+
   return(within_range)
 }

@@ -11,7 +11,7 @@ run:
 
 ## Run a smoke test pipeline (uses CI profile)
 smoke:
-	TARGETS_PROFILE=ci R -q -e "targets::tar_make(callr_function = NULL, ask = FALSE)"
+	TARGETS_PROFILE=ci R -q -e "targets::tar_make(callr_function = NULL)"
 
 ## Run unit tests
 test:

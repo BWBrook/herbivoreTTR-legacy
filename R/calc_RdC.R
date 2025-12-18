@@ -1,7 +1,7 @@
 #' Defence C resistance (skeleton)
 #'
 #' @inheritParams calc_RsC
-#' @param Md Numeric: defence biomass mass [kg].
+#' @param Md Numeric: defence biomass mass (kg).
 #' @note Write-target: plant$rdC
 calc_RdC <- function(TR_C, Md, Q_SCP) {
   TR_C <- pmax(TR_C, 0)

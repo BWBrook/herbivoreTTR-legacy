@@ -40,7 +40,7 @@ run_daily_herbivore_simulation <- function(herbivore, plants, conditions,
   if (capture_diagnostics) {
     diagnostics$plants_after_growth <- plants
   }
-  
+
   # 1) Reset daily variables for herbivore
   herbivore <- reset_daily_variables(herbivore)
 
@@ -83,7 +83,7 @@ run_daily_herbivore_simulation <- function(herbivore, plants, conditions,
     if (minute %% 60 == 0) {
       herbivore <- hourly_digestion_step(herbivore)
     }
-    
+
     # (d) Optionally record data for debugging
     daily_record[[minute]] <- list(
       minute              = minute,
@@ -107,7 +107,7 @@ run_daily_herbivore_simulation <- function(herbivore, plants, conditions,
   # Set water turnover to depend on temperature
   temperature_factor <- 1 + CONSTANTS$TEMP_WATER_SCALING * (today_temp - 20)  # simple example
   herbivore$daily_water_requirement <- calc_water_requirement(herbivore$mass) * temperature_factor
-  
+
   herbivore <- check_daily_water_balance(herbivore)
   herbivore <- calc_daily_energy_balance(herbivore)
 

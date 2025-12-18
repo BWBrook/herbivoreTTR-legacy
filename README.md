@@ -58,7 +58,7 @@ To run a minimal “CI-style” pipeline locally, set a targets profile:
 
 ```r
 Sys.setenv(TARGETS_PROFILE = "ci")
-targets::tar_make(callr_function = NULL, ask = FALSE)
+targets::tar_make(callr_function = NULL)
 ```
 
 ## Outputs

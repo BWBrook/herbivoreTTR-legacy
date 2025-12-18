@@ -53,4 +53,3 @@ test_that("calc_SWforcer uses trap1 and is bounded", {
   expect_true(all(y >= 0 & y <= 1))
   expect_equal(y, trap1(sw, 0.2, 0.8))
 })
-

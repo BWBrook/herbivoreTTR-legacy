@@ -23,7 +23,7 @@ CONSTANTS <- list(
   HANDLING_TIME_A = 1.65,      # Jeschke & Tollrian (2005)
   HANDLING_TIME_B = -0.766,    # Jeschke & Tollrian (2005)
   CONTINUE_K = 8,              # controls sensitivity to dp:dc mismatch
-  M_REF = 10,                  # sets the mass (kg) consumed on given   plant where size benefits saturate      
+  M_REF = 10,                  # sets the mass (kg) consumed on given   plant where size benefits saturate
   FORAGE_VEL_A = 0.73,         # Shipley et al. (1996)
   FORAGE_VEL_B = 0.04,         # Shipley et al. (1996)
   ENERGY_MAINTENANCE_A = 293,  # Kleiber (1961)
@@ -52,7 +52,7 @@ CONSTANTS <- list(
   PLANT_DENSITY = 0.25,     # local availability of plants in the area
   DP_TO_DC_TARGET = 0.2,    # digestible protein to digestible carbohydrate target
   TEMP_WATER_SCALING = 0.1, # scaling water requirements based on temperature
-  
+
   # Plot settings
   PLANTS_IN_X = 20,
   PLANTS_IN_Y = 20,
@@ -61,7 +61,7 @@ CONSTANTS <- list(
   PLANT_INITIAL_MASS_MIN = 1,                  # kg DM
   PLANT_INITIAL_MASS_MAX = 100,                # kg DM
   HERBIVORES_PER_PLOT = 1,                     # number of herbivores in a plot
-  
+
   # Thornley Transport Resistance (TTR) constants (mirroring C++ reference)
   K_LITTER        = 0.01,   # per day: litter production rate (proportion/day)
   K_M_LITTER      = 5,      # kg XDM: litter mass scale parameter

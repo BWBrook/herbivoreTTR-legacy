@@ -1,5 +1,4 @@
 test_that("TTR constants exist and are numeric with units documented inline", {
-  sys.source(file.path(testthat::test_path("..", ".."), "R", "constants.R"), envir = topenv())
   required <- c(
     "K_LITTER","K_M_LITTER","G_SHOOT","G_ROOT","G_DEFENCE",
     "K_C","K_N","K_M","PI_C","PI_N","Q_SCP","TR_C","TR_N",
@@ -12,4 +11,3 @@ test_that("TTR constants exist and are numeric with units documented inline", {
   vals <- unlist(CONSTANTS[required], use.names = FALSE)
   expect_true(all(is.finite(as.numeric(vals))))
 })
-

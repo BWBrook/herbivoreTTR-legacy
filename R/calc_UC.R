@@ -3,7 +3,7 @@
 #' Computes carbon uptake into the plant shoot compartment.
 #'
 #' @param plant_row Single-row data.frame or named list for a plant.
-#' @param CLeaf Numeric: available carbon in leaves [kg C].
+#' @param CLeaf Numeric: available carbon in leaves (kg C).
 #' @param K_C_forced Numeric: environmental forcing scalar for C uptake (unitless).
 #' @param K_M Numeric: Michaelis-Menten/Monod constant (unit depends on formulation).
 #' @param PI_C Numeric: photosynthetic input or driver (unit depends on formulation).

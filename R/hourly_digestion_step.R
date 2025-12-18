@@ -13,7 +13,24 @@
 #' @export
 hourly_digestion_step <- function(herbivore) {
   k <- as.integer(herbivore$MRT)  # digestion age index
+  normalize_queue <- function(v, k) {
+    v <- as.numeric(v)
+    if (length(v) < k) v <- c(v, rep(0, k - length(v)))
+    if (length(v) > k) v <- v[seq_len(k)]
+    v[is.na(v)] <- 0
+    v
+  }
+
   # 1) release
+  herbivore$digestion$bleaf   <- normalize_queue(herbivore$digestion$bleaf,   k)
+  herbivore$digestion$bstem   <- normalize_queue(herbivore$digestion$bstem,   k)
+  herbivore$digestion$bdef    <- normalize_queue(herbivore$digestion$bdef,    k)
+  herbivore$digestion$dc_leaf <- normalize_queue(herbivore$digestion$dc_leaf, k)
+  herbivore$digestion$dc_stem <- normalize_queue(herbivore$digestion$dc_stem, k)
+  herbivore$digestion$dp_leaf <- normalize_queue(herbivore$digestion$dp_leaf, k)
+  herbivore$digestion$dp_stem <- normalize_queue(herbivore$digestion$dp_stem, k)
+  herbivore$digestion$dp_def  <- normalize_queue(herbivore$digestion$dp_def,  k)
+
   digested_carbs <- herbivore$digestion$dc_leaf[k] + herbivore$digestion$dc_stem[k]
   digested_prot  <- herbivore$digestion$dp_leaf[k] + herbivore$digestion$dp_stem[k] + herbivore$digestion$dp_def[k]
 
@@ -25,7 +42,7 @@ hourly_digestion_step <- function(herbivore) {
     CONSTANTS$CARB_TO_MW * digested_carbs + CONSTANTS$PROTEIN_TO_MW * digested_prot
 
   # 2) shift by one hour (drop the released slot k; prepend 0)
-  shift_k <- function(v, k) c(0, v[seq_len(k - 1)], v[seq.int(k + 1, length(v))])
+  shift_k <- function(v, k) c(0, normalize_queue(v, k)[seq_len(k - 1)])
   herbivore$digestion$bleaf   <- shift_k(herbivore$digestion$bleaf,   k)
   herbivore$digestion$bstem   <- shift_k(herbivore$digestion$bstem,   k)
   herbivore$digestion$bdef    <- shift_k(herbivore$digestion$bdef,    k)

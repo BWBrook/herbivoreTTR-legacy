@@ -1,7 +1,7 @@
 #' Soil-water forcer envelope (skeleton)
 #'
 #' Computes a forcing scalar for soil water availability based on water content.
-#' Units: inputs in [kg or m^3 consistent with model], output is unitless scalar.
+#' Units: inputs in kg (or m^3) consistent with model; output is a unitless scalar.
 #'
 #' @param sw Numeric: current soil water.
 #' @param sw_w Numeric: wilting soil water threshold.

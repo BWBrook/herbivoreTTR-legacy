@@ -3,8 +3,7 @@ test_that("parity snapshots stay in sync with pipeline outputs", {
   withr::local_envvar(TARGETS_PROGRESS = "false")
   targets::tar_make(
     names = c("plants_day1_csv", "herb_day1_csv"),
-    callr_function = NULL,
-    ask = FALSE
+    callr_function = NULL
   )
 
   plants_path <- targets::tar_read(plants_day1_csv)

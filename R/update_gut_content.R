@@ -13,7 +13,7 @@ update_gut_content <- function(herbivore) {
   gut_content <- sum(herbivore$digestion$bleaf) +
                  sum(herbivore$digestion$bstem) +
                  sum(herbivore$digestion$bdef)
-                 
+
   herbivore$gut_content <- gut_content
   return(herbivore)
 }

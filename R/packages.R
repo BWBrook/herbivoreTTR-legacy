@@ -9,10 +9,11 @@
 #' @return Invisibly TRUE. No-op if pkgs is NULL/empty.
 ensure_packages_installed <- function(pkgs = NULL) {
   if (is.null(pkgs) || length(pkgs) == 0) return(invisible(TRUE))
-  if (!requireNamespace("pak", quietly = TRUE)) {
-    install.packages("pak")
+  pkgs <- unique(pkgs)
+  missing <- pkgs[!vapply(pkgs, requireNamespace, logical(1), quietly = TRUE)]
+  if (length(missing) > 0) {
+    utils::install.packages(missing)
   }
-  pak::pak(pkgs, ask = FALSE)
   invisible(TRUE)
 }
 
@@ -49,11 +50,13 @@ lib <- function(pkgs = c(
 #' @return Invisibly TRUE.
 bootstrap_renv <- function(action = c("restore", "init"), lockfile = "renv.lock", bare = TRUE) {
   action <- match.arg(action)
-  if (!requireNamespace("renv", quietly = TRUE)) install.packages("renv")
+  if (!requireNamespace("renv", quietly = TRUE)) utils::install.packages("renv")
   if (action == "restore" && file.exists(lockfile)) {
-    renv::restore(lockfile = lockfile, prompt = FALSE)
+    restore <- getExportedValue("renv", "restore")
+    restore(lockfile = lockfile, prompt = FALSE)
   } else if (action == "init") {
-    renv::init(bare = bare)
+    init <- getExportedValue("renv", "init")
+    init(bare = bare)
   } else {
     message("Lockfile not found; call bootstrap_renv('init') to initialise.")
   }

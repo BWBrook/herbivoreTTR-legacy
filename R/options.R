@@ -15,11 +15,13 @@ init_project_options <- function(seed = 20250811L) {
     scipen = 999
   )
   if (requireNamespace("lgr", quietly = TRUE)) {
-    logger <- lgr::get_logger("herbivoreTTR")
+    get_logger <- getExportedValue("lgr", "get_logger")
+    logger <- get_logger("herbivoreTTR")
     logger$set_threshold("info")
   }
   if (requireNamespace("progressr", quietly = TRUE)) {
-    progressr::handlers(global = TRUE)
+    handlers <- getExportedValue("progressr", "handlers")
+    handlers(global = TRUE)
   }
   invisible(TRUE)
 }

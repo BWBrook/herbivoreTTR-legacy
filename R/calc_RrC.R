@@ -1,7 +1,7 @@
 #' Root C resistance (skeleton)
 #'
 #' @inheritParams calc_RsC
-#' @param Mr Numeric: root biomass mass [kg].
+#' @param Mr Numeric: root biomass mass (kg).
 #' @note Write-target: plant$rrC
 calc_RrC <- function(TR_C, Mr, Q_SCP) {
   TR_C <- pmax(TR_C, 0)

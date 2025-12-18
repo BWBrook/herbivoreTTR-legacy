@@ -1,6 +1,7 @@
 #' Defence growth (skeleton)
 #'
 #' @inheritParams calc_Gs
+#' @param G_DEF_forced Numeric growth forcing scalar for defence allocation.
 #' @note Write-target: plant$gd
 calc_Gd <- function(plant_row, G_DEF_forced) {
   Md <- plant_row$md; Cd <- plant_row$cd; Nd <- plant_row$nd

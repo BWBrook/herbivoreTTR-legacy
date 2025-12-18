@@ -58,7 +58,7 @@ A WP is “Done” only when all are true:
 ## 3) Priority Queue (strict order)
 
 ### Line 0.3.x — Production backbone + contracts (make the model trustworthy to run)
-- [ ] **WP-0.3.1 — Baseline audit log + triage register**
+- [x] **WP-0.3.1 — Baseline audit log + triage register**
 - [ ] **WP-0.3.2 — CI gates (Linux): check + tests + lint + targets smoke**
 - [ ] **WP-0.3.3 — Cross-platform strategy (macOS/Windows) implemented or explicitly deferred**
 - [ ] **WP-0.3.4 — Output contract v0: schema_version + run manifest + schema docs**

@@ -1,7 +1,7 @@
 # Supporting utility functions
 
 #' Randomly select one element from a vector
-#' 
+#'
 #' @param vec A non-empty vector to sample from.
 #' @return A length-1 vector containing a single sampled element.
 #' @export

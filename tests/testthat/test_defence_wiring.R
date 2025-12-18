@@ -29,4 +29,3 @@ test_that("defence transport and growth are wired when enabled", {
   # Defence growth positive when pools > 0 and growth_env > 0
   expect_gte(out$gd[1], 0)
 })
-

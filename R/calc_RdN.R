@@ -1,7 +1,7 @@
 #' Defence N resistance (skeleton)
 #'
 #' @inheritParams calc_RsN
-#' @param Md Numeric: defence biomass mass [kg].
+#' @param Md Numeric: defence biomass mass (kg).
 #' @note Write-target: plant$rdN
 calc_RdN <- function(TR_N, Md, Q_SNP) {
   TR_N <- pmax(TR_N, 0)

@@ -8,3 +8,11 @@
 ^\.github$
 ^\.lintr$
 ^\.quarto$
+^\.cache$
+^\.pre-commit-config\.yaml$
+^\.Renviron$
+^\.Rhistory$
+^\.vscode$
+^data$
+^CITATION\.cff$
+^LICENSE\.md$

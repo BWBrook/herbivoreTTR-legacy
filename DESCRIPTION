@@ -11,7 +11,7 @@ Description: A quantitative plan-herbivore simulation model ported from C++.
     Implements a Thornley Transport Resistance (TTR) model for plant growth
     coupled with individual-based herbivore foraging behaviour.  This package
     aims to facilitate testing, calibration, and extension within the R ecosystem.
-License: MIT
+License: MIT + file LICENSE
 Depends:
     R (>= 3.5)
 Encoding: UTF-8
@@ -21,14 +21,22 @@ Imports:
     magrittr,
     rlang
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.3
 Suggests:
     covr,
+    lintr,
     knitr,
+    lgr,
+    pkgload,
+    progressr,
     pryr,
+    renv,
+    roxygen2,
     rmarkdown,
+    tarchetypes,
     targets,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    withr
 VignetteBuilder: knitr
 Language: en-US
 Config/testthat/edition: 3

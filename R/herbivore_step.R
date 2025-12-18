@@ -6,6 +6,7 @@
 #' @param herbivore list
 #' @param plants    data.frame
 #' @return list(herbivore=..., plants=...)
+#' @export
 herbivore_step <- function(herbivore, plants) {
 
   plot_width  <- sqrt(CONSTANTS$PLOT_SIZE)

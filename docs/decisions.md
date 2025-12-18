@@ -36,3 +36,13 @@ This file records decisions that are hard to reverse. Each entry should include 
 **Decision:** Initial releases target GitHub-style source distribution (source tarball and artefacts). CRAN submission is not a v1.0 requirement.  
 **Rationale:** The project is research-focused and may evolve quickly; CRAN constraints are heavy.  
 **Implications:** CI still enforces `R CMD check --as-cran` to keep the package healthy.
+
+## 2025-12-17 — Herbivore mass units in allometries
+**Decision:** Herbivore mass is stored in state as grams, but allometric equations for energy maintenance and locomotion costs are parameterised on kilograms; these functions convert g → kg internally.  
+**Rationale:** Keeps a single storage unit across the herbivore state while matching the source units used in the cited allometries.  
+**Implications:** Tests and documentation must reflect the g→kg conversion; downstream users should treat `mass` as grams in the public API.
+
+## 2025-12-17 — Digestion queue contract (MRT)
+**Decision:** Gut digestion queues are fixed-length numeric vectors of length `MRT` (hours), containing finite, non-negative values; the hourly update drops the final slot and prepends a zero slot. Any `NA` values encountered in digestion queues are treated as zero during normalisation.  
+**Rationale:** Prevents silent `NA` propagation and length drift, and makes domain invariants testable (gut content and daily intakes remain finite).  
+**Implications:** Fixing queue mechanics can change energy/water intake trajectories versus prior buggy runs; parity fixtures and reference artefacts must be reviewed and updated with justification when they change.

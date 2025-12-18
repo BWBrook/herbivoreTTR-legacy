@@ -1,0 +1,18 @@
+citHeader("To cite herbivoreTTR in publications use:")
+
+pkg_version <- tryCatch(
+  as.character(packageVersion("herbivoreTTR")),
+  error = function(e) "0.0.0.9000"
+)
+
+bibentry(
+  bibtype = "Manual",
+  title = "{herbivoreTTR}: Plant–Herbivore Simulation Using Thornley TTR Model",
+  author = person("Barry", "Brook"),
+  year = "2025",
+  note = sprintf("R package version %s", pkg_version),
+  textVersion = sprintf(
+    "Barry Brook (2025). herbivoreTTR: Plant–Herbivore Simulation Using Thornley TTR Model. R package version %s.",
+    pkg_version
+  )
+)

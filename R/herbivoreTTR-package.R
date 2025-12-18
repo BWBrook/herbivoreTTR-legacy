@@ -1,5 +1,3 @@
-"_PACKAGE"
-
 #' herbivoreTTR: Plant–Herbivore Simulation with TTR
 #'
 #' A quantitative plant–herbivore simulation model implementing a Thornley
@@ -11,5 +9,6 @@
 #'
 #' @keywords internal
 #' @importFrom magrittr %>%
-NULL
-
+#' @importFrom stats runif setNames
+#' @importFrom utils tail
+"_PACKAGE"

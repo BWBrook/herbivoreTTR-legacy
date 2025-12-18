@@ -31,4 +31,3 @@ test_that("resistances with Q=0 equal TR (bounded)", {
   expect_equal(calc_RsC(TR, M, Q), pmax(TR, 0))
   expect_equal(calc_RsN(TR, M, Q), pmax(TR, 0))
 })
-

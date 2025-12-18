@@ -16,9 +16,10 @@ test_that("calc_daily_energy_balance matches manual computation", {
   herb$intake_PE_day <- 1500
   herb$intake_NPE_day <- 3000
   herb$distance_moved <- 1000
-  maintenance_cost <- CONSTANTS$ENERGY_MAINTENANCE_A * (herb$mass ^ CONSTANTS$ENERGY_MAINTENANCE_B)
+  mass_kg <- herb$mass / 1000
+  maintenance_cost <- CONSTANTS$ENERGY_MAINTENANCE_A * (mass_kg ^ CONSTANTS$ENERGY_MAINTENANCE_B)
   locomotion_cost <- (herb$distance_moved / 1000) *
-    (CONSTANTS$ICL_A * (herb$mass ^ CONSTANTS$ICL_B)) / 100
+    (CONSTANTS$ICL_A * (mass_kg ^ CONSTANTS$ICL_B)) / 100
   expected <- herb$energy_balance + 4500 - (maintenance_cost + locomotion_cost)
   updated <- calc_daily_energy_balance(herb)
   expect_equal(updated$energy_balance, expected)
