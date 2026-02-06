@@ -81,3 +81,13 @@ This file records decisions that are hard to reverse. Each entry should include 
   
 **Rationale:** Prior instability risks included runaway pool growth and drift between duplicated defence mass representations (`bdef` vs `md`). A single defence mass semantic plus explicit numeric caps prevents silent divergence while retaining fail-fast diagnostics when behaviour leaves documented bounds.  
 **Implications:** TTR updates now fail fast on guardrail violations with contextual diagnostics; stress scenario artefacts and tests are required to confirm stability under documented stress inputs.
+
+## 2026-02-06 — Functional-type foraging split policy (v0.4.1)
+**Decision:** Grazer/browser distinction is enforced in tastiness scoring with explicit vegetation-type multipliers:
+- grazer (`herb_type = 0`): `GRAZER_GRASS_PREF > 1`, `GRAZER_WOODY_PREF < 1`;
+- browser (`herb_type = 1`): `BROWSER_WOODY_PREF > 1`, `BROWSER_GRASS_PREF < 1`.
+Browser browse-height gating remains enforced by `get_plants_within_range()`.
+
+**Rationale:** WP-0.4.1 requires measurable and reproducible diet-composition divergence in a controlled grass + tree scenario; browse-height filtering alone did not provide a robust ecological split.
+
+**Implications:** Functional-type behaviour is now auditable via `run_functional_type_scenario()` artefacts and regression tests that assert directional diet differences and zero browser intake from unreachable woody plants.

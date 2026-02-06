@@ -53,6 +53,10 @@ Key parameters (from `parameter_reference_table()`):
 | `DP_TO_DC_TARGET` | `0.2` | unitless ratio | Daily target ratio for digestible protein:digestible carbohydrate | Model target proxy definition (v0) |
 | `MIN_SHOOT` | `0.001` | kg DM | Minimum shoot biomass left for plant persistence | Model assumption (v0) |
 | `BROWSE_HEIGHT` | `2` | m | Maximum browse height for browser/mixed access | Model assumption (v0) |
+| `GRAZER_GRASS_PREF` | `1.5` | unitless | Grazer tastiness multiplier for grass plants (`veg_type` 0/1) | Functional-type policy (v0.4.1) |
+| `GRAZER_WOODY_PREF` | `0.5` | unitless | Grazer tastiness multiplier for woody plants (`veg_type` 2) | Functional-type policy (v0.4.1) |
+| `BROWSER_GRASS_PREF` | `0.5` | unitless | Browser tastiness multiplier for grass plants (`veg_type` 0/1) | Functional-type policy (v0.4.1) |
+| `BROWSER_WOODY_PREF` | `1.5` | unitless | Browser tastiness multiplier for woody plants (`veg_type` 2) | Functional-type policy (v0.4.1) |
 | `SANITY_MAX_DAILY_ENERGY_JUMP` | `100000` | kJ / day | Max tolerated day-to-day energy jump guardrail | Domain sanity policy (v0) |
 | `SANITY_MAX_DAILY_WATER_JUMP` | `50000` | water units / day | Max tolerated day-to-day water jump guardrail | Domain sanity policy (v0) |
 
@@ -88,6 +92,16 @@ Two related target ratios are present:
 Current interpretation:
 - Foraging heuristics are currently implemented around `DP_TO_DC_TARGET` in decision scoring.
 - Energy accounting records `DailyNPEI` and `DailyPEI` for reporting and downstream interpretation.
+
+## Functional-type selection policy (WP-0.4.1)
+
+Current v0.4.1 behavior in `calc_plant_tastiness()`:
+- Grazers (`herb_type = 0`) up-weight grasses and down-weight woody plants.
+- Browsers (`herb_type = 1`) up-weight woody plants and down-weight grasses.
+- Browser reach constraints still apply via `get_plants_within_range()` and `BROWSE_HEIGHT`.
+
+The controlled scenario helper `run_functional_type_scenario()` writes reproducible diet-split artefacts under:
+- `artefacts/canonical_runs/functional_types_v0/`
 
 ## Citations named in constants
 

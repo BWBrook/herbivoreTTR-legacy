@@ -104,5 +104,23 @@ list(
       scenario_parameters = canonical_scenario_parameters
     ),
     format = "file"
+  ),
+
+  targets::tar_target(
+    functional_type_bundle_files,
+    {
+      functional_type_run <- run_functional_type_scenario(
+        minute_limit = 120L,
+        seed = canonical_seed,
+        scenario_slug = "functional_types_v0"
+      )
+      c(
+        functional_type_run$metrics_path,
+        functional_type_run$plants_initial_path,
+        functional_type_run$plants_final_paths,
+        functional_type_run$manifest_path
+      )
+    },
+    format = "file"
   )
 )

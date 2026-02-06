@@ -46,6 +46,10 @@ CONSTANTS <- list(
   MIN_SHOOT = 1e-3,         # kg DM, minimum shoot biomass [kg] at which herbivore will cease to eat (1e3 = 1g)
   LEAF_HEIGHT = 1.0,        # height factor for browsing calculation
   BROWSE_HEIGHT = 2.0,      # [m] maximum height at which the herbivore can browse (not utilised for grazers)
+  GRAZER_GRASS_PREF = 1.5,  # tastiness multiplier for grass plants (veg_type 0/1) when herb_type == 0
+  GRAZER_WOODY_PREF = 0.5,  # tastiness multiplier for woody plants (veg_type 2) when herb_type == 0
+  BROWSER_GRASS_PREF = 0.5, # tastiness multiplier for grass plants (veg_type 0/1) when herb_type == 1
+  BROWSER_WOODY_PREF = 1.5, # tastiness multiplier for woody plants (veg_type 2) when herb_type == 1
   DETECTION_DISTANCE = 10,  # maximum distance at which a herbivore can detect plants [m]
   EAT_RADIUS = 1.0,         # distance at which a herbivore can commence eating a plant [m]
   NPE_TO_PE_TARGET = 4.55,  # ratio non-protein energy to protein energy

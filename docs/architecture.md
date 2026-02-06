@@ -99,6 +99,9 @@ Responsibilities:
 - Allometric trait calculation from body mass
 - Candidate plant detection within range (toroidal distance)
 - Plant choice using nutritional mismatch + distance + defence
+- Functional-type preference multipliers:
+  - grazer (`herb_type = 0`): grass-upweighted, woody-downweighted
+  - browser (`herb_type = 1`): woody-upweighted, grass-downweighted
 - Movement and intake mechanics (handling time, bite size, gut capacity constraints)
 - Digestion advancement and daily budget bookkeeping
 
@@ -118,6 +121,7 @@ Responsibilities:
 Interfaces:
 - `run_daily_herbivore_simulation(herbivore, plants, conditions, day_of_simulation, minute_limit, ...)`
 - `run_herbivore_days(days, minute_limit, ...)`
+- `run_functional_type_scenario(minute_limit, seed, ...)` (controlled grazer/browser artefact helper)
 
 For Beta:
 - `run_daily_simulation_population(herbivores, plants, conditions, ...)`

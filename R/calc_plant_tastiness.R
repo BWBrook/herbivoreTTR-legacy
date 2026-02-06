@@ -23,7 +23,12 @@ calc_plant_tastiness <- function(plants_in_range, herbivore, desired_dp_dc_ratio
       denom <- log1p(CONSTANTS$M_REF)
       if (!is.finite(denom) || denom <= 0) 1 else log1p(ms) / denom
     }
-    tastiness <- size_bonus / (diff_ratio + distance + defence)
+    functional_multiplier <- if (!"veg_type" %in% names(plants_in_range)) {
+      rep(1, nrow(plants_in_range))
+    } else {
+      functional_type_preference_multiplier(herbivore = herbivore, veg_type = veg_type)
+    }
+    tastiness <- functional_multiplier * size_bonus / (diff_ratio + distance + defence)
     tastiness[!is.finite(tastiness)] <- 0
     tastiness
   })

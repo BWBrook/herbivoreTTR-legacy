@@ -69,7 +69,7 @@ A WP is “Done” only when all are true:
 - [x] **WP-0.3.9 — TTR stability & defence controls: guardrails + tests**
 
 ### Line 0.4.x — Herbivore behavioural realism (make the ecology defensible)
-- [ ] **WP-0.4.1 — Functional types validated: grazer vs browser are measurably distinct**
+- [x] **WP-0.4.1 — Functional types validated: grazer vs browser are measurably distinct**
 - [ ] **WP-0.4.2 — Mixed feeder policy validated: explicit interpolation with measurable outcomes**
 - [ ] **WP-0.4.3 — Plant selection contract: tastiness scoring + stochastic choice documented & tested**
 - [ ] **WP-0.4.4 — Movement contract: torus geometry + disruption probability parameterised & tested**
