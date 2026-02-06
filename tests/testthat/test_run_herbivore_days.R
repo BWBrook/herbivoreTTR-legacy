@@ -11,6 +11,11 @@ test_that("run_herbivore_days returns multi-day summary with intake", {
       "today_temp",
       "total_distance_moved",
       "total_biomass_eaten",
+      "daily_water_requirement",
+      "daily_water_forage",
+      "daily_metabolic_water",
+      "daily_water_drinking",
+      "daily_net_water_balance",
       "energy_balance",
       "water_balance"
     )

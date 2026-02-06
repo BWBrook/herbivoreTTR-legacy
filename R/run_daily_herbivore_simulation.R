@@ -170,6 +170,11 @@ run_daily_herbivore_simulation <- function(herbivore, plants, conditions,
     today_temp            = today_temp,
     total_distance_moved  = herbivore$distance_moved,
     total_biomass_eaten   = herbivore$intake_total_day,
+    daily_water_requirement = herbivore$daily_water_requirement,
+    daily_water_forage = herbivore$intake_water_forage,
+    daily_metabolic_water = herbivore$metabolic_water_day,
+    daily_water_drinking = herbivore$intake_water_drinking,
+    daily_net_water_balance = herbivore$daily_net_water_balance,
     energy_balance        = herbivore$energy_balance,
     water_balance         = herbivore$water_balance
   )

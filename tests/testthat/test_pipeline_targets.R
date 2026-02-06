@@ -66,7 +66,8 @@ test_that("pipeline manifest lists expected targets and file formats", {
     "selection_contract_bundle_files",
     "movement_contract_bundle_files",
     "foraging_contract_bundle_files",
-    "digestion_contract_bundle_files"
+    "digestion_contract_bundle_files",
+    "water_contract_bundle_files"
   ) %in% manifest$name))
 
   file_targets <- manifest[
@@ -81,7 +82,8 @@ test_that("pipeline manifest lists expected targets and file formats", {
       "selection_contract_bundle_files",
       "movement_contract_bundle_files",
       "foraging_contract_bundle_files",
-      "digestion_contract_bundle_files"
+      "digestion_contract_bundle_files",
+      "water_contract_bundle_files"
     ),
   ]
   expect_true(all(file_targets$format == "file"))

@@ -39,6 +39,7 @@ init_herbivore <- function(mass = 5e5, herb_type = 0, MRT = 24) {
     metabolic_water_day = 0,                       # total daily metabolic water produced [g]
     intake_water_forage = 0,                       # total daily water intake from forage [g]
     intake_water_drinking = 0,                     # total daily water intake from drinking [g]
+    daily_net_water_balance = 0,                   # net daily water balance increment [g]
     energy_balance = 0,                            # energy balance [kJ]
     water_balance = 0,                             # water balance [g]
     digestion = empty_digestion_state(MRT)

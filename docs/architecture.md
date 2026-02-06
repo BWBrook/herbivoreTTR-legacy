@@ -115,7 +115,8 @@ Responsibilities:
 - Intake mechanics:
   - per-minute intake limit combines handling rate, gut-capacity remainder, and an optional mechanical bite cap,
   - defence fraction (`bdef / (bleaf + bstem + bdef)`) applies a multiplicative handling penalty,
-  - edible removal is capped to maintain minimum standing shoot biomass (`MIN_SHOOT`) per plant.
+  - edible removal is capped to maintain minimum standing shoot biomass (`MIN_SHOOT`) per plant,
+  - forage-water intake is accrued from plant `qshoot` in proportion to consumed shoot biomass.
 - Digestion advancement and daily budget bookkeeping
   - `MRT` is an explicit hourly parameter with validated bounds; queue resizing preserves queued mass totals
 
@@ -125,6 +126,7 @@ Interfaces:
 - `hourly_digestion_step(herbivore) -> herbivore`
 - `calc_daily_energy_balance(herbivore) -> herbivore`
 - `check_daily_water_balance(herbivore, ...) -> herbivore`
+  - updates explicit daily water terms: requirement, forage water, metabolic water, drinking water, and daily net water balance.
 
 ### 3) Simulation orchestration
 Responsibilities:

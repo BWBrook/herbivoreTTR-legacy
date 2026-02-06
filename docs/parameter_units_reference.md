@@ -191,6 +191,32 @@ Expected directional effects:
 Controlled digestion-contract artefacts are written by `run_digestion_contract_scenario()` under:
 - `artefacts/canonical_runs/digestion_contract_v1/`
 
+## Water balance v1 contract (WP-0.4.7)
+
+Current v0.4.7 behavior:
+- Forage water intake is accrued during feeding based on available shoot water:
+  - `water_per_kg_dm = qshoot / (bleaf + bstem + bdef)`
+  - `forage_water_intake_kg = intake_dm_kg * water_per_kg_dm` (bounded by remaining `qshoot`).
+- Plant `qshoot` is reduced by consumed forage water.
+- End-of-day water accounting explicitly tracks:
+  - `daily_water_requirement` (temperature-scaled in daily runner),
+  - `intake_water_forage`,
+  - `metabolic_water_day`,
+  - `intake_water_drinking` (deficit-closure term),
+  - `daily_net_water_balance = metabolic + forage + drinking - requirement`,
+  - cumulative `water_balance` (sum of daily net balances).
+- Drinking penalty:
+  - when deficit is positive, `distance_moved` increments by `DIST_TO_WATER`,
+  - this distance increment contributes an energetic cost through `calc_daily_energy_balance()`.
+
+Expected directional effects:
+- under low forage-water availability, drinking triggers and adds distance/energy cost,
+- under high forage-water availability, drinking is not required,
+- all water-accounting terms remain finite and internally consistent.
+
+Controlled water-contract artefacts are written by `run_water_contract_scenario()` under:
+- `artefacts/canonical_runs/water_contract_v1/`
+
 ## Citations named in constants
 
 - Jeschke, J.M. and Tollrian, R. (2005).

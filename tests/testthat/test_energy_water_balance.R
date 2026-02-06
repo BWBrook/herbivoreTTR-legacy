@@ -38,6 +38,7 @@ test_that("check_daily_water_balance adds drinking distance penalty", {
     res$water_balance,
     20 + 10 + 70 - 100
   )
+  expect_equal(res$daily_net_water_balance, 0)
 
   res$metabolic_water_day <- 200
   res$intake_water_forage <- 0

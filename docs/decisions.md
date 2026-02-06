@@ -154,3 +154,14 @@ Operational contract:
 **Rationale:** WP-0.4.6 requires biologically plausible day-1 digestion dynamics and robustness for large herbivores. Zero-initialisation combined with long retention windows can produce artificial early-day starvation signals that are modelling artefacts, not ecology.
 
 **Implications:** Canonical day-1 herbivore energy outputs change relative to zero-initialisation fixtures; parity fixtures and interpretation notes must be refreshed with rationale. Digestion contract artefacts (`digestion_contract_v1`) and dedicated tests now guard queue invariants, MRT sensitivity, and plausible release timing.
+
+## 2026-02-06 — Water balance v1 policy: forage-water uptake + explicit daily water terms + drinking distance penalty (v0.4.7)
+**Decision:** Water accounting is promoted to an explicit daily contract:
+- forage water is accrued during `herbivore_eat()` from plant shoot water (`qshoot`) in proportion to consumed shoot dry matter and deducted from `qshoot`,
+- daily water closure uses explicit terms (`daily_water_requirement`, `intake_water_forage`, `metabolic_water_day`, `intake_water_drinking`),
+- daily net water balance is tracked as `daily_net_water_balance = metabolic + forage + drinking - requirement`,
+- drinking deficit closure increases daily distance by `DIST_TO_WATER`, so energetic drinking cost is represented via locomotion energy.
+
+**Rationale:** WP-0.4.7 requires water balance to be observable, testable, and behaviour-coupled. Prior implementation tracked fields but did not wire forage-water uptake in feeding, leaving water dynamics under-specified.
+
+**Implications:** Canonical day outputs may change where forage-water uptake alters drinking requirements and thus movement/energy costs. Water contract artefacts (`water_contract_v1`) and dedicated tests now guard trigger behavior, energetic penalty semantics, and finite/consistent water bookkeeping.

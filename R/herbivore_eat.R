@@ -31,6 +31,7 @@ herbivore_eat <- function(herbivore, plants) {
   bleaf <- ifelse(is.finite(plant$bleaf), plant$bleaf, 0)
   bstem <- ifelse(is.finite(plant$bstem), plant$bstem, 0)
   bdef  <- if ("bdef" %in% names(plant)) ifelse(is.finite(plant$bdef), plant$bdef, 0) else 0
+  qshoot <- if ("qshoot" %in% names(plant)) ifelse(is.finite(plant$qshoot), plant$qshoot, 0) else NA_real_
   total_shoot <- bleaf + bstem + bdef
   if (!is.finite(total_shoot) || total_shoot <= 0) {
     return(list(herbivore = herbivore, plants = plants))
@@ -84,6 +85,14 @@ herbivore_eat <- function(herbivore, plants) {
   stem_intake_kg <- potential_intake_kg * share_stem
   def_intake_kg  <- potential_intake_kg * share_def
 
+  forage_water_intake_kg <- 0
+  if (is.finite(qshoot) && qshoot > 0 && total_shoot > 0) {
+    water_per_kg_dm <- qshoot / total_shoot
+    if (!is.finite(water_per_kg_dm) || water_per_kg_dm < 0) water_per_kg_dm <- 0
+    forage_water_intake_kg <- min(qshoot, potential_intake_kg * water_per_kg_dm)
+    if (!is.finite(forage_water_intake_kg) || forage_water_intake_kg < 0) forage_water_intake_kg <- 0
+  }
+
   ## 4) Push grams into the first hour slot of digestion queues
   herbivore$MRT <- resolve_mrt_hours(herbivore$MRT)
   if (!is.list(herbivore$digestion)) {
@@ -115,10 +124,14 @@ herbivore_eat <- function(herbivore, plants) {
   plants$bstem[row_idx] <- new_bstem
   plants$bdef[row_idx]  <- new_bdef
   plants$ms[row_idx]    <- new_ms
+  if ("qshoot" %in% names(plants)) {
+    plants$qshoot[row_idx] <- max(qshoot - forage_water_intake_kg, 0)
+  }
 
   ## 6) Update herbivore daily totals and gut content
   herbivore$intake_total_day <- herbivore$intake_total_day + potential_intake_kg * 1000
   herbivore$intake_defence_day <- herbivore$intake_defence_day + def_intake_kg * 1000
+  herbivore$intake_water_forage <- herbivore$intake_water_forage + forage_water_intake_kg * 1000
   herbivore <- update_gut_content(herbivore)
 
   list(herbivore = herbivore, plants = plants)

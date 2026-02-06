@@ -211,5 +211,22 @@ list(
       )
     },
     format = "file"
+  ),
+
+  targets::tar_target(
+    water_contract_bundle_files,
+    {
+      water_run <- run_water_contract_scenario(
+        seed = canonical_seed,
+        minute_limit = 360L,
+        scenario_slug = "water_contract_v1"
+      )
+      c(
+        water_run$probe_path,
+        water_run$summary_path,
+        water_run$manifest_path
+      )
+    },
+    format = "file"
   )
 )
