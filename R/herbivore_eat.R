@@ -85,16 +85,13 @@ herbivore_eat <- function(herbivore, plants) {
   def_intake_kg  <- potential_intake_kg * share_def
 
   ## 4) Push grams into the first hour slot of digestion queues
-  # Ensure queues exist (length >= 1); if not, allocate length 1
-  ensure_queue <- function(v) if (length(v) >= 1L) v else numeric(1L)
-  herbivore$digestion$bleaf   <- ensure_queue(herbivore$digestion$bleaf)
-  herbivore$digestion$bstem   <- ensure_queue(herbivore$digestion$bstem)
-  herbivore$digestion$bdef    <- ensure_queue(herbivore$digestion$bdef)
-  herbivore$digestion$dc_leaf <- ensure_queue(herbivore$digestion$dc_leaf)
-  herbivore$digestion$dc_stem <- ensure_queue(herbivore$digestion$dc_stem)
-  herbivore$digestion$dp_leaf <- ensure_queue(herbivore$digestion$dp_leaf)
-  herbivore$digestion$dp_stem <- ensure_queue(herbivore$digestion$dp_stem)
-  herbivore$digestion$dp_def  <- ensure_queue(herbivore$digestion$dp_def)
+  herbivore$MRT <- resolve_mrt_hours(herbivore$MRT)
+  if (!is.list(herbivore$digestion)) {
+    herbivore$digestion <- empty_digestion_state(herbivore$MRT)
+  }
+  for (nm in digestion_queue_names()) {
+    herbivore$digestion[[nm]] <- normalize_digestion_queue(herbivore$digestion[[nm]], herbivore$MRT)
+  }
 
   # DM -> grams into biomass queues
   herbivore$digestion$bleaf[1] <- herbivore$digestion$bleaf[1] + leaf_intake_kg * 1000
@@ -102,14 +99,11 @@ herbivore_eat <- function(herbivore, plants) {
   herbivore$digestion$bdef[1]  <- herbivore$digestion$bdef[1]  + def_intake_kg  * 1000
 
   # Schedule digestible grams (carb/protein) for later release
-  digestible_carbs <- function(dm_kg) dm_kg * 1000 * CONSTANTS$FRACTION_C * CONSTANTS$PROP_DIGEST_SC
-  digestible_prot  <- function(dm_kg) dm_kg * 1000 * CONSTANTS$FRACTION_N * CONSTANTS$N_TO_PROTEIN * CONSTANTS$PROP_DIGEST_TP
-
-  herbivore$digestion$dc_leaf[1] <- herbivore$digestion$dc_leaf[1] + digestible_carbs(leaf_intake_kg)
-  herbivore$digestion$dc_stem[1] <- herbivore$digestion$dc_stem[1] + digestible_carbs(stem_intake_kg)
-  herbivore$digestion$dp_leaf[1] <- herbivore$digestion$dp_leaf[1] + digestible_prot(leaf_intake_kg)
-  herbivore$digestion$dp_stem[1] <- herbivore$digestion$dp_stem[1] + digestible_prot(stem_intake_kg)
-  herbivore$digestion$dp_def[1]  <- herbivore$digestion$dp_def[1]  + digestible_prot(def_intake_kg)
+  herbivore$digestion$dc_leaf[1] <- herbivore$digestion$dc_leaf[1] + digestible_carbs_from_biomass_kg(leaf_intake_kg)
+  herbivore$digestion$dc_stem[1] <- herbivore$digestion$dc_stem[1] + digestible_carbs_from_biomass_kg(stem_intake_kg)
+  herbivore$digestion$dp_leaf[1] <- herbivore$digestion$dp_leaf[1] + digestible_protein_from_biomass_kg(leaf_intake_kg)
+  herbivore$digestion$dp_stem[1] <- herbivore$digestion$dp_stem[1] + digestible_protein_from_biomass_kg(stem_intake_kg)
+  herbivore$digestion$dp_def[1]  <- herbivore$digestion$dp_def[1]  + digestible_protein_from_biomass_kg(def_intake_kg)
 
   ## 5) Update plant state (in kg) for the target row only
   new_bleaf <- max(bleaf - leaf_intake_kg, 0)

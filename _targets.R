@@ -193,5 +193,23 @@ list(
       )
     },
     format = "file"
+  ),
+
+  targets::tar_target(
+    digestion_contract_bundle_files,
+    {
+      digestion_run <- run_digestion_contract_scenario(
+        seed = canonical_seed,
+        hours = 24L,
+        scenario_slug = "digestion_contract_v1"
+      )
+      c(
+        digestion_run$hourly_path,
+        digestion_run$probe_summary_path,
+        digestion_run$contract_summary_path,
+        digestion_run$manifest_path
+      )
+    },
+    format = "file"
   )
 )

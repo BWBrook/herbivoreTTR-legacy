@@ -74,8 +74,22 @@ run_daily_herbivore_simulation <- function(herbivore, plants, conditions,
   )
 
   # MRT allocation guard
-  if (length(herbivore$digestion$dc_leaf) != herbivore$MRT) {
-    herbivore <- set_herbivore_MRT(herbivore, herbivore$MRT)
+  herbivore$MRT <- resolve_mrt_hours(herbivore$MRT)
+  digestion_lengths <- if (is.list(herbivore$digestion)) {
+    vapply(
+      digestion_queue_names(),
+      function(nm) {
+        queue <- herbivore$digestion[[nm]]
+        if (is.null(queue)) 0L else as.integer(length(queue))
+      },
+      integer(1L)
+    )
+  } else {
+    integer()
+  }
+  if (length(digestion_lengths) != length(digestion_queue_names()) ||
+      any(digestion_lengths != herbivore$MRT)) {
+    herbivore <- set_herbivore_MRT(herbivore, herbivore$MRT, preserve_content = TRUE)
   }
 
   # 3) Optionally store daily water requirement if you want

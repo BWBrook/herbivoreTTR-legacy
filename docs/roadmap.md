@@ -74,7 +74,7 @@ A WP is “Done” only when all are true:
 - [x] **WP-0.4.3 — Plant selection contract: tastiness scoring + stochastic choice documented & tested**
 - [x] **WP-0.4.4 — Movement contract: torus geometry + disruption probability parameterised & tested**
 - [x] **WP-0.4.5 — Foraging rate & defence handling penalty validated & documented**
-- [ ] **WP-0.4.6 — Digestion model v1: hourly queues + realistic init + MRT parameter policy**
+- [x] **WP-0.4.6 — Digestion model v1: hourly queues + realistic init + MRT parameter policy**
 - [ ] **WP-0.4.7 — Water balance v1: metabolic water + drinking penalty + outputs**
 - [ ] **WP-0.4.8 — Nutrient targeting vs energy-only comparison + “day-in-life” artefact report**
 

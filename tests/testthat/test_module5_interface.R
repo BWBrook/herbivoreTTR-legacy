@@ -60,6 +60,7 @@ test_that("herbivore_step calls eat and updates kg/g consistently", {
   herb$selected_plant_id <- 1L
   herb$behaviour <- "EATING"
   herb$gut_capacity <- 2000  # g
+  herb <- initialise_herbivore_digestion(herb)
   herb$handling_time <- 1    # min/g
   herb$bite_size <- 100      # g
   res <- herbivore_step(herb, plants)

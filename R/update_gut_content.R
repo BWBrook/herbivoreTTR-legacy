@@ -10,10 +10,16 @@
 #' # herbivore <- update_gut_content(herbivore)
 #' @export
 update_gut_content <- function(herbivore) {
-  gut_content <- sum(herbivore$digestion$bleaf) +
-                 sum(herbivore$digestion$bstem) +
-                 sum(herbivore$digestion$bdef)
+  k <- resolve_mrt_hours(herbivore$MRT)
+  if (!is.list(herbivore$digestion)) {
+    herbivore$digestion <- empty_digestion_state(k)
+  }
 
-  herbivore$gut_content <- gut_content
+  biomass_queues <- c("bleaf", "bstem", "bdef")
+  for (nm in biomass_queues) {
+    herbivore$digestion[[nm]] <- normalize_digestion_queue(herbivore$digestion[[nm]], k)
+  }
+
+  herbivore$gut_content <- sum(unlist(herbivore$digestion[biomass_queues], use.names = FALSE))
   return(herbivore)
 }

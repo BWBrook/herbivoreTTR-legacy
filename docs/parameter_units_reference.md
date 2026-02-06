@@ -49,6 +49,13 @@ Key parameters (from `parameter_reference_table()`):
 | `ICL_B` | `0.7` | unitless | Locomotion cost allometry exponent | Taylor et al. (1980) |
 | `WATER_TURNOVER` | `0.088` | L / kg body mass / day | Daily water turnover coefficient | McFarlane (1965) |
 | `DIST_TO_WATER` | `100` | m / day | Distance travelled to drink when deficit occurs | Model assumption (v0) |
+| `HERBIVORE_MRT` | `24` | hour | Default mean retention time used for canonical herbivore initialisation | Digestion policy (v0.4.6) |
+| `MRT_MIN_HOURS` | `1` | hour | Minimum allowed explicit MRT parameter | Digestion policy guardrail (v0.4.6) |
+| `MRT_MAX_HOURS` | `72` | hour | Maximum allowed explicit MRT parameter | Digestion policy guardrail (v0.4.6) |
+| `DIGESTION_INIT_FILL_FRACTION` | `0.35` | unitless fraction | Initial gut-fill fraction used to seed digestion queues | Digestion initialisation policy (v0.4.6) |
+| `DIGESTION_INIT_LEAF_FRACTION` | `0.7` | unitless fraction | Seeded gut biomass share allocated to leaf pool | Digestion initialisation policy (v0.4.6) |
+| `DIGESTION_INIT_STEM_FRACTION` | `0.25` | unitless fraction | Seeded gut biomass share allocated to stem pool | Digestion initialisation policy (v0.4.6) |
+| `DIGESTION_INIT_DEFENCE_FRACTION` | `0.05` | unitless fraction | Seeded gut biomass share allocated to defence pool | Digestion initialisation policy (v0.4.6) |
 | `NPE_TO_PE_TARGET` | `4.55` | unitless ratio | Daily target ratio for non-protein:protein energy | Model target definition (v0) |
 | `DP_TO_DC_TARGET` | `0.2` | unitless ratio | Daily target ratio for digestible protein:digestible carbohydrate | Model target proxy definition (v0) |
 | `MIN_SHOOT` | `0.001` | kg DM | Minimum shoot biomass left for plant persistence | Model assumption (v0) |
@@ -163,6 +170,26 @@ Current v0.4.5 behavior in `herbivore_eat()`:
 
 Controlled foraging-contract artefacts are written by `run_foraging_contract_scenario()` under:
 - `artefacts/canonical_runs/foraging_contract_v0/`
+
+## Digestion model v1 contract (WP-0.4.6)
+
+Current v0.4.6 behavior:
+- Digestion queues are tracked hourly and shifted once per simulated hour.
+- `MRT` is an explicit parameter in hours and must lie in `[MRT_MIN_HOURS, MRT_MAX_HOURS]`.
+- Queue initialization uses a non-zero steady-state fill assumption:
+  - total seeded gut biomass (g) = `gut_capacity * DIGESTION_INIT_FILL_FRACTION`
+  - seeded biomass is distributed across `bleaf`, `bstem`, `bdef` using
+    `DIGESTION_INIT_LEAF_FRACTION`, `DIGESTION_INIT_STEM_FRACTION`, `DIGESTION_INIT_DEFENCE_FRACTION`
+  - digestible carbohydrate and protein queues are seeded from those biomass pools using the same conversion factors as minute-level intake scheduling.
+- Queue resizing for `MRT` changes preserves queued mass totals by redistributing each queue uniformly across the new queue length.
+
+Expected directional effects:
+- shorter `MRT` releases digestible energy earlier (higher day-1 release under matched seeded gut content),
+- longer `MRT` delays release but remains finite and non-negative,
+- default large-herbivore runs avoid pathological “all-zero day-1 digestion” behavior due to non-zero queue initialisation.
+
+Controlled digestion-contract artefacts are written by `run_digestion_contract_scenario()` under:
+- `artefacts/canonical_runs/digestion_contract_v1/`
 
 ## Citations named in constants
 

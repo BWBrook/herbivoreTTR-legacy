@@ -141,3 +141,16 @@ The available-shoot limit is computed from component pools (`bleaf + bstem + bde
 **Rationale:** WP-0.4.5 requires measurable defence handling penalties and an enforced minimum residual biomass rule. Computing availability from component pools makes the residual-floor contract robust even if `ms` and component pools diverge.
 
 **Implications:** Defence effects on intake rate and residual-floor behavior are now contract-tested and auditable through `foraging_contract_v0` artefacts.
+
+## 2026-02-06 — Digestion model v1 policy: explicit MRT bounds + steady-state queue initialisation (v0.4.6)
+**Decision:** Digestion queues are initialised with a non-zero steady-state fill assumption instead of all-zero vectors. `MRT` remains an explicit user-facing parameter, defaults to `CONSTANTS$HERBIVORE_MRT` (24 h), and is validated within `[MRT_MIN_HOURS, MRT_MAX_HOURS]` (currently `[1, 72]`). Queue resizing for MRT changes preserves queued mass totals by redistribution rather than dropping to zero.
+
+Operational contract:
+- initial seeded gut biomass = `gut_capacity * DIGESTION_INIT_FILL_FRACTION`,
+- seeded biomass is split across `bleaf`, `bstem`, `bdef` using digestion init fractions,
+- digestible queues are seeded from biomass queues using the same carb/protein conversion factors used during intake scheduling,
+- hourly digestion remains a strict queue shift where terminal slot material is released to daily intake counters and metabolic-water accounting.
+
+**Rationale:** WP-0.4.6 requires biologically plausible day-1 digestion dynamics and robustness for large herbivores. Zero-initialisation combined with long retention windows can produce artificial early-day starvation signals that are modelling artefacts, not ecology.
+
+**Implications:** Canonical day-1 herbivore energy outputs change relative to zero-initialisation fixtures; parity fixtures and interpretation notes must be refreshed with rationale. Digestion contract artefacts (`digestion_contract_v1`) and dedicated tests now guard queue invariants, MRT sensitivity, and plausible release timing.

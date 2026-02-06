@@ -32,6 +32,13 @@ CONSTANTS <- list(
   ICL_B = 0.7,                 # Taylor (1980)
   WATER_TURNOVER = 0.088,      # water turnover [L/kg body mass/24 hrs] for camels, taken from McFarlane (1965). (cattle = 0.148, sheep = 0.110, camels = 0.061, red kangaroo = 0.088)
   DIST_TO_WATER = 1e2,         # average distance to a water point in m (assume 50m each way, so 100m total)
+  HERBIVORE_MRT = 24,          # default mean gut retention time [hours] for canonical large-herbivore runs
+  MRT_MIN_HOURS = 1,           # lower bound for accepted MRT parameter values [hours]
+  MRT_MAX_HOURS = 72,          # upper bound for accepted MRT parameter values [hours]
+  DIGESTION_INIT_FILL_FRACTION = 0.35, # initial gut fill fraction used to seed digestion queues
+  DIGESTION_INIT_LEAF_FRACTION = 0.70, # seeded gut biomass share allocated to leaf material
+  DIGESTION_INIT_STEM_FRACTION = 0.25, # seeded gut biomass share allocated to stem material
+  DIGESTION_INIT_DEFENCE_FRACTION = 0.05, # seeded gut biomass share allocated to defence material
 
   # Conversion constants
   CARB_TO_ENERGY = 16.7,    # kJ/g :  Felton et al. (2017)
@@ -109,9 +116,8 @@ CONSTANTS <- list(
   HERBIVORY       = 1,      # 0/1 switch: enable herbivory in daily loop
   DEFENCE_ENABLED = 0,      # 0/1 switch: enable defence transport/growth wiring
 
-    # Time settings
+  # Time settings
   SPIN_UP_LENGTH = 5, # number of years to run vegetation model before herbivory switches on
-  HERBIVORE_MRT = 24, # mean gut retention time in hours (16 to 48 hours, default to 28)
 
   # OTHER SETTINGS
   TOLERANCE = 0.0001 # calculation buffer

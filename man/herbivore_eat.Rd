@@ -21,5 +21,7 @@ Internal helper that transfers intake from a selected plant to the
 herbivore's gut and updates plant biomass. Handles constraints:
 handling-rate, gut capacity, remaining plant biomass, and an optional
 mechanical cap (CONSTANTS$MAX_BITE_FRACTION, g/min as a fraction of gut).
+Intake is constrained to keep at least \code{CONSTANTS$MIN_SHOOT} kg of standing
+shoot biomass on each plant.
 }
 \keyword{internal}

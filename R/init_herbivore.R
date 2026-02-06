@@ -11,6 +11,7 @@
 #' h <- init_herbivore()
 #' @export
 init_herbivore <- function(mass = 5e5, herb_type = 0, MRT = 24) {
+  MRT <- resolve_mrt_hours(MRT)
 
   herbivore <- list(
     mass = mass,                                   # [g] average white rhino is 2.18e6 (Steuer et al. 2010)
@@ -40,20 +41,12 @@ init_herbivore <- function(mass = 5e5, herb_type = 0, MRT = 24) {
     intake_water_drinking = 0,                     # total daily water intake from drinking [g]
     energy_balance = 0,                            # energy balance [kJ]
     water_balance = 0,                             # water balance [g]
-    digestion = list(
-      bleaf = numeric(MRT),                        # leaf biomass
-      bstem = numeric(MRT),                        # stem biomass
-      bdef = numeric(MRT),                         # defence biomass
-      dc_leaf = numeric(MRT),                      # digestion of digestible carbohydrates in leaf biomass
-      dc_stem = numeric(MRT),                      # digestion of digestible carbohydrates in stem biomass
-      dp_leaf = numeric(MRT),                      # digestion of digestible proteins in leaf biomass
-      dp_stem = numeric(MRT),                      # digestion of digestible proteins in stem biomass
-      dp_def = numeric(MRT)                        # digestion of digestible proteins in defence biomass
-    )
+    digestion = empty_digestion_state(MRT)
   )
 
   # Calculated parameters
   herbivore <- calc_foraging_traits(herbivore)
+  herbivore <- initialise_herbivore_digestion(herbivore)
   herbivore$daily_water_requirement <- calc_water_requirement(mass)
 
   return(herbivore)

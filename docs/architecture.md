@@ -46,6 +46,7 @@ A `list` with:
   - `mass` (g), `gut_capacity` (g), `bite_size`, `handling_time`, `foraging_velocity`
 - Digestion queues:
   - hourly vectors of ingested material and digestible carb/protein
+  - initialised to a non-zero steady-state fill fraction of gut capacity (not all zeros)
 - Daily trackers:
   - `intake_*`, `distance_moved`, `energy_balance`, `water_balance`, etc.
 
@@ -116,6 +117,7 @@ Responsibilities:
   - defence fraction (`bdef / (bleaf + bstem + bdef)`) applies a multiplicative handling penalty,
   - edible removal is capped to maintain minimum standing shoot biomass (`MIN_SHOOT`) per plant.
 - Digestion advancement and daily budget bookkeeping
+  - `MRT` is an explicit hourly parameter with validated bounds; queue resizing preserves queued mass totals
 
 Interfaces:
 - `init_herbivore(mass, herb_type, MRT, ...) -> herbivore`
