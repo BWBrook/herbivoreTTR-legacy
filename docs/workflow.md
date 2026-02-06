@@ -63,3 +63,13 @@ The repo provides a Makefile; use it where available:
   - updated README/vignette if user-facing
   - changelog entry (for releases)
 - Any scientific assumption must be written in `docs/decisions.md`.
+
+## Release readiness commands
+- `make rc-gates` — full local release gate set (tests + lint + smoke + check)
+- `make release-bundle` — assemble release-candidate bundle under `artefacts/release_candidates/`
+- `make repro-check` — run clean-library reproducibility run-through and write evidence logs
+
+Reference docs:
+- `docs/api_surface_v1.md`
+- `docs/deprecation_policy.md`
+- `docs/reproducibility_runbook_v1.md`

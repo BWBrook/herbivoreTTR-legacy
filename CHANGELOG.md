@@ -2,6 +2,38 @@
 
 All notable changes in this module are documented here.
 
+## [1.0.0] - 2026-02-06
+
+### Added
+- Scenario-first public API exports for contract-driven workflows:
+  `scenario_contract_reference_path()`, `compile_scenario_yaml()`,
+  `validate_scenario_v1()`, `run_scenario_v1()`, and reference experiment/report
+  entry points.
+- Release candidate pipeline helpers in `R/release_pipeline.R`.
+- Automation scripts:
+  - `scripts/build_release_bundle.R`
+  - `scripts/run_external_repro_check.R`
+- New v1 docs:
+  - `docs/api_surface_v1.md`
+  - `docs/deprecation_policy.md`
+  - `docs/reproducibility_runbook_v1.md`
+
+### Changed
+- README and vignettes now use the scenario workflow and canonical artefact outputs.
+- `Makefile` now includes:
+  - `check`
+  - `release-bundle`
+  - `repro-check`
+  - `rc-gates`
+- Release/process docs updated:
+  - `docs/README-dev.md`
+  - `docs/PIPELINE.md`
+  - `docs/release_checklist.md`
+  - `docs/workflow.md`
+
+### Notes
+- Output schema remains `1.0.0`; this release hardens API/process/reproducibility rather than introducing a new output schema.
+
 ## Module 0 – Baseline Hygiene & Consistency
 
 - geom: unify toroidal distance fn and usage

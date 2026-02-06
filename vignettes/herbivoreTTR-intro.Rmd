@@ -16,54 +16,62 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 Introduction
 ------------
 
-The herbivoreTTR package couples a simple herbivore foraging model with a
-Thornley Transport Resistance (TTR) plant growth model. This vignette shows
-how to initialise a small simulation and run a single day.
+`herbivoreTTR` couples a herbivore foraging model with a Thornley Transport
+Resistance (TTR) plant growth model. The stable entrypoint for end users is
+the scenario contract workflow.
 
 Installation
 ------------
 
 Install from source (e.g., using `devtools::install()` in this repo).
 
-Quick start
------------
+Scenario quick start
+--------------------
 
 ```r
-# Initialise conditions, plant grid, and herbivore
-sim <- herbivoreTTR::init_simulation(
-  temp_mode = "flat",
-  veg_types = c(0, 1, 2),
-  herbivore_mass = 5e5
-)
+# Resolve and compile the canonical smoke scenario
+scenario_path <- herbivoreTTR::scenario_contract_reference_path("canonical_smoke_v1")
+scenario <- herbivoreTTR::compile_scenario_yaml(scenario_path)
+scenario$scenario_id
 
-str(sim, max.level = 1)
+# Execute scenario and write canonical outputs
+run <- herbivoreTTR::run_scenario_v1(scenario)
+run$run_dir
+```
 
-# Run one day of simulation
-out <- herbivoreTTR::run_daily_herbivore_simulation(
-  sim$herbivore,
-  sim$plants,
-  sim$conditions,
-  day_of_simulation = 1,
-  minute_limit = 120
-)
+Inspect outputs
+---------------
 
-names(out)
-out$daily_summary
+```r
+# The run manifest tracks schema + provenance metadata
+manifest <- jsonlite::read_json(run$manifest_path, simplifyVector = TRUE)
+manifest[c("schema_version", "run_id", "package_version", "git_sha", "seed")]
+
+# Daily herbivore and vegetation-structure summaries
+herb_daily <- utils::read.csv(run$herbivore_daily_path, stringsAsFactors = FALSE)
+structure_daily <- utils::read.csv(run$structure_fuel_path, stringsAsFactors = FALSE)
+
+head(herb_daily)
+head(structure_daily)
 ```
 
 Model notes
 -----------
 
-- Plant growth for a day is advanced with `transport_resistance()` before herbivory.
-- Herbivore behaviour alternates between movement and feeding via `herbivore_step()`.
-- Energy and water budgets are tallied at the end of the day.
+- Scenario YAML contracts define runtime, plot, climate, population, and output
+  schema expectations.
+- Canonical output folders include required CSVs and `run_manifest.json` for
+  traceability.
+- For cohort and implicit visitation modes, use `cohort_smoke_v1` and
+  `implicit_stocking_v1` scenario contracts.
 
 Key functions
 -------------
 
-- `init_conditions()`, `init_plants()`, `init_herbivore()`, `init_simulation()`
-- `run_daily_herbivore_simulation()`
-- `calc_foraging_traits()`, `get_plants_within_range()`, `calc_plant_tastiness()`
+- `scenario_contract_reference_path()`
+- `compile_scenario_yaml()`
+- `run_scenario_v1()`
+- `run_reference_scenario_library()`
 
 ```r
 sessionInfo()

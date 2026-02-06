@@ -34,6 +34,15 @@ reference_scenario_metadata_v1 <- function() {
   )
 }
 
+#' Run the curated reference scenario library
+#'
+#' Executes the maintained reference scenarios and writes an index describing
+#' expected qualitative outcomes.
+#'
+#' @param base_dir Base artefact directory.
+#'
+#' @return List with run outputs, metadata table, and index file paths.
+#' @export
 run_reference_scenario_library <- function(base_dir = file.path("artefacts", "canonical_runs")) {
   meta <- reference_scenario_metadata_v1()
   runs <- vector("list", nrow(meta))
@@ -90,6 +99,14 @@ read_final_structure_metrics <- function(run_result) {
   metrics[which.max(metrics$Day), , drop = FALSE]
 }
 
+#' Run Experiment A (herbivore presence vs removal)
+#'
+#' @param base_dir Base artefact directory.
+#' @param seed Seed recorded in manifest metadata.
+#' @param scenario_slug Output scenario slug for this experiment bundle.
+#'
+#' @return List containing summary paths, plot path, manifest path, and tables.
+#' @export
 run_experiment_a_presence_removal <- function(base_dir = file.path("artefacts", "canonical_runs"),
                                               seed = 301L,
                                               scenario_slug = "experiment_a_presence_removal_v1") {
@@ -195,6 +212,14 @@ run_experiment_a_presence_removal <- function(base_dir = file.path("artefacts", 
   )
 }
 
+#' Run Experiment B (grazer vs browser vs mixed)
+#'
+#' @param base_dir Base artefact directory.
+#' @param seed Seed recorded in manifest metadata.
+#' @param scenario_slug Output scenario slug for this experiment bundle.
+#'
+#' @return List containing summary paths, plot path, manifest path, and tables.
+#' @export
 run_experiment_b_functional_types <- function(base_dir = file.path("artefacts", "canonical_runs"),
                                               seed = 401L,
                                               scenario_slug = "experiment_b_functional_types_v1") {
@@ -312,6 +337,14 @@ run_experiment_b_functional_types <- function(base_dir = file.path("artefacts", 
   )
 }
 
+#' Run Experiment C (aridity gradient response)
+#'
+#' @param base_dir Base artefact directory.
+#' @param seed Seed recorded in manifest metadata.
+#' @param scenario_slug Output scenario slug for this experiment bundle.
+#'
+#' @return List containing summary paths, plot path, manifest path, and tables.
+#' @export
 run_experiment_c_aridity_gradient <- function(base_dir = file.path("artefacts", "canonical_runs"),
                                               seed = 501L,
                                               scenario_slug = "experiment_c_aridity_gradient_v1") {
@@ -436,6 +469,14 @@ run_experiment_c_aridity_gradient <- function(base_dir = file.path("artefacts", 
   )
 }
 
+#' Run benchmark appendix overlap case
+#'
+#' @param base_dir Base artefact directory.
+#' @param seed Seed recorded in manifest metadata.
+#' @param scenario_slug Output scenario slug for this benchmark bundle.
+#'
+#' @return List containing appendix and benchmark artefact paths.
+#' @export
 run_benchmark_appendix_v1 <- function(base_dir = file.path("artefacts", "canonical_runs"),
                                       seed = 601L,
                                       scenario_slug = "benchmark_appendix_v1") {

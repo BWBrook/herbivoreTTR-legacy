@@ -13,7 +13,7 @@ Use `renv` to reproduce the development environment:
 ```r
 install.packages("renv")
 renv::restore(prompt = FALSE)
-````
+```
 
 Then install the package locally:
 
@@ -30,24 +30,32 @@ From the repository root:
 install.packages(".", repos = NULL, type = "source")
 ```
 
-## Quickstart
+## Quickstart (Scenario Workflow)
 
 ```r
 library(herbivoreTTR)
 
-# 1) Initialize a simple coupled system
-sim <- init_simulation(temp_mode = "flat", herbivore_mass = 5e5, herb_type = 0)
+# 1) Load the canonical smoke scenario contract
+scenario_path <- scenario_contract_reference_path("canonical_smoke_v1")
+scenario <- compile_scenario_yaml(scenario_path)
 
-# 2) Run a short multi-day simulation (small minute_limit for speed)
-res <- run_herbivore_days(days = 3, minute_limit = 60)
+# 2) Execute and write canonical artefacts
+run <- run_scenario_v1(scenario)
 
-# Inspect daily summaries
-print(res$daily_summary)
+# 3) Inspect outputs
+run$run_dir
+read.csv(run$herbivore_daily_path)
+read.csv(run$structure_fuel_path)
 ```
 
-## Running the targets pipeline
+Canonical outputs are written under:
+- `artefacts/canonical_runs/<scenario_slug>/`
+- `run_manifest.json` (schema version, package version, git SHA, seed, parameter hash)
+- output tables (`plants_day*.csv`, `herbivore_daily.csv`, `structure_fuel_daily.csv`)
 
-The repository includes a `{targets}` pipeline (`_targets.R`) that generates small reference artefacts (e.g., snapshot CSVs).
+## Running The Targets Pipeline
+
+The repository includes a `{targets}` pipeline (`_targets.R`) that generates canonical smoke outputs, reference scenarios, experiments A/B/C, benchmark appendix artefacts, and the paper skeleton report.
 
 ```r
 install.packages("targets")
@@ -65,12 +73,17 @@ targets::tar_make(callr_function = NULL)
 
 Depending on the runner and options, outputs include:
 
-* Daily summary tables (energy/water balance, intake, movement)
-* Optional hourly/minute logs for debugging and analysis
-* Plant and herbivore snapshot CSVs (stable-schema artefacts intended for downstream analysis)
+* `plants_day*.csv` and `herbivore_daily.csv` (scenario-run outputs)
+* `structure_fuel_daily.csv` (derived vegetation structure/fuel metrics)
+* optional minute/hourly diagnostics for behavioural contract scenarios
+* run manifests for all canonical scenarios and experiments
 
 See `docs/architecture.md` for state object schemas and invariants.
 See `docs/parameter_units_reference.md` for parameter defaults, units, and cited allometric relationships.
+See `docs/output_contract_v1.md` for schema-level output details.
+See `docs/scenario_contract_v1.md` for scenario YAML schema.
+See `docs/api_surface_v1.md` for the frozen public API surface.
+See `docs/deprecation_policy.md` for compatibility and deprecation guarantees.
 
 ## Reproducibility
 

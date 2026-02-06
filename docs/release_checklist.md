@@ -10,6 +10,7 @@ This checklist must be satisfied before tagging a release.
 ## Reproducibility
 - [ ] `renv.lock` updated and consistent with repository code
 - [ ] Fresh install test: `renv::restore()` succeeds on a clean machine/container
+- [ ] External reproducibility run-through passes (`make repro-check`)
 
 ## Quality gates
 - [ ] `R CMD check --as-cran` clean on Linux
@@ -25,6 +26,7 @@ This checklist must be satisfied before tagging a release.
 ## Artefacts
 - [ ] Built source tarball produced
 - [ ] Reference output bundle produced (small “golden run” outputs)
+- [ ] Release candidate bundle assembled under `artefacts/release_candidates/<label>/`
 - [ ] Release notes summarize:
   - what changed
   - any output differences users should expect

@@ -375,6 +375,17 @@ normalise_herbivore_daily_output <- function(daily_df,
   out
 }
 
+#' Run a validated scenario and write canonical artefacts
+#'
+#' Executes one scenario under the v1 scenario contract across the configured
+#' day range and writes canonical output files plus `run_manifest.json`.
+#'
+#' @param scenario Scenario list or path/slug to a scenario YAML.
+#' @param base_dir Base directory for canonical artefacts.
+#' @param write_outputs Logical; when `FALSE`, returns in-memory outputs only.
+#'
+#' @return A list containing run metadata, output paths, and in-memory tables.
+#' @export
 run_scenario_v1 <- function(scenario,
                             base_dir = file.path("artefacts", "canonical_runs"),
                             write_outputs = TRUE) {

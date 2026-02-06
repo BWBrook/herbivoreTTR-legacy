@@ -236,3 +236,28 @@ Full and fractional visits are executed deterministically; outputs are explicitl
 **Decision:** Quarto skeleton (`reports/paper_pipeline.qmd`) reads prebuilt artefacts under `artefacts/canonical_runs/` and renders to `artefacts/reports/` via `render_paper_pipeline_report()`.  
 **Rationale:** Separates expensive simulation generation from narrative rendering and preserves reproducible report builds.  
 **Implications:** Pipeline target dependencies must ensure experiment artefacts exist before report render.
+
+## 2026-02-06 — API freeze v1 with scenario-first public entrypoints (WP-1.0.1)
+**Decision:** The v1 public API is frozen and documented in `docs/api_surface_v1.md`, with scenario contract entrypoints as the primary user-facing surface and legacy state-level exports retained as supported advanced APIs.  
+**Rationale:** Users need a stable, publication-citable interface while preserving backward-compatible access to lower-level workflows already used in tests and scripts.  
+**Implications:** Changes to exported function names or argument semantics now require deprecation-policy handling and changelog migration notes.
+
+## 2026-02-06 — Deprecation policy is mandatory for API/schema changes (WP-1.0.1)
+**Decision:** `docs/deprecation_policy.md` is now normative for exported functions and schema contracts.  
+**Rationale:** v1 stabilisation requires explicit compatibility guarantees to avoid accidental breaking changes during publication-facing use.  
+**Implications:** Future removals or breaking behavior changes must follow the documented soft/hard/removal cycle unless an explicitly logged correctness exception applies.
+
+## 2026-02-06 — Release candidates are folder bundles, not ZIP artefacts (WP-1.0.2/WP-1.0.4)
+**Decision:** Release candidate evidence is assembled under `artefacts/release_candidates/<release_label>/` with manifest + checklist files, rather than packaging a dedicated PI ZIP.  
+**Rationale:** Maintainer protocol now prefers autonomous in-repo release bundles over manual ZIP packaging while preserving complete traceability.  
+**Implications:** Roadmap/release checks treat the release-candidate folder as the sign-off artefact; no standalone ZIP is required.
+
+## 2026-02-06 — External reproducibility verification uses isolated renv library runs (WP-1.0.3)
+**Decision:** External reproducibility is verified by restoring dependencies into an isolated `RENV_PATHS_LIBRARY`, running CI-profile targets, and writing evidence logs/manifests under `artefacts/reproducibility/external_run_v1/`.  
+**Rationale:** This approximates a third-party clean environment without requiring bespoke container infrastructure for every local validation pass.  
+**Implications:** `make repro-check` becomes a release gate input, and failures are actionable via step-specific logs.
+
+## 2026-02-06 — Package version advanced to 1.0.0 for release-candidate gating (WP-1.0.2)
+**Decision:** `DESCRIPTION` version is now `1.0.0`, with matching changelog header and release artefact pipeline records.  
+**Rationale:** Release checklist SemVer requirements and API-freeze posture require an explicit v1 version anchor rather than a development-only `0.0.0.9000` marker.  
+**Implications:** Subsequent changes post-RC should increment version according to SemVer and deprecation policy.

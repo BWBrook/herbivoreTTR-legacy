@@ -1,9 +1,17 @@
 # Scenario contract v1: object schema + YAML compile helpers.
 
+#' Scenario contract schema version
+#'
+#' Returns the schema version required by scenario YAML files and validated
+#' scenario objects.
+#'
+#' @return Scalar character scenario schema version.
+#' @export
 scenario_contract_version <- function() {
   "1.0.0"
 }
 
+## @noRd
 scenario_find_repo_root <- function(start = getwd()) {
   dir <- normalizePath(start, winslash = "/", mustWork = TRUE)
   for (i in 0:12) {
@@ -19,6 +27,17 @@ scenario_find_repo_root <- function(start = getwd()) {
   NULL
 }
 
+## @noRd
+#' Resolve a packaged/reference scenario YAML path
+#'
+#' Looks up a scenario YAML by slug under `config/scenarios/` (repo checkout) or
+#' `inst/extdata/scenarios/` (installed package fallback).
+#'
+#' @param name Scenario slug or YAML file name.
+#'
+#' @return Absolute path to an existing scenario YAML when found, otherwise the
+#'   best candidate path for diagnostics.
+#' @export
 scenario_contract_reference_path <- function(name = "canonical_smoke_v1") {
   if (!is.character(name) || length(name) != 1L || !nzchar(name)) {
     rlang::abort(
@@ -56,6 +75,7 @@ scenario_contract_reference_path <- function(name = "canonical_smoke_v1") {
   file.path("config", "scenarios", file_name)
 }
 
+## @noRd
 resolve_scenario_yaml_path <- function(path) {
   if (!is.character(path) || length(path) != 1L || !nzchar(path)) {
     rlang::abort(
@@ -89,6 +109,7 @@ resolve_scenario_yaml_path <- function(path) {
   )
 }
 
+## @noRd
 normalize_herbivore_spec <- function(spec, context = "cohort") {
   if (!is.list(spec)) {
     rlang::abort(
@@ -166,6 +187,14 @@ normalize_herbivore_spec <- function(spec, context = "cohort") {
   )
 }
 
+#' Validate a scenario object against contract v1
+#'
+#' Performs strict validation and normalization of scenario contract fields.
+#'
+#' @param scenario Scenario list object.
+#'
+#' @return Validated scenario list with normalized scalar types.
+#' @export
 validate_scenario_v1 <- function(scenario) {
   if (!is.list(scenario)) {
     rlang::abort(
@@ -383,6 +412,15 @@ validate_scenario_v1 <- function(scenario) {
   )
 }
 
+#' Compile and validate a scenario YAML file
+#'
+#' Loads a YAML scenario definition from disk and validates it against scenario
+#' contract v1.
+#'
+#' @param path Path to a scenario YAML file or a scenario slug.
+#'
+#' @return Validated scenario list.
+#' @export
 compile_scenario_yaml <- function(path) {
   resolved_path <- resolve_scenario_yaml_path(path)
 

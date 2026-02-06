@@ -98,10 +98,10 @@ A WP is “Done” only when all are true:
 - [x] **WP-0.6.7 — Paper pipeline skeleton: Quarto report renders from scenario artefacts**
 
 ### Line 1.0.0 — Stabilisation + release readiness
-- [ ] **WP-1.0.1 — API freeze + deprecation policy + final user docs**
-- [ ] **WP-1.0.2 — Release artefact pipeline: build + reference outputs + changelog**
-- [ ] **WP-1.0.3 — External reproducibility run-through documented (clean restore → run)**
-- [ ] **WP-1.0.4 — v1.0 RC bundle prepared for PI sign-off**
+- [x] **WP-1.0.1 — API freeze + deprecation policy + final user docs**
+- [x] **WP-1.0.2 — Release artefact pipeline: build + reference outputs + changelog**
+- [x] **WP-1.0.3 — External reproducibility run-through documented (clean restore → run)**
+- [x] **WP-1.0.4 — v1.0 RC bundle prepared for PI sign-off**
 
 ---
 
@@ -1114,7 +1114,7 @@ Everything required for PI/human approval is bundled: clean checks, reference ar
 **Acceptance criteria**
 - All quality gates are green.
 - Reference scenarios and experiments are present as artefacts and interpretable via docs/reports.
-- A PI review ZIP is ready (per review gates below).
+- A release-candidate bundle folder is ready under `artefacts/release_candidates/<label>/` (manifest + checklist included).
 
 **Artefact evidence**
 - Release candidate artefacts exist.

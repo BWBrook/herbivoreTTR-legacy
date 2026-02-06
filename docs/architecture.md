@@ -8,6 +8,11 @@ It now supports three population execution modes behind a shared scenario contra
 - `explicit_cohort`
 - `implicit_representative`
 
+Public API freeze status:
+- Scenario-first v1 entrypoints are now the primary stable user surface.
+- Full export inventory is documented in `docs/api_surface_v1.md`.
+- Deprecation and compatibility guarantees are documented in `docs/deprecation_policy.md`.
+
 Canonical execution path:
 1. Compile scenario YAML (`compile_scenario_yaml()`).
 2. Validate and normalize (`validate_scenario_v1()`).

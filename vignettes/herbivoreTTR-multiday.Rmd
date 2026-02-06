@@ -16,122 +16,79 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 Introduction
 ------------
 
-This vignette runs a short, multi-day simulation and produces a few simple plots summarising
-herbivore energy intake/balance and changes in plant biomass over time. It assumes the package
-has been installed or loaded via `devtools::load_all()`.
+This vignette demonstrates the multi-day reference experiment workflow using
+the stable scenario API. It runs Experiment B (grazer vs browser vs mixed),
+then inspects the generated summary table and plot artefacts.
 
-Setup
------
+Run a reference experiment
+--------------------------
 
 ```r
-# Initialise a default scenario
-sim <- herbivoreTTR::init_simulation(
-  temp_mode = "flat",
-  veg_types = c(0, 1, 2),
-  herbivore_mass = 5e5
+exp_b <- herbivoreTTR::run_experiment_b_functional_types()
+summary_b <- utils::read.csv(exp_b$summary_path, stringsAsFactors = FALSE)
+summary_b
+```
+
+Inspect generated artefacts
+---------------------------
+
+Experiment B writes a stable bundle to:
+
+```r
+exp_b$run_dir
+list.files(exp_b$run_dir)
+```
+
+You can load the report markdown and manifest metadata:
+
+```r
+manifest <- jsonlite::read_json(exp_b$manifest_path, simplifyVector = TRUE)
+manifest[c("schema_version", "run_id", "scenario_slug", "seed")]
+
+report_lines <- readLines(exp_b$report_path)
+report_lines[1:12]
+```
+
+Plot quick visual checks from the summary table:
+
+```r
+op <- par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
+
+plot(
+  summary_b$strategy,
+  summary_b$grass_share,
+  type = "b", pch = 19, col = "forestgreen",
+  xlab = "Strategy", ylab = "Grass share",
+  main = "Diet composition by strategy"
 )
 
-constants <- get("CONSTANTS", envir = asNamespace("herbivoreTTR"))
-
-# Choose a start day immediately after spin-up so herbivory is active
-spinup_days <- constants$SPIN_UP_LENGTH * nrow(sim$conditions)
-day0 <- spinup_days + 1L
-
-# Run a short 7-day sequence at 60-minute resolution for speed
-n_days <- 7L
-minute_limit <- 60L
-
-herb <- sim$herbivore
-plants <- sim$plants
-cond <- sim$conditions
-
-# Collect daily metrics into a data.frame
-daily <- data.frame(
-  day = seq_len(n_days),
-  intake_PE_kJ = NA_real_,
-  intake_NPE_kJ = NA_real_,
-  energy_balance_kJ = NA_real_,
-  distance_moved_m = NA_real_,
-  intake_total_g = NA_real_,
-  plant_ms_total_kg = NA_real_
+barplot(
+  height = summary_b$final_browseable_biomass_kg,
+  names.arg = summary_b$strategy,
+  col = c("#4f772d", "#bc6c25", "#6a994e"),
+  ylab = "kg",
+  main = "Final browseable biomass"
 )
+par(op)
+```
 
-for (k in seq_len(n_days)) {
-  res <- herbivoreTTR::run_daily_herbivore_simulation(
-    herbivore = herb,
-    plants = plants,
-    conditions = cond,
-    day_of_simulation = day0 + (k - 1L),
-    minute_limit = minute_limit
-  )
-  herb <- res$herbivore
-  plants <- res$plants
+Run the paper skeleton
+----------------------
 
-  daily$intake_PE_kJ[k] <- herb$intake_PE_day
-  daily$intake_NPE_kJ[k] <- herb$intake_NPE_day
-  daily$energy_balance_kJ[k] <- herb$energy_balance
-  daily$distance_moved_m[k] <- herb$distance_moved
-  daily$intake_total_g[k] <- herb$intake_total_day
-  daily$plant_ms_total_kg[k] <- sum(plants$ms)
+```r
+if (nzchar(Sys.which("quarto"))) {
+  paper_html <- herbivoreTTR::render_paper_pipeline_report()
+  paper_html
+} else {
+  "Quarto not detected; skipping paper render in this vignette run."
 }
-
-head(daily)
-```
-
-Plots
------
-
-Energy intake and balance (base R):
-
-```r
-op <- par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
-
-plot(
-  daily$day,
-  daily$intake_PE_kJ + daily$intake_NPE_kJ,
-  type = "b", pch = 19, col = "steelblue",
-  xlab = "Day", ylab = "Daily energy intake (kJ)",
-  main = "Protein + non-protein energy"
-)
-
-plot(
-  daily$day,
-  daily$energy_balance_kJ,
-  type = "b", pch = 19, col = "firebrick",
-  xlab = "Day", ylab = "Energy balance (kJ)",
-  main = "Cumulative energy balance"
-)
-par(op)
-```
-
-Plant biomass trajectory:
-
-```r
-plot(
-  daily$day,
-  daily$plant_ms_total_kg,
-  type = "b", pch = 19, col = "darkgreen",
-  xlab = "Day", ylab = "Total shoot mass (kg)",
-  main = "Plant shoot mass over time"
-)
-```
-
-End-of-run plant status (optional):
-
-```r
-op <- par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
-hist(plants$ms, breaks = 20, col = "gray70", border = "white",
-     xlab = "Shoot mass (kg)", main = "Final-day shoot mass")
-plot(plants$xcor, plants$ycor, pch = 16, cex = pmax(plants$ms, 1e-3) / max(plants$ms),
-     col = rgb(0, 0.5, 0, 0.5), xlab = "x (m)", ylab = "y (m)",
-     main = "Spatial distribution (size ~ Ms)")
-par(op)
 ```
 
 Notes
 -----
 
-- To explore defence transport/growth, set `CONSTANTS$DEFENCE_ENABLED <- 1` before running and
-  re-run the simulation.
-- Increase `minute_limit` (up to 1440) for more detailed intra-day dynamics.
-- Results will vary with different `veg_types`, herbivore mass, and environmental settings.
+- Reference experiments are intentionally short-horizon and mechanism-focused.
+- For larger sweeps, provide custom scenario YAMLs and execute with
+  `run_scenario_v1()`.
+- The release workflow bundles these same artefacts under
+  `artefacts/release_candidates/`.

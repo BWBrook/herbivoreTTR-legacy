@@ -1,5 +1,12 @@
 # Quarto paper-pipeline rendering helpers.
 
+#' Render the paper pipeline Quarto report from existing artefacts
+#'
+#' @param input Path to the `.qmd` report source.
+#' @param output_dir Directory where rendered outputs are written.
+#'
+#' @return Absolute path to the rendered HTML report.
+#' @export
 render_paper_pipeline_report <- function(input = file.path("reports", "paper_pipeline.qmd"),
                                          output_dir = file.path("artefacts", "reports")) {
   if (!file.exists(input)) {

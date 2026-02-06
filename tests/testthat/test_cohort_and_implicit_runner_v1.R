@@ -39,10 +39,12 @@ test_that("daily cohort runner is deterministic under fixed seed", {
 })
 
 test_that("run_scenario_v1 explicit cohort writes per-herbivore daily outputs", {
-  out <- run_scenario_v1(
-    scenario = scenario_contract_reference_path("cohort_smoke_v1"),
-    base_dir = tempdir()
-  )
+  out <- withr::with_seed(123L, {
+    run_scenario_v1(
+      scenario = scenario_contract_reference_path("cohort_smoke_v1"),
+      base_dir = tempdir()
+    )
+  })
 
   expect_true(file.exists(out$herbivore_daily_path))
   expect_true(file.exists(out$structure_fuel_path))
@@ -65,10 +67,12 @@ test_that("implicit mode emits explicit visitation/intensity metadata", {
   expect_true(is.finite(visitation$effective_visits_per_day))
   expect_true(visitation$effective_visits_per_day >= 0)
 
-  out <- run_scenario_v1(
-    scenario = scenario,
-    base_dir = tempdir()
-  )
+  out <- withr::with_seed(123L, {
+    run_scenario_v1(
+      scenario = scenario,
+      base_dir = tempdir()
+    )
+  })
 
   herb <- utils::read.csv(out$herbivore_daily_path, stringsAsFactors = FALSE)
   expect_true(all(herb$PopulationMode == "implicit_representative"))
