@@ -65,9 +65,19 @@ test_that("parity snapshots stay in sync with pipeline outputs", {
   expect_true(all(current_plants$SchemaVersion == output_schema_version()))
   expect_true(all(current_herb$SchemaVersion == output_schema_version()))
 
-  parity_dir <- testthat::test_path("..", "..", "inst", "extdata", "parity")
-  ref_plants <- utils::read.csv(file.path(parity_dir, "plants_day_sample.csv"))
-  ref_herb <- utils::read.csv(file.path(parity_dir, "herb_day_sample.csv"))
+  parity_dir <- system.file("extdata", "parity", package = "herbivoreTTR")
+  if (!nzchar(parity_dir) || !dir.exists(parity_dir)) {
+    testthat::skip("Parity fixtures unavailable in installed package.")
+  }
+
+  ref_plants_path <- file.path(parity_dir, "plants_day_sample.csv")
+  ref_herb_path <- file.path(parity_dir, "herb_day_sample.csv")
+  if (!file.exists(ref_plants_path) || !file.exists(ref_herb_path)) {
+    testthat::skip("Parity fixture files unavailable in installed package.")
+  }
+
+  ref_plants <- utils::read.csv(ref_plants_path)
+  ref_herb <- utils::read.csv(ref_herb_path)
 
   expect_equal(head(current_plants, nrow(ref_plants)), ref_plants)
   expect_equal(current_herb, ref_herb)
