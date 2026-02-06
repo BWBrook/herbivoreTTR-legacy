@@ -144,6 +144,26 @@ Current v0.4.4 behavior:
 Controlled movement-contract artefacts are written by `run_movement_contract_scenario()` under:
 - `artefacts/canonical_runs/movement_contract_v0/`
 
+## Foraging-rate and defence handling contract (WP-0.4.5)
+
+Current v0.4.5 behavior in `herbivore_eat()`:
+- Defence-adjusted handling limit (kg DM per minute):
+  - `handling_limit_kg = (1 / handling_time / 1000) * (1 - defence_fraction)`
+  - `defence_fraction = bdef / (bleaf + bstem + bdef)`
+- Per-minute realized intake is the minimum of:
+  - `handling_limit_kg`,
+  - remaining gut capacity (`(gut_capacity - gut_content) / 1000`),
+  - edible shoot above floor (`(bleaf + bstem + bdef) - MIN_SHOOT`),
+  - mechanical cap (`MAX_BITE_FRACTION * gut_capacity / 1000`).
+- Intake is allocated proportionally across `bleaf`, `bstem`, and `bdef`.
+- Residual-biomass floor:
+  - each feeding event preserves at least `MIN_SHOOT` kg shoot biomass per plant.
+- Daily tracking:
+  - `intake_total_day` (g DM/day) and `intake_defence_day` (g defence DM/day) are incremented from per-minute intake.
+
+Controlled foraging-contract artefacts are written by `run_foraging_contract_scenario()` under:
+- `artefacts/canonical_runs/foraging_contract_v0/`
+
 ## Citations named in constants
 
 - Jeschke, J.M. and Tollrian, R. (2005).

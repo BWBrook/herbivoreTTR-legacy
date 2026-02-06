@@ -4,6 +4,8 @@
 #' herbivore's gut and updates plant biomass. Handles constraints:
 #' handling-rate, gut capacity, remaining plant biomass, and an optional
 #' mechanical cap (CONSTANTS$MAX_BITE_FRACTION, g/min as a fraction of gut).
+#' Intake is constrained to keep at least `CONSTANTS$MIN_SHOOT` kg of standing
+#' shoot biomass on each plant.
 #'
 #' @param herbivore Herbivore state list; requires `selected_plant_id`,
 #'   `handling_time` (min/g), `gut_capacity` (g), `gut_content` (g),
@@ -29,13 +31,16 @@ herbivore_eat <- function(herbivore, plants) {
   bleaf <- ifelse(is.finite(plant$bleaf), plant$bleaf, 0)
   bstem <- ifelse(is.finite(plant$bstem), plant$bstem, 0)
   bdef  <- if ("bdef" %in% names(plant)) ifelse(is.finite(plant$bdef), plant$bdef, 0) else 0
-  ms    <- ifelse(is.finite(plant$ms), plant$ms, bleaf + bstem + bdef)
-
   total_shoot <- bleaf + bstem + bdef
   if (!is.finite(total_shoot) || total_shoot <= 0) {
     return(list(herbivore = herbivore, plants = plants))
   }
   prop_defence <- max(min(bdef / total_shoot, 1), 0)
+  min_shoot_residual <- if (is.finite(CONSTANTS$MIN_SHOOT)) {
+    max(CONSTANTS$MIN_SHOOT, 0)
+  } else {
+    0
+  }
 
   ## 2) Per-minute intake constraints (all NA-safe)
   # Handling: handling_time is min per g  -> g/min -> kg/min
@@ -49,8 +54,9 @@ herbivore_eat <- function(herbivore, plants) {
   capacity_kg <- (herbivore$gut_capacity - herbivore$gut_content) / 1000
   if (!is.finite(capacity_kg) || capacity_kg < 0) capacity_kg <- 0
 
-  # Available plant (kg) above a minimum standing shoot
-  available_plant_kg <- ms - CONSTANTS$MIN_SHOOT
+  # Available plant (kg) above a minimum standing shoot.
+  # Use component pools directly so ms/component drift cannot violate floor.
+  available_plant_kg <- total_shoot - min_shoot_residual
   if (!is.finite(available_plant_kg) || available_plant_kg < 0) available_plant_kg <- 0
 
   # Optional: mechanical cap per minute as a fraction of gut capacity
@@ -109,7 +115,7 @@ herbivore_eat <- function(herbivore, plants) {
   new_bleaf <- max(bleaf - leaf_intake_kg, 0)
   new_bstem <- max(bstem - stem_intake_kg, 0)
   new_bdef  <- max(bdef  - def_intake_kg,  0)
-  new_ms    <- max(new_bleaf + new_bstem + new_bdef, 0)
+  new_ms <- max(new_bleaf + new_bstem + new_bdef, 0)
 
   plants$bleaf[row_idx] <- new_bleaf
   plants$bstem[row_idx] <- new_bstem
@@ -118,6 +124,7 @@ herbivore_eat <- function(herbivore, plants) {
 
   ## 6) Update herbivore daily totals and gut content
   herbivore$intake_total_day <- herbivore$intake_total_day + potential_intake_kg * 1000
+  herbivore$intake_defence_day <- herbivore$intake_defence_day + def_intake_kg * 1000
   herbivore <- update_gut_content(herbivore)
 
   list(herbivore = herbivore, plants = plants)

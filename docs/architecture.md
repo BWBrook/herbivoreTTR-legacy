@@ -111,7 +111,10 @@ Responsibilities:
 - Movement mechanics:
   - shortest-path toroidal motion (`herbivore_move()`) with explicit per-minute distance cap,
   - configurable target disruption probability (`movement_disruption_prob` / `MOVEMENT_DISRUPTION_PROB`) controlling retargeting frequency.
-- Intake mechanics (handling time, bite size, gut capacity constraints)
+- Intake mechanics:
+  - per-minute intake limit combines handling rate, gut-capacity remainder, and an optional mechanical bite cap,
+  - defence fraction (`bdef / (bleaf + bstem + bdef)`) applies a multiplicative handling penalty,
+  - edible removal is capped to maintain minimum standing shoot biomass (`MIN_SHOOT`) per plant.
 - Digestion advancement and daily budget bookkeeping
 
 Interfaces:

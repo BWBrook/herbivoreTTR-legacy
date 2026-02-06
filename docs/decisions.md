@@ -128,3 +128,16 @@ Operational policy:
 **Rationale:** WP-0.4.4 requires interpretable edge-wrapping movement and a configurable mechanism that controls retargeting frequency.
 
 **Implications:** Movement and retargeting behavior are now testable against explicit contracts (wrap correctness, step cap, disruption effect) and auditable via `movement_contract_v0` artefacts.
+
+## 2026-02-06 — Foraging-rate contract uses defence-adjusted handling and component-based residual floor (v0.4.5)
+**Decision:** Minute-level intake in `herbivore_eat()` is constrained by the minimum of:
+- defence-adjusted handling limit,
+- gut-capacity remainder,
+- mechanical cap,
+- available shoot above `MIN_SHOOT`.
+
+The available-shoot limit is computed from component pools (`bleaf + bstem + bdef`) rather than the aggregate `ms` field so component/aggregate drift cannot allow over-removal. Daily defence intake (`intake_defence_day`) is explicitly tracked.
+
+**Rationale:** WP-0.4.5 requires measurable defence handling penalties and an enforced minimum residual biomass rule. Computing availability from component pools makes the residual-floor contract robust even if `ms` and component pools diverge.
+
+**Implications:** Defence effects on intake rate and residual-floor behavior are now contract-tested and auditable through `foraging_contract_v0` artefacts.

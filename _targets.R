@@ -177,5 +177,21 @@ list(
       )
     },
     format = "file"
+  ),
+
+  targets::tar_target(
+    foraging_contract_bundle_files,
+    {
+      foraging_run <- run_foraging_contract_scenario(
+        seed = canonical_seed,
+        scenario_slug = "foraging_contract_v0"
+      )
+      c(
+        foraging_run$probe_path,
+        foraging_run$summary_path,
+        foraging_run$manifest_path
+      )
+    },
+    format = "file"
   )
 )
