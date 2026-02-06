@@ -91,3 +91,10 @@ Browser browse-height gating remains enforced by `get_plants_within_range()`.
 **Rationale:** WP-0.4.1 requires measurable and reproducible diet-composition divergence in a controlled grass + tree scenario; browse-height filtering alone did not provide a robust ecological split.
 
 **Implications:** Functional-type behaviour is now auditable via `run_functional_type_scenario()` artefacts and regression tests that assert directional diet differences and zero browser intake from unreachable woody plants.
+
+## 2026-02-06 — Mixed-feeder interpolation policy (v0.4.2)
+**Decision:** Mixed feeders (`herb_type = 2`) are implemented as an explicit interpolation between grazer and browser tastiness multipliers with parameter `MIXED_BROWSER_WEIGHT` (`0 = grazer policy`, `1 = browser policy`). Mixed feeders share browse-height reach constraints with browsers.
+
+**Rationale:** WP-0.4.2 requires mixed feeders to be a measurable strategy, not a label. A convex interpolation keeps behavior interpretable, tunable, and testable against directional intermediate outcomes.
+
+**Implications:** Controlled three-way scenario artefacts (`grazer`, `browser`, `mixed`) and regression tests now enforce that mixed diet composition is distinct and directionally intermediate under fixed seed.

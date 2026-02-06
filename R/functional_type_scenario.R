@@ -175,7 +175,8 @@ run_functional_type_scenario <- function(minute_limit = 240L,
       grazer_grass_pref = CONSTANTS$GRAZER_GRASS_PREF,
       grazer_woody_pref = CONSTANTS$GRAZER_WOODY_PREF,
       browser_grass_pref = CONSTANTS$BROWSER_GRASS_PREF,
-      browser_woody_pref = CONSTANTS$BROWSER_WOODY_PREF
+      browser_woody_pref = CONSTANTS$BROWSER_WOODY_PREF,
+      mixed_browser_weight = CONSTANTS$MIXED_BROWSER_WEIGHT
     ),
     output_files = relative_outputs
   )

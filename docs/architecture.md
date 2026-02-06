@@ -102,6 +102,7 @@ Responsibilities:
 - Functional-type preference multipliers:
   - grazer (`herb_type = 0`): grass-upweighted, woody-downweighted
   - browser (`herb_type = 1`): woody-upweighted, grass-downweighted
+  - mixed (`herb_type = 2`): explicit interpolation between grazer/browser multipliers using `mixed_browser_weight`
 - Movement and intake mechanics (handling time, bite size, gut capacity constraints)
 - Digestion advancement and daily budget bookkeeping
 

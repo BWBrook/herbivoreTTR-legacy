@@ -50,6 +50,7 @@ CONSTANTS <- list(
   GRAZER_WOODY_PREF = 0.5,  # tastiness multiplier for woody plants (veg_type 2) when herb_type == 0
   BROWSER_GRASS_PREF = 0.5, # tastiness multiplier for grass plants (veg_type 0/1) when herb_type == 1
   BROWSER_WOODY_PREF = 1.5, # tastiness multiplier for woody plants (veg_type 2) when herb_type == 1
+  MIXED_BROWSER_WEIGHT = 0.5, # interpolation weight (0=grazer policy, 1=browser policy) for herb_type == 2
   DETECTION_DISTANCE = 10,  # maximum distance at which a herbivore can detect plants [m]
   EAT_RADIUS = 1.0,         # distance at which a herbivore can commence eating a plant [m]
   NPE_TO_PE_TARGET = 4.55,  # ratio non-protein energy to protein energy

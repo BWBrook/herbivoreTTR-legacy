@@ -27,7 +27,7 @@ test_that("herbivore_eat converts kg intake to g in gut and reduces plant in kg"
   expect_true(res$herbivore$gut_content >= 0)
 })
 
-test_that("browser height filter excludes unreachable plants", {
+test_that("browser and mixed feeders exclude unreachable plants", {
   plants <- data.frame(
     plant_id = 1:2,
     xcor = c(0, 1), ycor = c(0, 1),
@@ -35,11 +35,16 @@ test_that("browser height filter excludes unreachable plants", {
     cs = c(0.5, 0.5), cr = c(0.5, 0.5), ns = c(0.05, 0.05), nr = c(0.05, 0.05),
     bleaf = c(0.8, 0.8), bstem = c(0.2, 0.2)
   )
-  herb <- init_herbivore(mass = 5e5, herb_type = 1)
-  herb$xcor <- 0; herb$ycor <- 0
-  pr <- get_plants_within_range(herb, plants)
+  browser <- init_herbivore(mass = 5e5, herb_type = 1)
+  browser$xcor <- 0; browser$ycor <- 0
+  browser_range <- get_plants_within_range(browser, plants)
+  expect_true(all(browser_range$plant_id != 1L))
+
+  mixed <- init_herbivore(mass = 5e5, herb_type = 2)
+  mixed$xcor <- 0; mixed$ycor <- 0
+  mixed_range <- get_plants_within_range(mixed, plants)
   # Plant 1 has height 3 -> LEAF_HEIGHT * 3 > BROWSE_HEIGHT (2) -> excluded
-  expect_true(all(pr$plant_id != 1L))
+  expect_true(all(mixed_range$plant_id != 1L))
 })
 
 test_that("herbivore_step calls eat and updates kg/g consistently", {

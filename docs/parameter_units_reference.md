@@ -57,6 +57,7 @@ Key parameters (from `parameter_reference_table()`):
 | `GRAZER_WOODY_PREF` | `0.5` | unitless | Grazer tastiness multiplier for woody plants (`veg_type` 2) | Functional-type policy (v0.4.1) |
 | `BROWSER_GRASS_PREF` | `0.5` | unitless | Browser tastiness multiplier for grass plants (`veg_type` 0/1) | Functional-type policy (v0.4.1) |
 | `BROWSER_WOODY_PREF` | `1.5` | unitless | Browser tastiness multiplier for woody plants (`veg_type` 2) | Functional-type policy (v0.4.1) |
+| `MIXED_BROWSER_WEIGHT` | `0.5` | unitless | Mixed-feeder interpolation weight (`0=grazer`, `1=browser`) | Mixed-feeder policy (v0.4.2) |
 | `SANITY_MAX_DAILY_ENERGY_JUMP` | `100000` | kJ / day | Max tolerated day-to-day energy jump guardrail | Domain sanity policy (v0) |
 | `SANITY_MAX_DAILY_WATER_JUMP` | `50000` | water units / day | Max tolerated day-to-day water jump guardrail | Domain sanity policy (v0) |
 
@@ -98,7 +99,8 @@ Current interpretation:
 Current v0.4.1 behavior in `calc_plant_tastiness()`:
 - Grazers (`herb_type = 0`) up-weight grasses and down-weight woody plants.
 - Browsers (`herb_type = 1`) up-weight woody plants and down-weight grasses.
-- Browser reach constraints still apply via `get_plants_within_range()` and `BROWSE_HEIGHT`.
+- Browser and mixed-feeder reach constraints apply via `get_plants_within_range()` and `BROWSE_HEIGHT`.
+- Mixed feeders (`herb_type = 2`) use explicit interpolation between grazer and browser preference multipliers, controlled by `MIXED_BROWSER_WEIGHT`.
 
 The controlled scenario helper `run_functional_type_scenario()` writes reproducible diet-split artefacts under:
 - `artefacts/canonical_runs/functional_types_v0/`

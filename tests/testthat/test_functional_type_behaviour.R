@@ -30,6 +30,24 @@ test_that("tastiness scoring applies functional-type vegetation preferences", {
   expect_gt(browser_scores[[2]], browser_scores[[1]])
 })
 
+test_that("mixed feeder tastiness multipliers follow explicit interpolation weight", {
+  mixed <- init_herbivore(mass = 5e5, herb_type = 2L)
+  mixed$mixed_browser_weight <- 0.25
+
+  multipliers <- functional_type_preference_multiplier(
+    herbivore = mixed,
+    veg_type = c(0L, 2L)
+  )
+
+  expected_grass <- (1 - 0.25) * CONSTANTS$GRAZER_GRASS_PREF +
+    0.25 * CONSTANTS$BROWSER_GRASS_PREF
+  expected_woody <- (1 - 0.25) * CONSTANTS$GRAZER_WOODY_PREF +
+    0.25 * CONSTANTS$BROWSER_WOODY_PREF
+
+  expect_equal(multipliers[[1]], expected_grass)
+  expect_equal(multipliers[[2]], expected_woody)
+})
+
 test_that("controlled functional-type scenario yields grazer/browser diet split", {
   out <- run_functional_type_scenario(
     minute_limit = 120L,
@@ -50,6 +68,29 @@ test_that("controlled functional-type scenario yields grazer/browser diet split"
   expect_gt(grazer$grass_share, browser$grass_share + 0.2)
   expect_gt(browser$tree_share, grazer$tree_share + 0.2)
   expect_equal(browser$unreachable_tree_intake_kg, 0, tolerance = 1e-12)
+})
+
+test_that("mixed feeder scenario is directionally intermediate and distinct", {
+  out <- run_functional_type_scenario(
+    minute_limit = 120L,
+    seed = 41L,
+    herb_types = c(0L, 1L, 2L),
+    base_dir = tempdir()
+  )
+  metrics <- out$metrics
+
+  grazer <- metrics[metrics$herb_type == 0L, , drop = FALSE]
+  browser <- metrics[metrics$herb_type == 1L, , drop = FALSE]
+  mixed <- metrics[metrics$herb_type == 2L, , drop = FALSE]
+
+  expect_equal(nrow(mixed), 1L)
+  expect_true(mixed$total_intake_kg > 0)
+
+  expect_gt(mixed$grass_share, browser$grass_share + 0.1)
+  expect_lt(mixed$grass_share, grazer$grass_share - 0.1)
+  expect_gt(mixed$tree_share, grazer$tree_share + 0.1)
+  expect_lt(mixed$tree_share, browser$tree_share - 0.1)
+  expect_equal(mixed$unreachable_tree_intake_kg, 0, tolerance = 1e-12)
 })
 
 test_that("functional-type scenario is deterministic under fixed seed", {

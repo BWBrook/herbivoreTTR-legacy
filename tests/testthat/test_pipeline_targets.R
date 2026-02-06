@@ -61,7 +61,8 @@ test_that("pipeline manifest lists expected targets and file formats", {
     "plants_day7_csv",
     "herb_day7_csv",
     "canonical_bundle_files",
-    "functional_type_bundle_files"
+    "functional_type_bundle_files",
+    "mixed_feeder_bundle_files"
   ) %in% manifest$name))
 
   file_targets <- manifest[
@@ -71,7 +72,8 @@ test_that("pipeline manifest lists expected targets and file formats", {
       "plants_day7_csv",
       "herb_day7_csv",
       "canonical_bundle_files",
-      "functional_type_bundle_files"
+      "functional_type_bundle_files",
+      "mixed_feeder_bundle_files"
     ),
   ]
   expect_true(all(file_targets$format == "file"))

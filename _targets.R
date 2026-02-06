@@ -122,5 +122,24 @@ list(
       )
     },
     format = "file"
+  ),
+
+  targets::tar_target(
+    mixed_feeder_bundle_files,
+    {
+      mixed_policy_run <- run_functional_type_scenario(
+        minute_limit = 120L,
+        seed = canonical_seed,
+        scenario_slug = "mixed_policy_v0",
+        herb_types = c(0L, 1L, 2L)
+      )
+      c(
+        mixed_policy_run$metrics_path,
+        mixed_policy_run$plants_initial_path,
+        mixed_policy_run$plants_final_paths,
+        mixed_policy_run$manifest_path
+      )
+    },
+    format = "file"
   )
 )

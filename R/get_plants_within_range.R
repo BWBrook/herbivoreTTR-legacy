@@ -2,7 +2,8 @@
 #'
 #' Computes toroidal distances from the herbivore to all plants and returns
 #' those within `CONSTANTS$DETECTION_DISTANCE`, optionally filtering by browse
-#' height for browsers (herb_type == 1). Adds a `distance` column to the
+#' height for browser and mixed feeders (`herb_type %in% c(1, 2)`). Adds a
+#' `distance` column to the
 #' returned data frame.
 #'
 #' @param herbivore List representing the herbivore state; must include
@@ -28,8 +29,8 @@ get_plants_within_range <- function(herbivore, plants) {
 
   keep <- distances <= CONSTANTS$DETECTION_DISTANCE & plants$ms > 0
 
-  # For browsers (herb_type == 1), enforce browse height limit
-  if (!is.null(herbivore$herb_type) && isTRUE(herbivore$herb_type == 1)) {
+  # For browser/mixed feeders, enforce browse height limit
+  if (!is.null(herbivore$herb_type) && herbivore$herb_type %in% c(1, 2)) {
     reachable <- CONSTANTS$LEAF_HEIGHT * plants$height <= CONSTANTS$BROWSE_HEIGHT
     keep <- keep & reachable
   }

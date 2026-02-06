@@ -23,6 +23,19 @@ functional_type_preference_multiplier <- function(herbivore, veg_type) {
     return(multipliers)
   }
 
+  if (herb_type == 2L) {
+    browse_weight <- resolve_mixed_browser_weight(herbivore)
+    grass_pref <- (1 - browse_weight) * CONSTANTS$GRAZER_GRASS_PREF +
+      browse_weight * CONSTANTS$BROWSER_GRASS_PREF
+    woody_pref <- (1 - browse_weight) * CONSTANTS$GRAZER_WOODY_PREF +
+      browse_weight * CONSTANTS$BROWSER_WOODY_PREF
+
+    multipliers <- rep(1, length(veg_type))
+    multipliers[is_grass] <- grass_pref
+    multipliers[is_woody] <- woody_pref
+    return(multipliers)
+  }
+
   rep(1, length(veg_type))
 }
 
@@ -39,4 +52,12 @@ normalize_herb_type <- function(herb_type) {
     return(2L)
   }
   as.integer(herb_type)
+}
+
+resolve_mixed_browser_weight <- function(herbivore) {
+  weight <- herbivore$mixed_browser_weight
+  if (!is.numeric(weight) || length(weight) != 1L || !is.finite(weight)) {
+    return(CONSTANTS$MIXED_BROWSER_WEIGHT)
+  }
+  max(0, min(1, as.numeric(weight)))
 }
