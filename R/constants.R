@@ -54,6 +54,10 @@ CONSTANTS <- list(
   TEMP_WATER_SCALING = 0.1, # scaling water requirements based on temperature
   SANITY_MAX_DAILY_ENERGY_JUMP = 1e5, # kJ/day: max tolerated day-to-day energy balance jump in canonical runs
   SANITY_MAX_DAILY_WATER_JUMP = 5e4,  # water units/day: max tolerated day-to-day water balance jump in canonical runs
+  TTR_MAX_POOL_ABS = 1e4,             # absolute per-plant pool cap used by TTR stability guardrails
+  TTR_MAX_DAILY_POOL_MULTIPLIER = 5,  # max tolerated one-day multiplicative jump in key TTR pools
+  TTR_MAX_DEFENCE_FRACTION = 0.35,    # upper bound: defence biomass as fraction of shoot mass
+  TTR_DEFENCE_ALLOCATION_PROP = 1e-4, # default share of shoot growth routed to structural defence pool
 
   # Plot settings
   PLANTS_IN_X = 20,

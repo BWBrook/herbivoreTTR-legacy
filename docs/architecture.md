@@ -73,6 +73,16 @@ Multi-day jump guards:
   - `CONSTANTS$SANITY_MAX_DAILY_ENERGY_JUMP`
   - `CONSTANTS$SANITY_MAX_DAILY_WATER_JUMP`
 
+TTR stability guardrails:
+- `transport_resistance()` enforces TTR-specific guardrails each day via `assert_ttr_guardrails()`:
+  - absolute pool caps (`CONSTANTS$TTR_MAX_POOL_ABS`),
+  - daily multiplicative jump cap (`CONSTANTS$TTR_MAX_DAILY_POOL_MULTIPLIER`),
+  - defence fraction cap (`CONSTANTS$TTR_MAX_DEFENCE_FRACTION`),
+  - defence semantics checks (`md` must mirror `bdef`; defence C/N cannot exceed shoot C/N).
+- Stress verification helper:
+  - `run_ttr_stress_scenario()` writes a stress artefact bundle under
+    `artefacts/canonical_runs/stress_ttr_v0/` (or caller-specified location).
+
 ## Module boundaries (logical, not necessarily directory-based)
 
 ### 1) Plant subsystem (TTR)

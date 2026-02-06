@@ -25,7 +25,9 @@ parameter_reference_table <- function() {
       "WATER_TURNOVER", "DIST_TO_WATER",
       "NPE_TO_PE_TARGET", "DP_TO_DC_TARGET",
       "MIN_SHOOT", "BROWSE_HEIGHT",
-      "SANITY_MAX_DAILY_ENERGY_JUMP", "SANITY_MAX_DAILY_WATER_JUMP"
+      "SANITY_MAX_DAILY_ENERGY_JUMP", "SANITY_MAX_DAILY_WATER_JUMP",
+      "TTR_MAX_POOL_ABS", "TTR_MAX_DAILY_POOL_MULTIPLIER",
+      "TTR_MAX_DEFENCE_FRACTION", "TTR_DEFENCE_ALLOCATION_PROP"
     ),
     description = c(
       "Gut capacity allometry coefficient",
@@ -47,7 +49,11 @@ parameter_reference_table <- function() {
       "Minimum shoot biomass left for plant persistence",
       "Maximum browse height for browser/mixed access",
       "Maximum tolerated day-to-day energy jump (sanity guard)",
-      "Maximum tolerated day-to-day water jump (sanity guard)"
+      "Maximum tolerated day-to-day water jump (sanity guard)",
+      "Maximum absolute per-plant pool value for TTR stability",
+      "Maximum tolerated one-day multiplicative jump in key TTR pools",
+      "Maximum defence biomass fraction of shoot mass",
+      "Default fraction of shoot growth allocated to defence biomass"
     ),
     units = c(
       "kg DM / kg body mass^B",
@@ -69,7 +75,11 @@ parameter_reference_table <- function() {
       "kg DM",
       "m",
       "kJ / day",
-      "water units / day"
+      "water units / day",
+      "pool units",
+      "unitless",
+      "unitless",
+      "unitless"
     ),
     citation = c(
       "Muller et al. (2013) Table 6",
@@ -91,7 +101,11 @@ parameter_reference_table <- function() {
       "Model assumption (v0)",
       "Model assumption (v0)",
       "Domain sanity policy (v0)",
-      "Domain sanity policy (v0)"
+      "Domain sanity policy (v0)",
+      "TTR stability policy (v0)",
+      "TTR stability policy (v0)",
+      "TTR stability policy (v0)",
+      "TTR stability policy (v0)"
     ),
     stringsAsFactors = FALSE
   )

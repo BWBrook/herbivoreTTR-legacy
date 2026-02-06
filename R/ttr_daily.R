@@ -14,6 +14,7 @@
 transport_resistance <- function(plants, conditions, day_index) {
   n <- nrow(plants)
   if (n == 0L) return(plants)
+  plants_before <- plants
 
   # Fetch drivers
   di <- ((day_index - 1L) %% nrow(conditions)) + 1L
@@ -112,17 +113,20 @@ transport_resistance <- function(plants, conditions, day_index) {
     dCr <- calc_dCr_dt(pr, CONSTANTS$FRACTION_C)
     dNs <- calc_dNs_dt(pr, CONSTANTS$FRACTION_N)
     dNr <- calc_dNr_dt(pr, CONSTANTS$FRACTION_N)
+    dCd <- if (isTRUE(CONSTANTS$DEFENCE_ENABLED)) calc_dCd_dt(pr, CONSTANTS$FRACTION_C) else 0
+    dNd <- if (isTRUE(CONSTANTS$DEFENCE_ENABLED)) calc_dNd_dt(pr, CONSTANTS$FRACTION_N) else 0
 
     # Update structural masses
     ms_new <- pr$ms + plants$gs[i] - MLeaf_loss - MStem_loss
     mr_new <- pr$mr + plants$gr[i] - Mr_loss
-    # md_new <- pr$md + plants$gd[i] - MDef_loss # disabled to mirror C++
 
     # Update C/N pools
     cs_new <- pr$cs + dCs
     cr_new <- pr$cr + dCr
     ns_new <- pr$ns + dNs
     nr_new <- pr$nr + dNr
+    cd_new <- if (isTRUE(CONSTANTS$DEFENCE_ENABLED)) pr$cd + dCd else 0
+    nd_new <- if (isTRUE(CONSTANTS$DEFENCE_ENABLED)) pr$nd + dNd else 0
 
     # Allocation: reproduction and stems for trees (veg_type == 2)
     prop_to_repr <- trap1(pr$ms, 0.5, 10) * 0.01
@@ -134,10 +138,11 @@ transport_resistance <- function(plants, conditions, day_index) {
 
     bleaf_new <- pr$bleaf + (1.0 - prop_to_stem) * plants$gs[i] - MLeaf_loss
     bstem_new <- pr$bstem + prop_to_stem * plants$gs[i] - MStem_loss
-    prop_to_def <- 0.0001
+    prop_to_def <- CONSTANTS$TTR_DEFENCE_ALLOCATION_PROP
     bdef_new  <- pr$bdef + prop_to_def * plants$gs[i] - MDef_loss
     brepr_new <- 0 * pr$brepr + prop_to_repr * plants$gs[i]
     broot_new <- mr_new
+    md_new <- bdef_new
 
     # Recalculate ms from components
     ms_new2 <- bleaf_new + bstem_new + bdef_new
@@ -149,12 +154,22 @@ transport_resistance <- function(plants, conditions, day_index) {
     plants$cr[i]    <- pmax(cr_new, 0)
     plants$ns[i]    <- pmax(ns_new, 0)
     plants$nr[i]    <- pmax(nr_new, 0)
+    plants$cd[i]    <- pmax(cd_new, 0)
+    plants$nd[i]    <- pmax(nd_new, 0)
     plants$bleaf[i] <- pmax(bleaf_new, 0)
     plants$bstem[i] <- pmax(bstem_new, 0)
     plants$bdef[i]  <- pmax(bdef_new, 0)
+    plants$md[i]    <- pmax(md_new, 0)
     plants$brepr[i] <- pmax(brepr_new, 0)
     plants$broot[i] <- pmax(broot_new, 0)
   }
+
+  assert_ttr_guardrails(
+    plants = plants,
+    plants_previous = plants_before,
+    day_of_simulation = day_index,
+    phase = "ttr_daily"
+  )
 
   plants
 }

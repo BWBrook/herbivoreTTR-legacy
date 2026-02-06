@@ -71,3 +71,13 @@ This file records decisions that are hard to reverse. Each entry should include 
 **Decision:** Parameter/units reference metadata is centralized in code via `parameter_reference_table()`, `units_conventions_table()`, and `canonical_smoke_parameters()`, and documented in `docs/parameter_units_reference.md`. Nutrient-target wording explicitly distinguishes reporting target (`NPE_TO_PE_TARGET`) from the current foraging proxy target (`DP_TO_DC_TARGET`).  
 **Rationale:** WP-0.3.8 requires a single authoritative reference that cannot silently drift from defaults used by canonical runs. Separating reporting vs proxy targets reduces ambiguity in interpretation and manuscript wording.  
 **Implications:** Tests must enforce sync between reference tables, constants, and canonical scenario defaults; future target-policy changes must update both code metadata and this decision record.
+
+## 2026-02-06 — TTR defence pool semantics and stability caps (v0)
+**Decision:** Structural defence biomass is represented by a single authoritative mass pool (`bdef`) that is mirrored to `md` each TTR day. When defence transport dynamics are disabled (`DEFENCE_ENABLED = 0`), `cd` and `nd` are held at zero. TTR updates enforce explicit stability caps:
+- absolute per-plant pool cap (`TTR_MAX_POOL_ABS`),
+- maximum one-day multiplicative jump (`TTR_MAX_DAILY_POOL_MULTIPLIER`),
+- maximum defence fraction of shoot mass (`TTR_MAX_DEFENCE_FRACTION`),
+- chemistry consistency (`cd <= cs`, `nd <= ns`).
+  
+**Rationale:** Prior instability risks included runaway pool growth and drift between duplicated defence mass representations (`bdef` vs `md`). A single defence mass semantic plus explicit numeric caps prevents silent divergence while retaining fail-fast diagnostics when behaviour leaves documented bounds.  
+**Implications:** TTR updates now fail fast on guardrail violations with contextual diagnostics; stress scenario artefacts and tests are required to confirm stability under documented stress inputs.
