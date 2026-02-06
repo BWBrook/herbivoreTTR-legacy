@@ -98,3 +98,21 @@ Browser browse-height gating remains enforced by `get_plants_within_range()`.
 **Rationale:** WP-0.4.2 requires mixed feeders to be a measurable strategy, not a label. A convex interpolation keeps behavior interpretable, tunable, and testable against directional intermediate outcomes.
 
 **Implications:** Controlled three-way scenario artefacts (`grazer`, `browser`, `mixed`) and regression tests now enforce that mixed diet composition is distinct and directionally intermediate under fixed seed.
+
+## 2026-02-06 — Plant selection stochastic-weight contract (v0.4.3)
+**Decision:** Plant selection is formally defined as weighted stochastic sampling where each candidate plant receives a non-negative tastiness weight:
+- `weight = functional_multiplier * size_bonus / (epsilon + w_ratio * nutrient_mismatch + w_distance * distance + w_defence * defence)`
+- candidates violating hard constraints receive zero weight:
+  - `distance > DETECTION_DISTANCE`,
+  - `ms <= MIN_SHOOT`,
+  - for browser/mixed: `LEAF_HEIGHT * height > BROWSE_HEIGHT` (when `height` exists).
+
+Constants introduced:
+- `TASTINESS_RATIO_WEIGHT`
+- `TASTINESS_DISTANCE_WEIGHT`
+- `TASTINESS_DEFENCE_WEIGHT`
+- `TASTINESS_EPSILON`
+
+**Rationale:** WP-0.4.3 requires that selection factors and direction of effects are explicit and testable, while preserving stochastic choice behavior (not always selecting the single best plant).
+
+**Implications:** Selection behavior is now auditable through controlled artefacts (`selection_contract_v0`) and acceptance tests that enforce zero-probability constraints, directional defence/distance effects, and fixed-seed determinism.

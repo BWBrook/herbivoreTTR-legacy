@@ -141,5 +141,23 @@ list(
       )
     },
     format = "file"
+  ),
+
+  targets::tar_target(
+    selection_contract_bundle_files,
+    {
+      selection_run <- run_selection_contract_scenario(
+        seed = canonical_seed,
+        n_draws = 5000L,
+        scenario_slug = "selection_contract_v0"
+      )
+      c(
+        selection_run$candidates_path,
+        selection_run$frequency_path,
+        selection_run$summary_path,
+        selection_run$manifest_path
+      )
+    },
+    format = "file"
   )
 )

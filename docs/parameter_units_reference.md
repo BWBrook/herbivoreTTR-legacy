@@ -58,6 +58,10 @@ Key parameters (from `parameter_reference_table()`):
 | `BROWSER_GRASS_PREF` | `0.5` | unitless | Browser tastiness multiplier for grass plants (`veg_type` 0/1) | Functional-type policy (v0.4.1) |
 | `BROWSER_WOODY_PREF` | `1.5` | unitless | Browser tastiness multiplier for woody plants (`veg_type` 2) | Functional-type policy (v0.4.1) |
 | `MIXED_BROWSER_WEIGHT` | `0.5` | unitless | Mixed-feeder interpolation weight (`0=grazer`, `1=browser`) | Mixed-feeder policy (v0.4.2) |
+| `TASTINESS_RATIO_WEIGHT` | `1` | unitless | Weight for nutrient-mismatch penalty in plant-selection denominator | Plant-selection contract (v0.4.3) |
+| `TASTINESS_DISTANCE_WEIGHT` | `1` | unitless | Weight for distance penalty in plant-selection denominator | Plant-selection contract (v0.4.3) |
+| `TASTINESS_DEFENCE_WEIGHT` | `1` | unitless | Weight for defence (`bdef`) penalty in plant-selection denominator | Plant-selection contract (v0.4.3) |
+| `TASTINESS_EPSILON` | `1e-6` | unitless | Numeric floor added to selection denominator | Plant-selection contract (v0.4.3) |
 | `SANITY_MAX_DAILY_ENERGY_JUMP` | `100000` | kJ / day | Max tolerated day-to-day energy jump guardrail | Domain sanity policy (v0) |
 | `SANITY_MAX_DAILY_WATER_JUMP` | `50000` | water units / day | Max tolerated day-to-day water jump guardrail | Domain sanity policy (v0) |
 
@@ -104,6 +108,26 @@ Current v0.4.1 behavior in `calc_plant_tastiness()`:
 
 The controlled scenario helper `run_functional_type_scenario()` writes reproducible diet-split artefacts under:
 - `artefacts/canonical_runs/functional_types_v0/`
+
+## Plant-selection scoring contract (WP-0.4.3)
+
+Current v0.4.3 behavior in `calc_plant_tastiness()`:
+- Candidate score is computed as:
+  - `score = functional_multiplier * size_bonus / (TASTINESS_EPSILON + TASTINESS_RATIO_WEIGHT * nutrient_mismatch + TASTINESS_DISTANCE_WEIGHT * distance + TASTINESS_DEFENCE_WEIGHT * bdef)`
+- Direction of effects (all else equal):
+  - larger nutrient mismatch lowers score,
+  - larger distance lowers score,
+  - larger defence (`bdef`) lowers score,
+  - larger shoot biomass (`ms`) increases score (log-saturating bonus),
+  - functional-type multipliers (`herb_type`) up/down-weight grass vs woody plants.
+- Hard zero-weight constraints:
+  - `distance > DETECTION_DISTANCE`,
+  - `ms <= MIN_SHOOT`,
+  - browser/mixed candidates beyond browse reach (`LEAF_HEIGHT * height > BROWSE_HEIGHT`, when `height` exists).
+- `pick_a_plant()` samples stochastically in proportion to these weights; fixed seed yields deterministic frequencies.
+
+Controlled selection-contract artefacts are written by `run_selection_contract_scenario()` under:
+- `artefacts/canonical_runs/selection_contract_v0/`
 
 ## Citations named in constants
 

@@ -11,11 +11,25 @@
 #' # pick_a_plant(plants_in_range, scores)
 #' @export
 pick_a_plant <- function(plants_in_range, tastiness_scores) {
-  if (sum(tastiness_scores) == 0) {
-    return(NA_integer_)  # No tasty plants; returns NA
-  } else {
-    prob <- tastiness_scores / sum(tastiness_scores)
-    selected_row <- sample(seq_len(nrow(plants_in_range)), 1, prob = prob)
-    return(plants_in_range$plant_id[selected_row])
+  if (nrow(plants_in_range) != length(tastiness_scores)) {
+    rlang::abort(
+      "Argument mismatch: `plants_in_range` rows must match `tastiness_scores` length.",
+      class = "herbivoreTTR_pick_a_plant_length_mismatch",
+      n_plants = nrow(plants_in_range),
+      n_scores = length(tastiness_scores)
+    )
   }
+
+  weights <- as.numeric(tastiness_scores)
+  weights[!is.finite(weights)] <- 0
+  weights <- pmax(weights, 0)
+  total_weight <- sum(weights)
+
+  if (!is.finite(total_weight) || total_weight <= 0) {
+    return(NA_integer_)
+  }
+
+  prob <- weights / total_weight
+  selected_row <- sample(seq_len(nrow(plants_in_range)), 1, prob = prob)
+  plants_in_range$plant_id[selected_row]
 }

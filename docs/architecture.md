@@ -98,7 +98,12 @@ Interfaces:
 Responsibilities:
 - Allometric trait calculation from body mass
 - Candidate plant detection within range (toroidal distance)
-- Plant choice using nutritional mismatch + distance + defence
+- Plant choice using stochastic weighted sampling, where tastiness weights combine:
+  - nutrient mismatch penalty (`DP:DC` target vs plant composition),
+  - distance penalty,
+  - defence penalty (`bdef`),
+  - shoot-size bonus (`ms`) and functional-type multipliers.
+- Zero-weight constraints are enforced for out-of-range, depleted, and out-of-reach browse candidates.
 - Functional-type preference multipliers:
   - grazer (`herb_type = 0`): grass-upweighted, woody-downweighted
   - browser (`herb_type = 1`): woody-upweighted, grass-downweighted
