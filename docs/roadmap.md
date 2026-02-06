@@ -59,11 +59,11 @@ A WP is “Done” only when all are true:
 
 ### Line 0.3.x — Production backbone + contracts (make the model trustworthy to run)
 - [x] **WP-0.3.1 — Baseline audit log + triage register**
-- [ ] **WP-0.3.2 — CI gates (Linux): check + tests + lint + targets smoke**
-- [ ] **WP-0.3.3 — Cross-platform strategy (macOS/Windows) implemented or explicitly deferred**
-- [ ] **WP-0.3.4 — Output contract v0: schema_version + run manifest + schema docs**
-- [ ] **WP-0.3.5 — Canonical smoke scenario artefacts: reproducible + targets-integrated**
-- [ ] **WP-0.3.6 — Determinism contract: seed plumbing + regression test**
+- [x] **WP-0.3.2 — CI gates (Linux): check + tests + lint + targets smoke**
+- [x] **WP-0.3.3 — Cross-platform strategy (macOS/Windows) implemented or explicitly deferred**
+- [x] **WP-0.3.4 — Output contract v0: schema_version + run manifest + schema docs**
+- [x] **WP-0.3.5 — Canonical smoke scenario artefacts: reproducible + targets-integrated**
+- [x] **WP-0.3.6 — Determinism contract: seed plumbing + regression test**
 - [ ] **WP-0.3.7 — Domain sanity suite v0: invariants for plants + herbivores**
 - [ ] **WP-0.3.8 — Parameter & units reference: allometries + defaults + citations**
 - [ ] **WP-0.3.9 — TTR stability & defence controls: guardrails + tests**

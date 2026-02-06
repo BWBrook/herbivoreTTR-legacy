@@ -1,2 +1,2 @@
-"Year","Day","HerbType","Mass","xcor","ycor","DailyDistMoved","DailyPEI","DailyNPEI","DailyDMI","DailyForageWater","TotalDMI","WaterBalance","EnergyBalance"
-1,1826,0,5e+05,34.3669357476756,5.65894211176783,50000,0,0,0,0,0,0,-57597432.4399452
+"SchemaVersion","Year","Day","HerbType","Mass","xcor","ycor","DailyDistMoved","DailyPEI","DailyNPEI","DailyDMI","DailyForageWater","TotalDMI","WaterBalance","EnergyBalance"
+"0.1.0",1,1826,0,5e+05,9.56129438934808,82.8716470731236,142.558941920588,0,0,3821.88020667979,0,0,0,-32160.6557543506

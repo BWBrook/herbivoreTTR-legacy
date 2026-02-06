@@ -46,3 +46,18 @@ This file records decisions that are hard to reverse. Each entry should include 
 **Decision:** Gut digestion queues are fixed-length numeric vectors of length `MRT` (hours), containing finite, non-negative values; the hourly update drops the final slot and prepends a zero slot. Any `NA` values encountered in digestion queues are treated as zero during normalisation.  
 **Rationale:** Prevents silent `NA` propagation and length drift, and makes domain invariants testable (gut content and daily intakes remain finite).  
 **Implications:** Fixing queue mechanics can change energy/water intake trajectories versus prior buggy runs; parity fixtures and reference artefacts must be reviewed and updated with justification when they change.
+
+## 2026-02-06 — Cross-platform CI support policy
+**Decision:** The supported CI posture is Linux + macOS + Windows for package check/installability, with Linux remaining the full gate runner for tests/lint/targets smoke/coverage in this phase.  
+**Rationale:** Publication-oriented reproducibility benefits from explicit multi-OS installation and check coverage, while keeping heavy validation jobs focused on a single deterministic runtime for speed and maintainability.  
+**Implications:** CI matrices must include all three OSes for `R CMD check`; Linux-only gate jobs remain mandatory blockers until the roadmap promotes broader full-gate matrices.
+
+## 2026-02-06 — Output contract v0 schema discipline
+**Decision:** Canonical smoke outputs use `schema_version = "0.1.0"` with required CSV schemas (`plants_day*.csv`, `herb_day*.csv`) and a required `run_manifest.json` under `artefacts/canonical_runs/smoke_v0/`.  
+**Rationale:** Stable, interpretable artefacts are required for regression testing and publication evidence packs.  
+**Implications:** Any incompatible output column or manifest change requires a schema version bump, migration notes, and regression test updates.
+
+## 2026-02-06 — Determinism contract for seeded runs
+**Decision:** Exported runners (`run_daily_herbivore_simulation()`, `run_herbivore_days()`) accept optional `seed` and execute with local RNG scoping that restores caller RNG state after return. Canonical determinism is strict equality on same OS/runtime; cross-OS numeric drift policy defaults to tolerance `1e-10` when approximate comparison is needed.  
+**Rationale:** Deterministic seeded runs are required for reproducible smoke artefacts and trustworthy regression tests without contaminating external RNG workflows.  
+**Implications:** Determinism tests must include seeded repeatability and RNG restoration behavior; canonical artefact comparisons should ignore only explicit volatile fields (for example manifest timestamp).

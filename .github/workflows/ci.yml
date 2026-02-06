@@ -6,10 +6,18 @@ on:
   pull_request:
     branches: [main, master]
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   r-cmd-check:
-    name: R CMD check
-    runs-on: ubuntu-latest
+    name: R CMD check (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
     steps:
@@ -22,16 +30,24 @@ jobs:
       - uses: r-lib/actions/setup-pandoc@v2
 
       - name: Install system dependencies
-        run: sudo apt-get update && sudo apt-get install -y qpdf
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y qpdf libglpk40
 
       - name: Restore renv
         uses: r-lib/actions/setup-renv@v2
+
+      - name: Session info
+        run: R -q -e "sessionInfo()"
 
       - name: Build source package
         run: R CMD build .
 
       - name: Check source package (as-cran)
-        run: R CMD check --as-cran --no-manual --timings $(ls -1 herbivoreTTR_*.tar.gz | tail -n 1)
+        run: >
+          R -q -e "pkg <- tail(sort(Sys.glob('herbivoreTTR_*.tar.gz')), 1);
+          if (!length(pkg)) stop('No source package found');
+          status <- system2('R', c('CMD', 'check', '--as-cran', '--no-manual', '--timings', pkg));
+          if (!identical(status, 0L)) quit(status = status, save = 'no')"
 
   tests:
     name: Unit tests
@@ -45,7 +61,13 @@ jobs:
         with:
           use-public-rspm: true
 
+      - name: Install Linux system dependencies
+        run: sudo apt-get update && sudo apt-get install -y libglpk40
+
       - uses: r-lib/actions/setup-renv@v2
+
+      - name: Session info
+        run: R -q -e "sessionInfo()"
 
       - name: Run testthat suite
         run: make test
@@ -62,7 +84,13 @@ jobs:
         with:
           use-public-rspm: true
 
+      - name: Install Linux system dependencies
+        run: sudo apt-get update && sudo apt-get install -y libglpk40
+
       - uses: r-lib/actions/setup-renv@v2
+
+      - name: Session info
+        run: R -q -e "sessionInfo()"
 
       - name: Lint package
         run: make lint
@@ -80,10 +108,25 @@ jobs:
         with:
           use-public-rspm: true
 
+      - name: Install Linux system dependencies
+        run: sudo apt-get update && sudo apt-get install -y libglpk40
+
       - uses: r-lib/actions/setup-renv@v2
+
+      - name: Session info
+        run: R -q -e "sessionInfo()"
 
       - name: Smoke pipeline
         run: make smoke
+
+      - name: Upload smoke artefacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-artefacts-linux
+          if-no-files-found: warn
+          path: |
+            data/outputs/*.csv
+            artefacts/canonical_runs/**
 
   coverage:
     name: Coverage gate
@@ -98,7 +141,13 @@ jobs:
         with:
           use-public-rspm: true
 
+      - name: Install Linux system dependencies
+        run: sudo apt-get update && sudo apt-get install -y libglpk40
+
       - uses: r-lib/actions/setup-renv@v2
+
+      - name: Session info
+        run: R -q -e "sessionInfo()"
 
       - name: Run coverage test
         run: make test

@@ -10,6 +10,8 @@
 #' @param temp_mode Mode passed to `init_conditions()`; defaults to `"flat"`.
 #' @param veg_types Vegetation types passed to `init_plants()`.
 #' @param herbivore_mass Starting herbivore mass in grams.
+#' @param seed Optional integer seed for deterministic RNG behavior during this
+#'   function call. The caller RNG state is restored afterwards.
 #' @return List with elements `daily_summary` (data.frame), `herbivore`,
 #'   `plants`, and `start_day`.
 #' @examples
@@ -20,7 +22,10 @@ run_herbivore_days <- function(days = 3L,
                                minute_limit = 1440,
                                temp_mode = "flat",
                                veg_types = c(0, 1, 2),
-                               herbivore_mass = 5e5) {
+                               herbivore_mass = 5e5,
+                               seed = NULL) {
+
+  with_optional_seed(seed, {
 
   if (!exists("%>%", inherits = TRUE) && requireNamespace("magrittr", quietly = TRUE)) {
     `%>%` <<- magrittr::`%>%`
@@ -94,4 +99,5 @@ run_herbivore_days <- function(days = 3L,
     plants = plants,
     start_day = start_day
   )
+  })
 }

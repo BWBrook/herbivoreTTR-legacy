@@ -10,7 +10,8 @@ run_daily_herbivore_simulation(
   conditions,
   day_of_simulation = 1,
   minute_limit = 1440,
-  capture_diagnostics = FALSE
+  capture_diagnostics = FALSE,
+  seed = NULL
 )
 }
 \arguments{
@@ -27,6 +28,9 @@ run_daily_herbivore_simulation(
 
 \item{capture_diagnostics}{Logical; when \code{TRUE}, the function captures
 start/end plant and herbivore states for downstream logging.}
+
+\item{seed}{Optional integer seed for deterministic RNG behavior during this
+function call. The caller RNG state is restored afterwards.}
 }
 \value{
 List with updated \code{herbivore}, \code{plants}, \code{daily_record} (optional

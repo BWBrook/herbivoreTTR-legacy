@@ -9,7 +9,8 @@ run_herbivore_days(
   minute_limit = 1440,
   temp_mode = "flat",
   veg_types = c(0, 1, 2),
-  herbivore_mass = 5e+05
+  herbivore_mass = 5e+05,
+  seed = NULL
 )
 }
 \arguments{
@@ -22,6 +23,9 @@ run_herbivore_days(
 \item{veg_types}{Vegetation types passed to \code{init_plants()}.}
 
 \item{herbivore_mass}{Starting herbivore mass in grams.}
+
+\item{seed}{Optional integer seed for deterministic RNG behavior during this
+function call. The caller RNG state is restored afterwards.}
 }
 \value{
 List with elements \code{daily_summary} (data.frame), \code{herbivore},

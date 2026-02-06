@@ -12,6 +12,8 @@
 #' @param minute_limit Number of minutes to simulate (default 1440).
 #' @param capture_diagnostics Logical; when `TRUE`, the function captures
 #'   start/end plant and herbivore states for downstream logging.
+#' @param seed Optional integer seed for deterministic RNG behavior during this
+#'   function call. The caller RNG state is restored afterwards.
 #' @return List with updated `herbivore`, `plants`, `daily_record` (optional
 #'   minute-by-minute snapshots), and `daily_summary`.
 #' @examples
@@ -22,7 +24,10 @@
 run_daily_herbivore_simulation <- function(herbivore, plants, conditions,
                                            day_of_simulation = 1,
                                            minute_limit = 1440,
-                                           capture_diagnostics = FALSE) {
+                                           capture_diagnostics = FALSE,
+                                           seed = NULL) {
+
+  with_optional_seed(seed, {
 
   day_index <- ((day_of_simulation - 1) %% nrow(conditions)) + 1
   today_temp <- conditions$temp_mean[day_index]
@@ -133,4 +138,5 @@ run_daily_herbivore_simulation <- function(herbivore, plants, conditions,
     daily_summary = daily_summary,
     diagnostics   = diagnostics
   ))
+  })
 }

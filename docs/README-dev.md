@@ -44,20 +44,22 @@ Key coverage:
 # Run a short simulation and write parity CSVs for day 1 and day 7
 targets::tar_make()
 
-# Inspect outputs
+# Inspect raw outputs + canonical bundle
 list.files("data/outputs", full.names = TRUE)
+list.files("artefacts/canonical_runs/smoke_v0", full.names = TRUE)
 ```
 
 - Outputs include `plants_dayXYZ.csv` and `herb_dayXYZ.csv` with semicolon delimiters.
-- These files are suitable for `diff`-style parity checks against C++ outputs.
+- Canonical smoke artefacts are written to `artefacts/canonical_runs/smoke_v0/` with `run_manifest.json`.
+- Output schema and required columns are documented in `docs/output_contract_v0.md`.
 
 ## 4) Parity checks (optional)
 
 ```r
 # Simple header + diff check in R (or use your shell)
-readLines("data/outputs/plants_day001.csv", n = 1)
+readLines("data/outputs/plants_day1826.csv", n = 1)
 # Shell example (Unix):
-# diff -u data/outputs/plants_day001.csv /path/to/cpp/plants_day001.csv
+# diff -u data/outputs/plants_day1826.csv /path/to/cpp/plants_day1826.csv
 ```
 
 ## 5) Determinism and seeds
@@ -81,5 +83,5 @@ See `docs/closure_tests.md` for structured unit + integration checks, determinis
 
 ## 8) Continuous Integration
 
-- GitHub Actions is enabled via `.github/workflows/R-CMD-check.yaml`.
+- GitHub Actions is enabled via `.github/workflows/ci.yml`.
 - Ensure `renv.lock` is current before pushing to keep CI reproducible.

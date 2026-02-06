@@ -55,9 +55,9 @@ This plan is a sketch: see `docs/roadmap` for the full details. It is organized 
 
 ## Backlog (prioritized)
 ### Next
-- Wire config/scenario object into `_targets.R` and demo scripts
-- Mixed feeder strategy: explicit policy (e.g., weighted graze/browse preference)
-- Output schema versioning and documentation
+- Domain sanity suite expansion (`WP-0.3.7`) with tighter budget plausibility thresholds
+- Parameter and units reference completion (`WP-0.3.8`) with citations
+- TTR stability and defence control guardrails (`WP-0.3.9`)
 
 ### Later
 - Optional calibration hooks (parameter scanning, sensitivity analysis)

@@ -10,6 +10,7 @@
 #' @param path file path for output CSV; overwritten if exists.
 #' @return Invisibly TRUE on success; errors on validation failure.
 write_plants_daily <- function(plants, day, year, path) {
+  schema_version <- output_schema_version()
 
   required <- c(
     "plant_id", "veg_type", "height", "bleaf", "bstem", "bdef",
@@ -26,6 +27,7 @@ write_plants_daily <- function(plants, day, year, path) {
 
   # Build ordered output frame
   out <- data.frame(
+    SchemaVersion = rep(schema_version, nrow(plants)),
     Year   = as.integer(rep(year, nrow(plants))),
     Day    = as.integer(rep(day, nrow(plants))),
     Plant  = plants$plant_id,
@@ -62,7 +64,7 @@ write_plants_daily <- function(plants, day, year, path) {
                      quote = FALSE, fileEncoding = "UTF-8", eol = "\n")
 
   # Post-validate header and column order
-  header_expected <- paste(colnames(out), collapse = ";")
+  header_expected <- paste(required_plant_output_columns_v0(), collapse = ";")
   hdr <- readLines(path, n = 1L, warn = FALSE)
   if (!identical(hdr, header_expected)) {
     rlang::abort(

@@ -9,6 +9,7 @@
 data/interim/
 data/processed/
 data/outputs/
+artefacts/
 logs/
 
 # Binary columnar files
@@ -78,7 +79,7 @@ renv/sandbox/
 .cache/
 
 # _targets
-/_targets/*
+/_targets/
 
 # output files
 outputs/

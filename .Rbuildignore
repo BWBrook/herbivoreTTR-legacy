@@ -14,5 +14,6 @@
 ^\.Rhistory$
 ^\.vscode$
 ^data$
+^artefacts$
 ^CITATION\.cff$
 ^LICENSE\.md$

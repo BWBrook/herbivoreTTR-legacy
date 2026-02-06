@@ -25,7 +25,7 @@ test_that("write_plants_daily writes semicolon CSV with correct header order", {
   on.exit(unlink(f), add = TRUE)
   expect_silent(write_plants_daily(make_plants(), day = 1, year = 1, path = f))
   hdr <- readLines(f, n = 1L, warn = FALSE)
-  expect_identical(hdr, "Year;Day;Plant;VegType;Height;BLeaf;BStem;BDef;Ms;Ns;Cs;Mr;Cr;Nr")
+  expect_identical(hdr, "SchemaVersion;Year;Day;Plant;VegType;Height;BLeaf;BStem;BDef;Ms;Ns;Cs;Mr;Cr;Nr")
   body <- readLines(f, warn = FALSE)
   expect_true(all(grepl(";", body)))
   expect_false(any(grepl("NA|NaN|Inf", body)))
@@ -37,7 +37,7 @@ test_that("write_herbivores_daily writes semicolon CSV with correct header order
   expect_silent(write_herbivores_daily(make_herb(), day = 1, year = 1, path = f))
   hdr <- readLines(f, n = 1L, warn = FALSE)
   expect_identical(hdr, paste(
-    c("Year","Day","HerbType","Mass","xcor","ycor","DailyDistMoved",
+    c("SchemaVersion","Year","Day","HerbType","Mass","xcor","ycor","DailyDistMoved",
       "DailyPEI","DailyNPEI","DailyDMI","DailyForageWater","TotalDMI",
       "WaterBalance","EnergyBalance"), collapse = ";"))
   body <- readLines(f, warn = FALSE)
