@@ -94,3 +94,127 @@ test_that("domain sanity: canonical daily balance jumps stay within guardrails",
   expect_true(all(energy_jump <= CONSTANTS$SANITY_MAX_DAILY_ENERGY_JUMP))
   expect_true(all(water_jump <= CONSTANTS$SANITY_MAX_DAILY_WATER_JUMP))
 })
+
+test_that("domain sanity: balance jump helper handles failure and non-finite bypass", {
+  expect_error(
+    assert_daily_balance_jump(
+      previous_value = 0,
+      current_value = CONSTANTS$SANITY_MAX_DAILY_ENERGY_JUMP + 1,
+      max_jump = CONSTANTS$SANITY_MAX_DAILY_ENERGY_JUMP,
+      component = "herbivore$energy_balance",
+      day_of_simulation = 7L
+    ),
+    class = "herbivoreTTR_domain_sanity_violation"
+  )
+
+  expect_true(
+    isTRUE(
+      assert_daily_balance_jump(
+        previous_value = Inf,
+        current_value = 100,
+        max_jump = 1,
+        component = "herbivore$energy_balance",
+        day_of_simulation = 7L
+      )
+    )
+  )
+})
+
+test_that("domain sanity: state helper validates error branches", {
+  sim <- init_simulation(temp_mode = "flat", veg_types = c(0, 1, 2), herbivore_mass = 5e5)
+  valid_plants <- sim$plants
+  valid_herb <- calc_foraging_traits(reset_daily_variables(sim$herbivore))
+
+  expect_error(
+    assert_domain_sanity_state(
+      plants = list(),
+      herbivore = valid_herb,
+      day_of_simulation = 1L,
+      phase = "unit_test"
+    ),
+    class = "herbivoreTTR_domain_sanity_violation"
+  )
+
+  missing_col <- valid_plants
+  missing_col$ms <- NULL
+  expect_error(
+    assert_domain_sanity_state(
+      plants = missing_col,
+      herbivore = valid_herb,
+      day_of_simulation = 1L,
+      phase = "unit_test"
+    ),
+    class = "herbivoreTTR_domain_sanity_violation"
+  )
+
+  bad_type <- valid_plants
+  bad_type$ms <- as.character(bad_type$ms)
+  expect_error(
+    assert_domain_sanity_state(
+      plants = bad_type,
+      herbivore = valid_herb,
+      day_of_simulation = 1L,
+      phase = "unit_test"
+    ),
+    class = "herbivoreTTR_domain_sanity_violation"
+  )
+
+  expect_error(
+    assert_domain_sanity_state(
+      plants = valid_plants,
+      herbivore = 1,
+      day_of_simulation = 1L,
+      phase = "unit_test"
+    ),
+    class = "herbivoreTTR_domain_sanity_violation"
+  )
+
+  herb_bad_gut <- valid_herb
+  herb_bad_gut$gut_capacity <- 0
+  expect_error(
+    assert_domain_sanity_state(
+      plants = valid_plants,
+      herbivore = herb_bad_gut,
+      day_of_simulation = 1L,
+      phase = "unit_test"
+    ),
+    class = "herbivoreTTR_domain_sanity_violation"
+  )
+
+  herb_bad_digest <- valid_herb
+  herb_bad_digest$digestion <- 5
+  expect_error(
+    assert_domain_sanity_state(
+      plants = valid_plants,
+      herbivore = herb_bad_digest,
+      day_of_simulation = 1L,
+      phase = "unit_test"
+    ),
+    class = "herbivoreTTR_domain_sanity_violation"
+  )
+
+  herb_bad_queue <- valid_herb
+  herb_bad_queue$digestion$leaf <- as.character(herb_bad_queue$digestion$leaf)
+  expect_error(
+    assert_domain_sanity_state(
+      plants = valid_plants,
+      herbivore = herb_bad_queue,
+      day_of_simulation = 1L,
+      phase = "unit_test"
+    ),
+    class = "herbivoreTTR_domain_sanity_violation"
+  )
+
+  expect_true(
+    isTRUE(
+      assert_domain_sanity_state(
+        plants = list(),
+        herbivore = 1,
+        day_of_simulation = 1L,
+        phase = "unit_test",
+        check_plants = FALSE,
+        check_herbivore = FALSE
+      )
+    )
+  )
+})
