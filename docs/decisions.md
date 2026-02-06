@@ -165,3 +165,17 @@ Operational contract:
 **Rationale:** WP-0.4.7 requires water balance to be observable, testable, and behaviour-coupled. Prior implementation tracked fields but did not wire forage-water uptake in feeding, leaving water dynamics under-specified.
 
 **Implications:** Canonical day outputs may change where forage-water uptake alters drinking requirements and thus movement/energy costs. Water contract artefacts (`water_contract_v1`) and dedicated tests now guard trigger behavior, energetic penalty semantics, and finite/consistent water bookkeeping.
+
+## 2026-02-06 — Foraging objective mode toggle for novelty contrast (v0.4.8)
+**Decision:** Add an explicit herbivore-level `foraging_mode` toggle with two valid values:
+- `nutrient_targeting` (default): include DP:DC mismatch in tastiness and persistence probability,
+- `energy_only`: disable nutrient mismatch weighting while keeping distance, defence, size, and functional-type terms unchanged.
+
+Operational contract:
+- mode resolution is strict with fallback to `nutrient_targeting` for missing/invalid values,
+- paired day-in-life comparison runs must use identical seeds and initial conditions, differing only by `foraging_mode`,
+- acceptance is based on measurable divergence in at least one pre-defined intake/selection metric.
+
+**Rationale:** WP-0.4.8 requires a reproducible novelty demonstration, isolating the effect of nutrient targeting from other behavioural mechanisms.
+
+**Implications:** New canonical artefacts (`day_in_life_nutrient_targeting_v1`, `day_in_life_energy_only_v1`, and `day_in_life_mode_comparison_v1`) and tests now guard the mode-difference claim.

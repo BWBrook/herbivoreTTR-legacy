@@ -45,8 +45,12 @@ make_foraging_decision <- function(herbivore, plants) {
     (ns / CONSTANTS$N_TO_PROTEIN) / denom
   } else NA_real_
 
-  ratio_diff <- abs(CONSTANTS$DP_TO_DC_TARGET - dpdc)
-  if (!is.finite(ratio_diff)) ratio_diff <- 1  # penalise undefined composition
+  if (identical(resolve_foraging_mode(herbivore), "energy_only")) {
+    ratio_diff <- 0
+  } else {
+    ratio_diff <- abs(CONSTANTS$DP_TO_DC_TARGET - dpdc)
+    if (!is.finite(ratio_diff)) ratio_diff <- 1  # penalise undefined composition
+  }
 
   # Size stickiness (0..1), saturates at M_REF kg
   M_REF <- if (!is.null(CONSTANTS$M_REF) && is.finite(CONSTANTS$M_REF) && CONSTANTS$M_REF > 0)

@@ -56,6 +56,12 @@ calc_plant_tastiness <- function(plants_in_range, herbivore, desired_dp_dc_ratio
   )
   ratio_diff <- abs(desired_dp_dc_ratio - plant_dp_dc)
   ratio_diff[!is.finite(ratio_diff)] <- Inf
+  foraging_mode <- resolve_foraging_mode(herbivore)
+  ratio_weight <- if (identical(foraging_mode, "energy_only")) {
+    0
+  } else {
+    CONSTANTS$TASTINESS_RATIO_WEIGHT
+  }
 
   size_bonus <- {
     denom <- log1p(CONSTANTS$M_REF)
@@ -86,7 +92,7 @@ calc_plant_tastiness <- function(plants_in_range, herbivore, desired_dp_dc_ratio
   }
 
   denom <- CONSTANTS$TASTINESS_EPSILON +
-    CONSTANTS$TASTINESS_RATIO_WEIGHT * ratio_diff +
+    ratio_weight * ratio_diff +
     CONSTANTS$TASTINESS_DISTANCE_WEIGHT * distance +
     CONSTANTS$TASTINESS_DEFENCE_WEIGHT * defence
 

@@ -76,7 +76,7 @@ A WP is “Done” only when all are true:
 - [x] **WP-0.4.5 — Foraging rate & defence handling penalty validated & documented**
 - [x] **WP-0.4.6 — Digestion model v1: hourly queues + realistic init + MRT parameter policy**
 - [x] **WP-0.4.7 — Water balance v1: metabolic water + drinking penalty + outputs**
-- [ ] **WP-0.4.8 — Nutrient targeting vs energy-only comparison + “day-in-life” artefact report**
+- [x] **WP-0.4.8 — Nutrient targeting vs energy-only comparison + “day-in-life” artefact report**
 
 ### Line 0.5.x — Beta coupling (multi-herbivore + scenarios + hybrid plant backend)
 - [ ] **WP-0.5.1 — Scenario contract v1: scenario object + YAML compile + docs/tests**

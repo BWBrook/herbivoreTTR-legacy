@@ -217,6 +217,27 @@ Expected directional effects:
 Controlled water-contract artefacts are written by `run_water_contract_scenario()` under:
 - `artefacts/canonical_runs/water_contract_v1/`
 
+## Nutrient-targeting vs energy-only day-in-life contract (WP-0.4.8)
+
+Current v0.4.8 behavior:
+- Herbivore state includes a discrete foraging-objective toggle:
+  - `foraging_mode = \"nutrient_targeting\"` (default),
+  - `foraging_mode = \"energy_only\"`.
+- Selection and persistence logic coupling:
+  - in nutrient-targeting mode, `DP:DC` mismatch is weighted in tastiness/persistence terms,
+  - in energy-only mode, nutrient mismatch weighting is disabled and only non-nutrient terms drive those decisions.
+- Controlled comparison helper:
+  - `run_day_in_life_comparison()` runs matched-seed paired scenarios:
+    - `day_in_life_nutrient_targeting_v1`
+    - `day_in_life_energy_only_v1`
+  - and emits a comparison/report bundle under:
+    - `artefacts/canonical_runs/day_in_life_mode_comparison_v1/`
+
+Expected directional effects:
+- nutrient-targeting should increase intake share from plants closer to the configured nutrient target,
+- energy-only should shift selection toward non-nutrient score drivers (size/distance/defence),
+- paired runs should show a measurable difference in at least one defined intake/selection metric.
+
 ## Citations named in constants
 
 - Jeschke, J.M. and Tollrian, R. (2005).

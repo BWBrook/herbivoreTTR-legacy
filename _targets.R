@@ -228,5 +228,18 @@ list(
       )
     },
     format = "file"
+  ),
+
+  targets::tar_target(
+    day_in_life_bundle_files,
+    {
+      day_run <- run_day_in_life_comparison(
+        seed = canonical_seed,
+        minute_limit = 360L,
+        base_dir = file.path("artefacts", "canonical_runs")
+      )
+      day_run$bundle_files
+    },
+    format = "file"
   )
 )

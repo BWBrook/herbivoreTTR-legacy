@@ -104,6 +104,9 @@ Responsibilities:
   - distance penalty,
   - defence penalty (`bdef`),
   - shoot-size bonus (`ms`) and functional-type multipliers.
+- Foraging-objective mode toggle:
+  - `foraging_mode = "nutrient_targeting"` applies nutrient mismatch in tastiness and persistence logic,
+  - `foraging_mode = "energy_only"` disables nutrient mismatch weighting while preserving distance/defence/size terms.
 - Zero-weight constraints are enforced for out-of-range, depleted, and out-of-reach browse candidates.
 - Functional-type preference multipliers:
   - grazer (`herb_type = 0`): grass-upweighted, woody-downweighted
@@ -138,6 +141,7 @@ Interfaces:
 - `run_daily_herbivore_simulation(herbivore, plants, conditions, day_of_simulation, minute_limit, ...)`
 - `run_herbivore_days(days, minute_limit, ...)`
 - `run_functional_type_scenario(minute_limit, seed, ...)` (controlled grazer/browser artefact helper)
+- `run_day_in_life_comparison(seed, minute_limit, ...)` (paired nutrient-targeting vs energy-only artefact helper)
 
 For Beta:
 - `run_daily_simulation_population(herbivores, plants, conditions, ...)`
