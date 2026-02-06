@@ -8,8 +8,9 @@
 #' @param day integer day-of-year.
 #' @param year integer simulation year.
 #' @param path file path for output CSV; overwritten if exists.
+#' @param run_id output run identifier for schema v1 tracking.
 #' @return Invisibly TRUE on success; errors on validation failure.
-write_plants_daily <- function(plants, day, year, path) {
+write_plants_daily <- function(plants, day, year, path, run_id = "run_unknown") {
   schema_version <- output_schema_version()
 
   required <- c(
@@ -25,8 +26,17 @@ write_plants_daily <- function(plants, day, year, path) {
     )
   }
 
+  if (!is.character(run_id) || length(run_id) != 1L || !nzchar(run_id)) {
+    rlang::abort(
+      "Argument `run_id` must be a non-empty scalar character.",
+      class = "herbivoreTTR_plants_run_id_invalid",
+      run_id = run_id
+    )
+  }
+
   # Build ordered output frame
   out <- data.frame(
+    RunID = rep(run_id, nrow(plants)),
     SchemaVersion = rep(schema_version, nrow(plants)),
     Year   = as.integer(rep(year, nrow(plants))),
     Day    = as.integer(rep(day, nrow(plants))),
@@ -42,7 +52,8 @@ write_plants_daily <- function(plants, day, year, path) {
     Mr     = plants$mr,
     Cr     = plants$cr,
     Nr     = plants$nr,
-    check.names = FALSE
+    check.names = FALSE,
+    stringsAsFactors = FALSE
   )
 
   # Validation: finite numerics, no NA/Inf/NaN
@@ -64,7 +75,7 @@ write_plants_daily <- function(plants, day, year, path) {
                      quote = FALSE, fileEncoding = "UTF-8", eol = "\n")
 
   # Post-validate header and column order
-  header_expected <- paste(required_plant_output_columns_v0(), collapse = ";")
+  header_expected <- paste(required_plant_output_columns_v1(), collapse = ";")
   hdr <- readLines(path, n = 1L, warn = FALSE)
   if (!identical(hdr, header_expected)) {
     rlang::abort(

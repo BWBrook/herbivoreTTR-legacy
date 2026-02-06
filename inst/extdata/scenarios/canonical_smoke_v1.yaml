@@ -1,0 +1,24 @@
+schema_version: "1.0.0"
+scenario_id: "canonical_smoke_v1"
+runtime:
+  seed: 1
+  minute_limit: 60
+  days: 7
+  start_day: 1826
+plot:
+  veg_types: [0, 1, 2]
+  plot_size_m2: 10000
+  plants_in_x: 20
+  plants_in_y: 20
+climate:
+  mode: "flat"
+population:
+  mode: "explicit_single"
+  cohort:
+    - herbivore_id: "herbivore_1"
+      mass_g: 500000
+      herb_type: 0
+      MRT_hours: 24
+      foraging_mode: "nutrient_targeting"
+outputs:
+  scenario_slug: "smoke_v0"

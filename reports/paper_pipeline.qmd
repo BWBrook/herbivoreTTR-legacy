@@ -1,0 +1,104 @@
+---
+title: "herbivoreTTR Paper Pipeline Skeleton"
+format:
+  html:
+    toc: true
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+read_safe <- function(path) {
+  if (!file.exists(path)) return(NULL)
+  utils::read.csv(path, stringsAsFactors = FALSE)
+}
+
+paths <- list(
+  day_in_life = file.path("artefacts", "canonical_runs", "day_in_life_mode_comparison_v1", "comparison_summary.csv"),
+  exp_a = file.path("artefacts", "canonical_runs", "experiment_a_presence_removal_v1", "experiment_a_summary.csv"),
+  exp_b = file.path("artefacts", "canonical_runs", "experiment_b_functional_types_v1", "experiment_b_summary.csv"),
+  exp_c = file.path("artefacts", "canonical_runs", "experiment_c_aridity_gradient_v1", "experiment_c_summary.csv")
+)
+
+fig_paths <- list(
+  exp_a = file.path("artefacts", "canonical_runs", "experiment_a_presence_removal_v1", "experiment_a_presence_removal.png"),
+  exp_b = file.path("artefacts", "canonical_runs", "experiment_b_functional_types_v1", "experiment_b_functional_types.png"),
+  exp_c = file.path("artefacts", "canonical_runs", "experiment_c_aridity_gradient_v1", "experiment_c_aridity_gradient.png")
+)
+
+cmp_day <- read_safe(paths$day_in_life)
+exp_a <- read_safe(paths$exp_a)
+exp_b <- read_safe(paths$exp_b)
+exp_c <- read_safe(paths$exp_c)
+```
+
+## Model Overview
+
+`herbivoreTTR` couples a daily plant-growth backend with minute-resolution herbivore foraging.
+This report is intentionally artefact-driven: it reads canonical scenario outputs from
+`artefacts/canonical_runs/` rather than re-running ad hoc simulations.
+
+## Day-in-Life Vignette
+
+```{r}
+if (is.null(cmp_day)) {
+  cat("Day-in-life comparison artefact is missing. Run the targets bundle first.")
+} else {
+  knitr::kable(cmp_day, digits = 4, caption = "Day-in-life nutrient-targeting vs energy-only summary")
+}
+```
+
+## Experiment A Summary
+
+```{r}
+if (is.null(exp_a)) {
+  cat("Experiment A summary artefact is missing.")
+} else {
+  knitr::kable(exp_a, digits = 3, caption = "Experiment A (presence vs removal) summary metrics")
+}
+```
+
+```{r}
+if (file.exists(fig_paths$exp_a)) {
+  knitr::include_graphics(fig_paths$exp_a)
+}
+```
+
+## Experiment B Summary
+
+```{r}
+if (is.null(exp_b)) {
+  cat("Experiment B summary artefact is missing.")
+} else {
+  knitr::kable(exp_b, digits = 3, caption = "Experiment B (grazer/browser/mixed) diet and structure summary")
+}
+```
+
+```{r}
+if (file.exists(fig_paths$exp_b)) {
+  knitr::include_graphics(fig_paths$exp_b)
+}
+```
+
+## Experiment C Summary
+
+```{r}
+if (is.null(exp_c)) {
+  cat("Experiment C summary artefact is missing.")
+} else {
+  knitr::kable(exp_c, digits = 3, caption = "Experiment C (aridity gradient) activity and vegetation summary")
+}
+```
+
+```{r}
+if (file.exists(fig_paths$exp_c)) {
+  knitr::include_graphics(fig_paths$exp_c)
+}
+```
+
+## Scenario Traceability
+
+All tables and figures above are generated from scenario artefacts in
+`artefacts/canonical_runs/` using scenario IDs defined under `config/scenarios/`.

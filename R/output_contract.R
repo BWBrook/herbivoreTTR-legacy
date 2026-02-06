@@ -3,7 +3,7 @@
 #' Output schema version for canonical run artefacts
 #' @keywords internal
 #' @noRd
-OUTPUT_SCHEMA_VERSION <- "0.1.0"
+OUTPUT_SCHEMA_VERSION <- "1.0.0"
 
 #' Return the current output schema version
 #' @keywords internal
@@ -31,6 +31,20 @@ required_herbivore_output_columns_v0 <- function() {
     "DailyDistMoved", "DailyPEI", "DailyNPEI", "DailyDMI", "DailyForageWater",
     "TotalDMI", "WaterBalance", "EnergyBalance"
   )
+}
+
+#' Required plant snapshot columns for output contract v1
+#' @keywords internal
+#' @noRd
+required_plant_output_columns_v1 <- function() {
+  c("RunID", required_plant_output_columns_v0())
+}
+
+#' Required herbivore snapshot columns for output contract v1
+#' @keywords internal
+#' @noRd
+required_herbivore_output_columns_v1 <- function() {
+  c("RunID", "HerbivoreID", required_herbivore_output_columns_v0())
 }
 
 #' Canonicalize a path for manifest serialization
@@ -83,11 +97,29 @@ resolve_git_sha <- function() {
   "unknown"
 }
 
+#' Build deterministic run identifier for output schema v1
+#' @param scenario_slug Scenario identifier.
+#' @param seed Scalar integer seed used for the run.
+#' @param scenario_parameters List of scenario parameters.
+#' @return Scalar character run identifier.
+#' @keywords internal
+#' @noRd
+build_run_id <- function(scenario_slug, seed, scenario_parameters = list()) {
+  token <- hash_scenario_parameters(list(
+    scenario_slug = scenario_slug,
+    seed = as.integer(seed),
+    scenario_parameters = scenario_parameters,
+    schema_version = output_schema_version()
+  ))
+  sprintf("run_%s", substr(token, 1L, 12L))
+}
+
 #' Build a canonical run manifest list
 #' @param scenario_slug Scenario identifier.
 #' @param seed Scalar integer seed used for the run.
 #' @param scenario_parameters List of scenario parameters.
 #' @param output_files Named character vector of relative output paths.
+#' @param run_id Optional deterministic run id. When NULL, generated automatically.
 #' @param created_utc UTC timestamp in ISO-8601-like format.
 #' @return Named list suitable for JSON serialization.
 #' @keywords internal
@@ -96,6 +128,7 @@ build_run_manifest <- function(scenario_slug,
                                seed,
                                scenario_parameters,
                                output_files,
+                               run_id = NULL,
                                created_utc = format(
                                  Sys.time(),
                                  "%Y-%m-%dT%H:%M:%SZ",
@@ -130,6 +163,21 @@ build_run_manifest <- function(scenario_slug,
     )
   }
 
+  if (is.null(run_id)) {
+    run_id <- build_run_id(
+      scenario_slug = scenario_slug,
+      seed = seed,
+      scenario_parameters = scenario_parameters
+    )
+  }
+  if (!is.character(run_id) || length(run_id) != 1L || !nzchar(run_id)) {
+    rlang::abort(
+      "Argument `run_id` must be a non-empty scalar character.",
+      class = "herbivoreTTR_manifest_run_id_invalid",
+      run_id = run_id
+    )
+  }
+
   outputs <- stats::setNames(
     as.list(vapply(output_files, normalize_manifest_path, character(1L))),
     names(output_files)
@@ -137,6 +185,7 @@ build_run_manifest <- function(scenario_slug,
 
   list(
     schema_version = output_schema_version(),
+    run_id = run_id,
     package_version = resolve_package_version(),
     git_sha = resolve_git_sha(),
     seed = as.integer(seed),

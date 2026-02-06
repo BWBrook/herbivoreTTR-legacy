@@ -20,7 +20,8 @@ numeric \code{distance} column (meters).
 \description{
 Computes toroidal distances from the herbivore to all plants and returns
 those within \code{CONSTANTS$DETECTION_DISTANCE}, optionally filtering by browse
-height for browsers (herb_type == 1). Adds a \code{distance} column to the
+height for browser and mixed feeders (\code{herb_type \%in\% c(1, 2)}). Adds a
+\code{distance} column to the
 returned data frame.
 }
 \examples{

@@ -1,184 +1,151 @@
 # Architecture — herbivoreTTR
 
 ## Overview
-herbivoreTTR is a coupled simulation with two interacting subsystems:
 
-- **Plants**: a spatial grid of plants updated daily via a Thornley Transport Resistance (TTR) growth model.
-- **Herbivores**: one or more individual agents that move and feed at minute resolution and track daily energy and water budgets.
+`herbivoreTTR` is a coupled plant-herbivore simulator with deterministic artefact workflows.
+It now supports three population execution modes behind a shared scenario contract:
+- `explicit_single`
+- `explicit_cohort`
+- `implicit_representative`
 
-A typical day:
-1. Apply daily plant growth update (TTR) for all plants given environmental drivers.
-2. Simulate herbivore minute-by-minute behavior (movement + intake decisions).
-3. Advance digestion hourly compartments, accumulate energy intake and metabolic water.
-4. Update daily energy/water balance summary.
+Canonical execution path:
+1. Compile scenario YAML (`compile_scenario_yaml()`).
+2. Validate and normalize (`validate_scenario_v1()`).
+3. Build conditions and initial state.
+4. Run daily coupling loops.
+5. Emit schema-versioned outputs + run manifest.
 
-## Core data model (state objects)
+## Scenario Contract Boundary
 
-### `conditions` (environmental drivers)
-A `data.frame` with at least:
-- `day` (int)
-- `temp_mean` (deg C)
-- `sw` (standing water; units documented)
-- `N` (available soil nitrogen; units documented)
+Scenario contract v1 (`schema_version = 1.0.0`) is the run-entry boundary.
+See `docs/scenario_contract_v1.md`.
 
-### `plants` (plant grid state)
-A `data.frame` with:
-- Identifiers and geometry:
-  - `plant_id`, `xcor`, `ycor` (toroidal environment)
-  - `veg_type`, `height` (as applicable)
-- Biomass pools (units documented, typically kg DM):
-  - `ms`, `mr` (shoot/root mass)
-  - `bleaf`, `bstem`, `bdef` (sub-pools used for herbivory + defence)
-- Nutrient pools (e.g., `cs`, `cr`, `ns`, `nr`) and derived concentrations
-- Daily TTR flux/resistance/derivative columns used during update
+Core scenario sections:
+- `runtime`: seed, minute budget, day range.
+- `plot`: geometry + vegetation composition.
+- `climate`: forcing mode and scaling controls.
+- `population`: explicit cohort or implicit representative semantics.
+- `outputs`: scenario slug for artefact layout.
 
-Key invariant: biomass and nutrient pools must remain finite and non-negative (within tolerance).
+Reference scenario files:
+- `config/scenarios/` (source checkout)
+- `inst/extdata/scenarios/` (installed fallback)
 
-### `herbivore` (individual agent state)
-A `list` with:
-- Identity and strategy:
-  - `id` (when multi-herbivore is enabled)
-  - `herb_type` (0=grazer, 1=browser, 2=mixed)
-  - strategy parameters (e.g., browse height constraints, preference weights)
-- Spatial state:
-  - `xcor`, `ycor`, `selected_plant_id`, `behaviour`
-- Physiological traits:
-  - `mass` (g), `gut_capacity` (g), `bite_size`, `handling_time`, `foraging_velocity`
-- Digestion queues:
-  - hourly vectors of ingested material and digestible carb/protein
-  - initialised to a non-zero steady-state fill fraction of gut capacity (not all zeros)
-- Daily trackers:
-  - `intake_*`, `distance_moved`, `energy_balance`, `water_balance`, etc.
+## State Objects
 
-Key invariant: gut content never exceeds capacity beyond tolerance; daily intakes are non-negative; energy/water updates are finite.
+### `conditions`
 
-## Domain sanity guards (v0)
-The runner executes fail-fast domain checks at key points in `run_daily_herbivore_simulation()`:
-- after daily plant growth (`phase = "post_growth"`),
-- at day start after herbivore trait refresh (`phase = "start_of_day"`),
-- at each simulated minute (`phase = "minute_loop"`),
-- after daily water/energy bookkeeping (`phase = "end_of_day"`).
+A daily forcing table with at least:
+- `day`
+- `temp_mean`
+- `sw`
+- `N`
 
-Checks enforced:
-- plant core pools are finite and non-negative within tolerance (`ms`, `mr`, `bleaf`, `bstem`, `bdef`, `cs`, `cr`, `ns`, `nr`, `cd`, `nd`, `md`);
-- herbivore gut constraints remain valid (`gut_capacity > 0`, `0 <= gut_content <= gut_capacity + tolerance`);
-- herbivore movement and daily balances remain finite (`distance_moved`, `energy_balance`, `water_balance`);
-- digestion queues are numeric, finite, and non-negative.
+### `plants`
 
-Error diagnostics:
-- failures raise class `herbivoreTTR_domain_sanity_violation`,
-- messages include the offending component plus day/minute/phase context for fast triage.
+A per-plant state table including:
+- identity and position (`plant_id`, `xcor`, `ycor`, `veg_type`, `height`)
+- biomass pools (`ms`, `mr`, `bleaf`, `bstem`, `bdef`, `md`)
+- C/N pools (`cs`, `cr`, `ns`, `nr`, `cd`, `nd`)
+- transport/state intermediates (`tau*`, `r*`, `u*`)
 
-Multi-day jump guards:
-- `run_herbivore_days()` enforces maximum day-to-day jumps for canonical sanity:
-  - `CONSTANTS$SANITY_MAX_DAILY_ENERGY_JUMP`
-  - `CONSTANTS$SANITY_MAX_DAILY_WATER_JUMP`
+### `herbivore`
 
-TTR stability guardrails:
-- `transport_resistance()` enforces TTR-specific guardrails each day via `assert_ttr_guardrails()`:
-  - absolute pool caps (`CONSTANTS$TTR_MAX_POOL_ABS`),
-  - daily multiplicative jump cap (`CONSTANTS$TTR_MAX_DAILY_POOL_MULTIPLIER`),
-  - defence fraction cap (`CONSTANTS$TTR_MAX_DEFENCE_FRACTION`),
-  - defence semantics checks (`md` must mirror `bdef`; defence C/N cannot exceed shoot C/N).
-- Stress verification helper:
-  - `run_ttr_stress_scenario()` writes a stress artefact bundle under
-    `artefacts/canonical_runs/stress_ttr_v0/` (or caller-specified location).
+A per-individual state list including:
+- `herbivore_id`
+- strategy (`herb_type`, `foraging_mode`, preference controls)
+- spatial state (`xcor`, `ycor`, `selected_plant_id`, `behaviour`)
+- physiology (`mass`, `gut_capacity`, `bite_size`, `handling_time`, `fv_max`)
+- digestion queues (hourly vectors)
+- daily counters (`intake_*`, `distance_moved`, balances)
 
-## Module boundaries (logical, not necessarily directory-based)
+## Plant Backend Interface
 
-### 1) Plant subsystem (TTR)
-Responsibilities:
-- Compute resistances, transport, uptake, growth, and RHS derivatives.
-- Apply a daily update across all plants with robust numeric guards.
+Plant dynamics are encapsulated via backend interface contract:
+- `init(veg_types)`
+- `step_day(plants, conditions, day_index)`
+- `apply_herbivory(plants)`
+- `observe(plants)`
 
-Interfaces:
-- `init_plants(veg_types=...) -> plants`
-- `transport_resistance(plants, conditions_row, ...) -> plants` (or equivalent daily updater)
+Current backend:
+- `internal_ttr` (default), resolved by `resolve_plant_backend()`.
 
-### 2) Herbivore subsystem
-Responsibilities:
-- Allometric trait calculation from body mass
-- Candidate plant detection within range (toroidal distance)
-- Plant choice using stochastic weighted sampling, where tastiness weights combine:
-  - nutrient mismatch penalty (`DP:DC` target vs plant composition),
-  - distance penalty,
-  - defence penalty (`bdef`),
-  - shoot-size bonus (`ms`) and functional-type multipliers.
-- Foraging-objective mode toggle:
-  - `foraging_mode = "nutrient_targeting"` applies nutrient mismatch in tastiness and persistence logic,
-  - `foraging_mode = "energy_only"` disables nutrient mismatch weighting while preserving distance/defence/size terms.
-- Zero-weight constraints are enforced for out-of-range, depleted, and out-of-reach browse candidates.
-- Functional-type preference multipliers:
-  - grazer (`herb_type = 0`): grass-upweighted, woody-downweighted
-  - browser (`herb_type = 1`): woody-upweighted, grass-downweighted
-  - mixed (`herb_type = 2`): explicit interpolation between grazer/browser multipliers using `mixed_browser_weight`
-- Movement mechanics:
-  - shortest-path toroidal motion (`herbivore_move()`) with explicit per-minute distance cap,
-  - configurable target disruption probability (`movement_disruption_prob` / `MOVEMENT_DISRUPTION_PROB`) controlling retargeting frequency.
-- Intake mechanics:
-  - per-minute intake limit combines handling rate, gut-capacity remainder, and an optional mechanical bite cap,
-  - defence fraction (`bdef / (bleaf + bstem + bdef)`) applies a multiplicative handling penalty,
-  - edible removal is capped to maintain minimum standing shoot biomass (`MIN_SHOOT`) per plant,
-  - forage-water intake is accrued from plant `qshoot` in proportion to consumed shoot biomass.
-- Digestion advancement and daily budget bookkeeping
-  - `MRT` is an explicit hourly parameter with validated bounds; queue resizing preserves queued mass totals
+This boundary allows optional benchmark backends without changing herbivore orchestration.
 
-Interfaces:
-- `init_herbivore(mass, herb_type, MRT, ...) -> herbivore`
-- `herbivore_step(herbivore, plants) -> list(herbivore, plants)`
-- `hourly_digestion_step(herbivore) -> herbivore`
-- `calc_daily_energy_balance(herbivore) -> herbivore`
-- `check_daily_water_balance(herbivore, ...) -> herbivore`
-  - updates explicit daily water terms: requirement, forage water, metabolic water, drinking water, and daily net water balance.
+## Simulation Orchestration
 
-### 3) Simulation orchestration
-Responsibilities:
-- Couple plant daily update and herbivore within-day loop
-- Multi-day wrapper
-- Optional diagnostics logging
+### Single Herbivore
 
-Interfaces:
-- `run_daily_herbivore_simulation(herbivore, plants, conditions, day_of_simulation, minute_limit, ...)`
-- `run_herbivore_days(days, minute_limit, ...)`
-- `run_functional_type_scenario(minute_limit, seed, ...)` (controlled grazer/browser artefact helper)
-- `run_day_in_life_comparison(seed, minute_limit, ...)` (paired nutrient-targeting vs energy-only artefact helper)
+`run_daily_herbivore_simulation()`:
+- optional plant growth (`apply_growth = TRUE/FALSE`)
+- minute-loop behavior and feeding
+- hourly digestion updates
+- end-of-day water/energy closure
 
-For Beta:
-- `run_daily_simulation_population(herbivores, plants, conditions, ...)`
-- Deterministic update ordering rules (documented)
+### Cohort Runner
 
-### 4) IO and artefacts
-Responsibilities:
-- Write stable-schema snapshots and logs
-- Version output schemas and document column meanings
+`run_daily_herbivore_cohort()` and `run_herbivore_cohort_days()`:
+- deterministic update order by sorted `herbivore_id`
+- shared plant state updated sequentially within day
+- one growth step per day before first herbivore
 
-Interfaces:
-- `write_*_snapshot_*()` helpers (targets-friendly)
-- `summarise_hourly_herbivore_record()` and `write_hourly_herbivore_log()`
+### Implicit Representative Mode
 
-### 5) Reproducibility workflows
-- `{targets}` is the canonical pipeline for repeatable runs and artefact generation.
-- `renv` locks dependencies for reproducibility and CI parity.
+`run_daily_implicit_representative()`:
+- computes effective visits from:
+  - stocking density (`per km2`)
+  - plot area
+  - visitation rate
+- executes full + fractional representative visits deterministically
+- outputs explicit visitation metadata for interpretation
 
-## Determinism rules
-- A fixed seed must reproduce:
-  - random choices (plant selection, movement randomness if any)
-  - pipeline outputs (CSV snapshots)
-- Floating point tolerance rules must be explicitly documented for any approximate comparisons.
+## Output Contracts
 
-## Parameter and units reference
-- Authoritative parameter metadata is maintained by:
-  - `parameter_reference_table()`
-  - `units_conventions_table()`
-  - `canonical_smoke_parameters()`
-- User-facing reference documentation is maintained in `docs/parameter_units_reference.md`.
+Current canonical output schema: `1.0.0`.
+See `docs/output_contract_v1.md`.
 
-## Extension points
-- New herbivore types: implement as strategy parameters plus a documented “selection + bite allocation” policy.
-- New climate drivers: extend `conditions` schema and plant update function(s).
-- New output products: add targets that consume stable-schema snapshots rather than ad hoc side effects.
+Key requirements:
+- `RunID` on plant/herbivore outputs
+- `HerbivoreID` on herbivore outputs
+- `run_id` in manifest
+- deterministic run-id generation via `build_run_id()`
 
-## Performance notes (design intent)
-- Keep hot loops (minute-resolution stepping) free of heavy tidyverse transforms.
-- Prefer precomputed vectors and base R operations in the inner loop.
-- Profile before optimizing; avoid premature refactors that change scientific meaning.
+Derived structure/fuel metrics:
+- `total_shoot_biomass_kg`
+- `grass_shoot_biomass_kg`
+- `woody_shoot_biomass_kg`
+- `fine_fuel_proxy_kg`
+- `browseable_biomass_kg`
+- `defended_shoot_biomass_kg`
+- `mean_height_m`, `p90_height_m`
+
+## Determinism and Guards
+
+Determinism:
+- scenario seed controls stochastic climate (if used), movement, and selection.
+- cohort ordering is deterministic (`herbivore_id` sort).
+
+Runtime guardrails:
+- domain sanity checks at growth/start/minute/end phases
+- gut-capacity invariants
+- finite/non-negative plant/energy/water constraints
+- TTR-specific numeric guardrails
+
+## Reference Experiment Layer
+
+Reference library and experiment builders:
+- `run_reference_scenario_library()`
+- `run_experiment_a_presence_removal()`
+- `run_experiment_b_functional_types()`
+- `run_experiment_c_aridity_gradient()`
+- `run_benchmark_appendix_v1()`
+
+Paper pipeline:
+- Quarto skeleton in `reports/paper_pipeline.qmd`
+- rendered by `render_paper_pipeline_report()` from artefacts.
+
+## Performance Intent
+
+- keep minute-loop logic free of heavy data wrangling
+- enforce small-scenario runtime budget in tests
+- maintain CI-appropriate smoke pipeline under `TARGETS_PROFILE=ci`

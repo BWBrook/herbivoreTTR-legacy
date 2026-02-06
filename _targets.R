@@ -1,4 +1,4 @@
-## Minimal {targets} pipeline to run a short simulation and emit parity CSVs
+## Minimal {targets} pipeline to run simulation contracts and canonical artefacts.
 
 if (!requireNamespace("targets", quietly = TRUE)) {
   stop("Install the 'targets' package to run the pipeline.")
@@ -15,17 +15,36 @@ targets::tar_option_set(
 targets::tar_source("R")
 
 list(
-  targets::tar_target(canonical_seed, 1L),
-  targets::tar_target(canonical_scenario_slug, "smoke_v0"),
-  targets::tar_target(conditions, init_conditions(mode = "flat")),
-  targets::tar_target(canonical_scenario_parameters, canonical_smoke_parameters(conditions = conditions)),
-  targets::tar_target(plants0, init_plants(veg_types = canonical_scenario_parameters$veg_types)),
-  targets::tar_target(herb0, init_herbivore(mass = canonical_scenario_parameters$herbivore_mass)),
-  targets::tar_target(day_after_spinup, canonical_scenario_parameters$start_day),
   targets::tar_target(
-    canonical_minute_limit,
-    canonical_scenario_parameters$minute_limit
+    canonical_scenario_yaml_path,
+    scenario_contract_reference_path("canonical_smoke_v1"),
+    format = "file"
   ),
+  targets::tar_target(canonical_scenario, compile_scenario_yaml(canonical_scenario_yaml_path)),
+  targets::tar_target(canonical_seed, canonical_scenario$runtime$seed),
+  targets::tar_target(canonical_scenario_slug, canonical_scenario$outputs$scenario_slug),
+  targets::tar_target(canonical_run_id, build_run_id(canonical_scenario_slug, canonical_seed, canonical_scenario)),
+  targets::tar_target(conditions, init_conditions(mode = canonical_scenario$climate$mode)),
+  targets::tar_target(
+    canonical_scenario_parameters,
+    scenario_to_canonical_parameters(canonical_scenario, conditions = conditions)
+  ),
+  targets::tar_target(plants0, init_plants(veg_types = canonical_scenario_parameters$veg_types)),
+  targets::tar_target(
+    herb0,
+    {
+      herb <- init_herbivore(
+        mass = canonical_scenario_parameters$herbivore_mass,
+        herb_type = canonical_scenario_parameters$herb_type,
+        MRT = canonical_scenario_parameters$herbivore_mrt,
+        herbivore_id = "herbivore_1"
+      )
+      herb$foraging_mode <- canonical_scenario_parameters$herbivore_foraging_mode
+      herb
+    }
+  ),
+  targets::tar_target(day_after_spinup, canonical_scenario_parameters$start_day),
+  targets::tar_target(canonical_minute_limit, canonical_scenario_parameters$minute_limit),
 
   # One-day simulation snapshot
   targets::tar_target(sim_day1, run_daily_herbivore_simulation(
@@ -42,7 +61,8 @@ list(
     plants_day1_csv,
     write_plants_snapshot_target(
       plants = sim_day1$plants,
-      day = day_after_spinup
+      day = day_after_spinup,
+      run_id = canonical_run_id
     ),
     format = "file"
   ),
@@ -51,7 +71,9 @@ list(
     herb_day1_csv,
     write_herbivore_snapshot_target(
       herbivore = sim_day1$herbivore,
-      day = day_after_spinup
+      day = day_after_spinup,
+      run_id = canonical_run_id,
+      herbivore_id = sim_day1$herbivore$herbivore_id
     ),
     format = "file"
   ),
@@ -76,7 +98,8 @@ list(
     plants_day7_csv,
     write_plants_snapshot_target(
       plants = sim_day7$plants,
-      day = day_after_spinup + 6L
+      day = day_after_spinup + 6L,
+      run_id = canonical_run_id
     ),
     format = "file"
   ),
@@ -85,7 +108,9 @@ list(
     herb_day7_csv,
     write_herbivore_snapshot_target(
       herbivore = sim_day7$herbivore,
-      day = day_after_spinup + 6L
+      day = day_after_spinup + 6L,
+      run_id = canonical_run_id,
+      herbivore_id = sim_day7$herbivore$herbivore_id
     ),
     format = "file"
   ),
@@ -101,7 +126,8 @@ list(
       ),
       scenario_slug = canonical_scenario_slug,
       seed = canonical_seed,
-      scenario_parameters = canonical_scenario_parameters
+      scenario_parameters = canonical_scenario_parameters,
+      run_id = canonical_run_id
     ),
     format = "file"
   ),
@@ -239,6 +265,139 @@ list(
         base_dir = file.path("artefacts", "canonical_runs")
       )
       day_run$bundle_files
+    },
+    format = "file"
+  ),
+
+  targets::tar_target(
+    cohort_scenario_yaml_path,
+    scenario_contract_reference_path("cohort_smoke_v1"),
+    format = "file"
+  ),
+  targets::tar_target(cohort_scenario, compile_scenario_yaml(cohort_scenario_yaml_path)),
+  targets::tar_target(
+    cohort_bundle_files,
+    {
+      out <- run_scenario_v1(cohort_scenario, base_dir = file.path("artefacts", "canonical_runs"))
+      c(
+        out$plants_first_path,
+        out$plants_last_path,
+        out$herbivore_daily_path,
+        out$structure_fuel_path,
+        out$manifest_path
+      )
+    },
+    format = "file"
+  ),
+
+  targets::tar_target(
+    implicit_scenario_yaml_path,
+    scenario_contract_reference_path("implicit_stocking_v1"),
+    format = "file"
+  ),
+  targets::tar_target(implicit_scenario, compile_scenario_yaml(implicit_scenario_yaml_path)),
+  targets::tar_target(
+    implicit_bundle_files,
+    {
+      out <- run_scenario_v1(implicit_scenario, base_dir = file.path("artefacts", "canonical_runs"))
+      files <- c(
+        out$plants_first_path,
+        out$plants_last_path,
+        out$herbivore_daily_path,
+        out$structure_fuel_path,
+        out$manifest_path
+      )
+      if (!is.null(out$implicit_visit_path)) {
+        files <- c(files, out$implicit_visit_path)
+      }
+      files
+    },
+    format = "file"
+  ),
+
+  targets::tar_target(
+    reference_library_bundle_files,
+    {
+      out <- run_reference_scenario_library(base_dir = file.path("artefacts", "canonical_runs"))
+      run_manifests <- vapply(
+        out$runs,
+        function(x) x$manifest_path,
+        character(1)
+      )
+      c(out$index_path, out$index_md_path, run_manifests)
+    },
+    format = "file"
+  ),
+
+  targets::tar_target(
+    experiment_a_bundle_files,
+    {
+      out <- run_experiment_a_presence_removal(base_dir = file.path("artefacts", "canonical_runs"))
+      c(out$summary_path, out$direction_path, out$plot_path, out$report_path, out$manifest_path)
+    },
+    format = "file"
+  ),
+
+  targets::tar_target(
+    experiment_b_bundle_files,
+    {
+      out <- run_experiment_b_functional_types(base_dir = file.path("artefacts", "canonical_runs"))
+      c(out$summary_path, out$plot_path, out$report_path, out$manifest_path)
+    },
+    format = "file"
+  ),
+
+  targets::tar_target(
+    experiment_c_bundle_files,
+    {
+      out <- run_experiment_c_aridity_gradient(base_dir = file.path("artefacts", "canonical_runs"))
+      c(out$summary_path, out$plot_path, out$report_path, out$manifest_path)
+    },
+    format = "file"
+  ),
+
+  targets::tar_target(
+    benchmark_appendix_bundle_files,
+    {
+      out <- run_benchmark_appendix_v1(base_dir = file.path("artefacts", "canonical_runs"))
+      c(
+        out$appendix_path,
+        out$benchmark$internal_path,
+        out$benchmark$comparison_path,
+        out$benchmark$report_path,
+        out$benchmark$manifest_path
+      )
+    },
+    format = "file"
+  ),
+
+  targets::tar_target(
+    performance_budget_bundle_files,
+    {
+      out <- run_performance_budget_profile(base_dir = file.path("artefacts", "canonical_runs"))
+      c(out$summary_path, out$report_path, out$manifest_path)
+    },
+    format = "file"
+  ),
+
+  targets::tar_target(
+    paper_pipeline_bundle_files,
+    {
+      deps <- c(
+        day_in_life_bundle_files,
+        experiment_a_bundle_files,
+        experiment_b_bundle_files,
+        experiment_c_bundle_files
+      )
+      output <- render_paper_pipeline_report(
+        input = file.path("reports", "paper_pipeline.qmd"),
+        output_dir = file.path("artefacts", "reports")
+      )
+      c(
+        output,
+        file.path("reports", "paper_pipeline.qmd"),
+        deps
+      )
     },
     format = "file"
   )

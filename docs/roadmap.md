@@ -79,23 +79,23 @@ A WP is “Done” only when all are true:
 - [x] **WP-0.4.8 — Nutrient targeting vs energy-only comparison + “day-in-life” artefact report**
 
 ### Line 0.5.x — Beta coupling (multi-herbivore + scenarios + hybrid plant backend)
-- [ ] **WP-0.5.1 — Scenario contract v1: scenario object + YAML compile + docs/tests**
-- [ ] **WP-0.5.2 — Output schema v1 migration: run_id/herbivore_id + migration tests**
-- [ ] **WP-0.5.3 — Cohort state model v1: initialise N herbivores with unique IDs**
-- [ ] **WP-0.5.4 — Multi-herbivore runner v1: deterministic ordering rules + tests**
-- [ ] **WP-0.5.5 — Implicit stocking-density mode v1 (representative herbivore visitation)**
-- [ ] **WP-0.5.6 — Performance budget gate + profiling evidence**
-- [ ] **WP-0.5.7 — Plant backend interface boundary (internal TTR behind interface, no behaviour change)**
-- [ ] **WP-0.5.8 — TTR.PGM optional benchmark harness + conditional tests**
+- [x] **WP-0.5.1 — Scenario contract v1: scenario object + YAML compile + docs/tests**
+- [x] **WP-0.5.2 — Output schema v1 migration: run_id/herbivore_id + migration tests**
+- [x] **WP-0.5.3 — Cohort state model v1: initialise N herbivores with unique IDs**
+- [x] **WP-0.5.4 — Multi-herbivore runner v1: deterministic ordering rules + tests**
+- [x] **WP-0.5.5 — Implicit stocking-density mode v1 (representative herbivore visitation)**
+- [x] **WP-0.5.6 — Performance budget gate + profiling evidence**
+- [x] **WP-0.5.7 — Plant backend interface boundary (internal TTR behind interface, no behaviour change)**
+- [x] **WP-0.5.8 — TTR.PGM optional benchmark harness + conditional tests**
 
 ### Line 0.6.x — Reference experiments (paper-ready narrative via reproducible scenarios)
-- [ ] **WP-0.6.1 — Vegetation structure & fuel metrics output contract**
-- [ ] **WP-0.6.2 — Reference scenario library v1 (curated scenarios + expected outcomes)**
-- [ ] **WP-0.6.3 — LARGE: Experiment A (presence vs removal) with report + artefacts**
-- [ ] **WP-0.6.4 — LARGE: Experiment B (grazer vs browser vs mixed) with report + artefacts**
-- [ ] **WP-0.6.5 — LARGE: Experiment C (aridity/productivity limits) with report + artefacts**
-- [ ] **WP-0.6.6 — Benchmark appendix: internal TTR vs TTR.PGM overlap case (report + artefacts)**
-- [ ] **WP-0.6.7 — Paper pipeline skeleton: Quarto report renders from scenario artefacts**
+- [x] **WP-0.6.1 — Vegetation structure & fuel metrics output contract**
+- [x] **WP-0.6.2 — Reference scenario library v1 (curated scenarios + expected outcomes)**
+- [x] **WP-0.6.3 — LARGE: Experiment A (presence vs removal) with report + artefacts**
+- [x] **WP-0.6.4 — LARGE: Experiment B (grazer vs browser vs mixed) with report + artefacts**
+- [x] **WP-0.6.5 — LARGE: Experiment C (aridity/productivity limits) with report + artefacts**
+- [x] **WP-0.6.6 — Benchmark appendix: internal TTR vs TTR.PGM overlap case (report + artefacts)**
+- [x] **WP-0.6.7 — Paper pipeline skeleton: Quarto report renders from scenario artefacts**
 
 ### Line 1.0.0 — Stabilisation + release readiness
 - [ ] **WP-1.0.1 — API freeze + deprecation policy + final user docs**

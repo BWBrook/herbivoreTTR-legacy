@@ -1,0 +1,38 @@
+schema_version: "1.0.0"
+scenario_id: "cohort_smoke_v1"
+runtime:
+  seed: 11
+  minute_limit: 60
+  days: 5
+  start_day: 1826
+plot:
+  veg_types: [0, 1, 2]
+  plot_size_m2: 10000
+  plants_in_x: 20
+  plants_in_y: 20
+climate:
+  mode: "flat"
+  mean_temp: 15
+  amplitude: 10
+  sw_scale: 1
+  n_scale: 1
+population:
+  mode: "explicit_cohort"
+  cohort:
+    - herbivore_id: "grazer_1"
+      mass_g: 500000
+      herb_type: 0
+      MRT_hours: 24
+      foraging_mode: "nutrient_targeting"
+    - herbivore_id: "browser_1"
+      mass_g: 450000
+      herb_type: 1
+      MRT_hours: 24
+      foraging_mode: "nutrient_targeting"
+    - herbivore_id: "mixed_1"
+      mass_g: 480000
+      herb_type: 2
+      MRT_hours: 24
+      foraging_mode: "nutrient_targeting"
+outputs:
+  scenario_slug: "cohort_smoke_v1"

@@ -1,8 +1,8 @@
 #' Run one simulated herbivore day
 #'
 #' Coordinates daily behaviour (decision, movement, feeding) and interactions
-#' with plants. Also advances the plant TTR state at the start of the day via
-#' `transport_resistance()` and updates daily energy and water balances.
+#' with plants. Also advances the plant state at the start of the day through
+#' the configured plant backend and updates daily energy and water balances.
 #'
 #' @param herbivore Herbivore state list.
 #' @param plants data.frame of plant state.
@@ -14,6 +14,9 @@
 #'   start/end plant and herbivore states for downstream logging.
 #' @param seed Optional integer seed for deterministic RNG behavior during this
 #'   function call. The caller RNG state is restored afterwards.
+#' @param apply_growth Logical; if `TRUE` daily plant growth is applied before
+#'   herbivory. Set `FALSE` when growth was already applied by an outer runner.
+#' @param plant_backend Plant backend name or backend interface list.
 #' @return List with updated `herbivore`, `plants`, `daily_record` (optional
 #'   minute-by-minute snapshots), and `daily_summary`.
 #' @examples
@@ -25,25 +28,31 @@ run_daily_herbivore_simulation <- function(herbivore, plants, conditions,
                                            day_of_simulation = 1,
                                            minute_limit = 1440,
                                            capture_diagnostics = FALSE,
-                                           seed = NULL) {
+                                           seed = NULL,
+                                           apply_growth = TRUE,
+                                           plant_backend = "internal_ttr") {
 
   with_optional_seed(seed, {
 
+  backend <- resolve_plant_backend(plant_backend)
   day_index <- ((day_of_simulation - 1) %% nrow(conditions)) + 1
   today_temp <- conditions$temp_mean[day_index]
 
-  # Update plants via TTR orchestrator for this day before herbivory
+  # Update plants via backend daily step before herbivory.
   diagnostics <- NULL
   if (capture_diagnostics) {
     diagnostics <- list(
       plants_start = plants,
-      day_of_simulation = day_of_simulation
+      day_of_simulation = day_of_simulation,
+      plant_backend = backend$name
     )
   }
 
-  plants <- transport_resistance(plants, conditions, day_index)
-  if (capture_diagnostics) {
-    diagnostics$plants_after_growth <- plants
+  if (isTRUE(apply_growth)) {
+    plants <- backend$step_day(plants, conditions, day_index)
+    if (capture_diagnostics) {
+      diagnostics$plants_after_growth <- plants
+    }
   }
 
   assert_domain_sanity_state(
@@ -51,7 +60,7 @@ run_daily_herbivore_simulation <- function(herbivore, plants, conditions,
     herbivore = herbivore,
     day_of_simulation = day_of_simulation,
     minute_of_day = 0L,
-    phase = "post_growth",
+    phase = if (isTRUE(apply_growth)) "post_growth" else "pre_foraging",
     check_plants = TRUE,
     check_herbivore = FALSE
   )
@@ -148,6 +157,8 @@ run_daily_herbivore_simulation <- function(herbivore, plants, conditions,
     )
   } # end herbivory loop
 
+  plants <- backend$apply_herbivory(plants)
+
   # 6) At the end of day: check water, finalize energy
   # Set water turnover to depend on temperature
   temperature_factor <- 1 + CONSTANTS$TEMP_WATER_SCALING * (today_temp - 20)  # simple example
@@ -176,7 +187,8 @@ run_daily_herbivore_simulation <- function(herbivore, plants, conditions,
     daily_water_drinking = herbivore$intake_water_drinking,
     daily_net_water_balance = herbivore$daily_net_water_balance,
     energy_balance        = herbivore$energy_balance,
-    water_balance         = herbivore$water_balance
+    water_balance         = herbivore$water_balance,
+    plant_backend = backend$name
   )
 
   if (capture_diagnostics) {
@@ -184,12 +196,12 @@ run_daily_herbivore_simulation <- function(herbivore, plants, conditions,
     diagnostics$plants_end <- plants
   }
 
-  return(list(
-    herbivore     = herbivore,
-    plants        = plants,
-    daily_record  = daily_record,
+  list(
+    herbivore = herbivore,
+    plants = plants,
+    daily_record = daily_record,
     daily_summary = daily_summary,
-    diagnostics   = diagnostics
-  ))
+    diagnostics = diagnostics
+  )
   })
 }

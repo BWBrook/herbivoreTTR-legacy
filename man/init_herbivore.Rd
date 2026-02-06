@@ -4,7 +4,12 @@
 \alias{init_herbivore}
 \title{Initialise a herbivore agent}
 \usage{
-init_herbivore(mass = 5e+05, herb_type = 0, MRT = 24)
+init_herbivore(
+  mass = 5e+05,
+  herb_type = 0,
+  MRT = 24,
+  herbivore_id = "herbivore_1"
+)
 }
 \arguments{
 \item{mass}{Herbivore mass (g).}
@@ -12,6 +17,8 @@ init_herbivore(mass = 5e+05, herb_type = 0, MRT = 24)
 \item{herb_type}{Integer behaviour type (0=grazer, 1=browser, 2=mixed).}
 
 \item{MRT}{Mean retention time (hours) for gut compartments.}
+
+\item{herbivore_id}{Stable herbivore identifier.}
 }
 \value{
 Herbivore state list ready for simulation.

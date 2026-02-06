@@ -1,15 +1,26 @@
 # Canonical parameter and units reference helpers.
 
 canonical_smoke_parameters <- function(conditions = init_conditions(mode = "flat")) {
+  scenario_path <- scenario_contract_reference_path("canonical_smoke_v1")
+  if (file.exists(scenario_path)) {
+    scenario <- compile_scenario_yaml(scenario_path)
+    return(scenario_to_canonical_parameters(scenario, conditions = conditions))
+  }
+
   start_day <- CONSTANTS$SPIN_UP_LENGTH * nrow(conditions) + 1L
 
   list(
     temp_mode = "flat",
     veg_types = c(0L, 1L, 2L),
     herbivore_mass = 5e5,
+    herb_type = 0L,
+    herbivore_mrt = 24L,
+    herbivore_foraging_mode = "nutrient_targeting",
     minute_limit = 60L,
     start_day = as.integer(start_day),
-    days = 7L
+    days = 7L,
+    seed = 1L,
+    scenario_slug = "smoke_v0"
   )
 }
 

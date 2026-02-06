@@ -179,3 +179,60 @@ Operational contract:
 **Rationale:** WP-0.4.8 requires a reproducible novelty demonstration, isolating the effect of nutrient targeting from other behavioural mechanisms.
 
 **Implications:** New canonical artefacts (`day_in_life_nutrient_targeting_v1`, `day_in_life_energy_only_v1`, and `day_in_life_mode_comparison_v1`) and tests now guard the mode-difference claim.
+
+## 2026-02-06 — Scenario contract v1 as canonical run entry (WP-0.5.1)
+**Decision:** Experiments are configured through scenario contract v1 (`schema_version = "1.0.0"`) with YAML front-end compilation and strict validation. `config/scenarios/*.yaml` is source-of-truth in checkout, with installed fallback copies under `inst/extdata/scenarios/`.  
+**Rationale:** A stable scenario boundary is required for reproducible experiments, targets integration, and deterministic regression testing.  
+**Implications:** New canonical/reference runs must originate from validated scenarios; invalid scenario fields fail fast with structured error classes.
+
+## 2026-02-06 — Output schema v1 migration with run/cohort identifiers (WP-0.5.2)
+**Decision:** Output schema is bumped to `1.0.0` and now requires `RunID` (all output tables), `HerbivoreID` (herbivore outputs), and manifest field `run_id`. v0 (`0.1.0`) remains migration-input only via explicit migration helpers.  
+**Rationale:** Cohort-ready and scenario-traceable outputs require explicit identifiers to avoid ambiguous merges/joins in downstream analyses.  
+**Implications:** Canonical fixtures moved to v1; migration notes/tests are mandatory for any further incompatible output changes.
+
+## 2026-02-06 — Deterministic cohort ordering policy (WP-0.5.3, WP-0.5.4)
+**Decision:** Multi-herbivore within-day updates execute in lexical `herbivore_id` order after one daily plant growth step. Plant state is shared and updated sequentially across herbivores in that order.  
+**Rationale:** Explicit ordering removes hidden nondeterminism and makes coupling semantics auditable.  
+**Implications:** Cohort scenarios must use unique IDs; changing ordering semantics is a behavior change requiring decision/log updates and regression review.
+
+## 2026-02-06 — Implicit stocking-density semantics (WP-0.5.5)
+**Decision:** Implicit mode converts stocking density to effective daily representative visits:
+`effective_visits = stocking_density_per_km2 * plot_area_km2 * visitation_rate_per_day`.
+Full and fractional visits are executed deterministically; outputs are explicitly labeled `implicit_representative` and record visitation parameters.  
+**Rationale:** Supports macroecological pressure questions without simulating large explicit cohorts while preserving interpretable mechanics.  
+**Implications:** Implicit outputs are not interchangeable with explicit cohorts without mode-aware interpretation.
+
+## 2026-02-06 — Performance budget gate for CI-profile scenario (WP-0.5.6)
+**Decision:** A mandatory small-scenario runtime gate is set at `< 30s` for CI-profile checks (`test_performance_budget_v1.R`), with profiling artefact reports recorded under `artefacts/canonical_runs/performance_budget_v1/`.  
+**Rationale:** Prevents major runtime regressions while avoiding brittle micro-optimisation thresholds.  
+**Implications:** Performance regressions now fail tests; hotspot changes must retain scientific behavior and update profiling notes.
+
+## 2026-02-06 — Plant backend interface boundary (WP-0.5.7)
+**Decision:** Plant updates are abstracted through backend interface members: `init`, `step_day`, `apply_herbivory`, `observe`, with `internal_ttr` as default backend.  
+**Rationale:** Decouples herbivore orchestration from plant backend implementation and enables optional benchmarking adapters.  
+**Implications:** Backend swaps must preserve documented interface behavior; default internal backend remains behavior-preserving baseline.
+
+## 2026-02-06 — TTR.PGM remains benchmark-only optional harness (WP-0.5.8)
+**Decision:** `TTR.PGM` integration is optional and benchmark-oriented only; default coupled runs remain on internal multi-PFT backend. Conditional benchmark artefacts/tests are provided without making package installation mandatory.  
+**Rationale:** Current overlap is useful for credibility checks, but internal backend is required for coupled multi-PFT workflows.  
+**Implications:** CI must stay green without `TTR.PGM`; benchmark divergences or adapter limitations are documented explicitly (not silently ignored).
+
+## 2026-02-06 — Structure/fuel derived metric contract (WP-0.6.1)
+**Decision:** Canonical scenario outputs include stable derived vegetation structure/fuel metrics (`total_shoot_biomass_kg`, `fine_fuel_proxy_kg`, `browseable_biomass_kg`, etc.) in `structure_fuel_daily.csv`.  
+**Rationale:** Fuel/structure questions should be answerable directly from outputs without reverse-engineering raw pools.  
+**Implications:** New experiments/reports must consume documented derived metrics; schema changes require contract update + tests.
+
+## 2026-02-06 — Reference scenario library as scientific narrative backbone (WP-0.6.2)
+**Decision:** A curated scenario library (presence/removal + grazer/browser/mixed) is maintained as explicit YAML definitions with expected qualitative outcomes and indexed artefacts.  
+**Rationale:** Encodes the paper storyline in reproducible scenarios, reducing ad hoc experiment drift.  
+**Implications:** Scenario purpose/expectation docs and artefact index must be kept in sync with scenario files.
+
+## 2026-02-06 — Paper experiments are artefact-first and report-backed (WP-0.6.3 to WP-0.6.6)
+**Decision:** Experiments A/B/C and benchmark appendix are generated by reproducible helper functions that write summary tables, plots, short interpretation reports, and manifests in canonical artefact folders.  
+**Rationale:** Makes interpretation auditable and publication-ready without manual notebook state.  
+**Implications:** Experiment claims must be tied to generated tables/plots and logged sanity notes.
+
+## 2026-02-06 — Paper pipeline renders from artefacts, not reruns (WP-0.6.7)
+**Decision:** Quarto skeleton (`reports/paper_pipeline.qmd`) reads prebuilt artefacts under `artefacts/canonical_runs/` and renders to `artefacts/reports/` via `render_paper_pipeline_report()`.  
+**Rationale:** Separates expensive simulation generation from narrative rendering and preserves reproducible report builds.  
+**Implications:** Pipeline target dependencies must ensure experiment artefacts exist before report render.

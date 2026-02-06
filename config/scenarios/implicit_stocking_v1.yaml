@@ -1,0 +1,30 @@
+schema_version: "1.0.0"
+scenario_id: "implicit_stocking_v1"
+runtime:
+  seed: 12
+  minute_limit: 60
+  days: 5
+  start_day: 1826
+plot:
+  veg_types: [0, 1, 2]
+  plot_size_m2: 10000
+  plants_in_x: 20
+  plants_in_y: 20
+climate:
+  mode: "flat"
+  mean_temp: 15
+  amplitude: 10
+  sw_scale: 1
+  n_scale: 1
+population:
+  mode: "implicit_representative"
+  representative:
+    herbivore_id: "representative_grazer"
+    mass_g: 500000
+    herb_type: 0
+    MRT_hours: 24
+    foraging_mode: "nutrient_targeting"
+  stocking_density_per_km2: 60
+  visitation_rate_per_day: 0.4
+outputs:
+  scenario_slug: "implicit_stocking_v1"

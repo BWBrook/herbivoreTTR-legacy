@@ -85,6 +85,7 @@ test_that("canonical run manifest references valid output files", {
   expect_identical(manifest$schema_version, output_schema_version())
   expect_identical(manifest$scenario_slug, "smoke_v0")
   expect_identical(manifest$seed, 1L)
+  expect_true(nzchar(manifest$run_id))
   expect_true(nzchar(manifest$scenario_parameters_hash))
   expect_true(nzchar(manifest$git_sha))
   expect_true(nzchar(manifest$package_version))

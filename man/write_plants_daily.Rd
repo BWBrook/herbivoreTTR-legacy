@@ -4,7 +4,7 @@
 \alias{write_plants_daily}
 \title{Write daily plant outputs to CSV (semicolon-delimited)}
 \usage{
-write_plants_daily(plants, day, year, path)
+write_plants_daily(plants, day, year, path, run_id = "run_unknown")
 }
 \arguments{
 \item{plants}{data.frame of plants.}
@@ -14,6 +14,8 @@ write_plants_daily(plants, day, year, path)
 \item{year}{integer simulation year.}
 
 \item{path}{file path for output CSV; overwritten if exists.}
+
+\item{run_id}{output run identifier for schema v1 tracking.}
 }
 \value{
 Invisibly TRUE on success; errors on validation failure.

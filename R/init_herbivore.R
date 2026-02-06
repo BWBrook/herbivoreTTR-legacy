@@ -6,14 +6,24 @@
 #' @param mass Herbivore mass (g).
 #' @param herb_type Integer behaviour type (0=grazer, 1=browser, 2=mixed).
 #' @param MRT Mean retention time (hours) for gut compartments.
+#' @param herbivore_id Stable herbivore identifier.
 #' @return Herbivore state list ready for simulation.
 #' @examples
 #' h <- init_herbivore()
 #' @export
-init_herbivore <- function(mass = 5e5, herb_type = 0, MRT = 24) {
+init_herbivore <- function(mass = 5e5, herb_type = 0, MRT = 24, herbivore_id = "herbivore_1") {
   MRT <- resolve_mrt_hours(MRT)
 
+  if (!is.character(herbivore_id) || length(herbivore_id) != 1L || !nzchar(herbivore_id)) {
+    rlang::abort(
+      "Argument `herbivore_id` must be a non-empty scalar character.",
+      class = "herbivoreTTR_init_herbivore_id_invalid",
+      herbivore_id = herbivore_id
+    )
+  }
+
   herbivore <- list(
+    herbivore_id = herbivore_id,
     mass = mass,                                   # [g] average white rhino is 2.18e6 (Steuer et al. 2010)
     herb_type = herb_type,                         # GRAZER, BROWSER, MIXED
     mixed_browser_weight = CONSTANTS$MIXED_BROWSER_WEIGHT, # interpolation weight used when herb_type == 2
@@ -51,5 +61,5 @@ init_herbivore <- function(mass = 5e5, herb_type = 0, MRT = 24) {
   herbivore <- initialise_herbivore_digestion(herbivore)
   herbivore$daily_water_requirement <- calc_water_requirement(mass)
 
-  return(herbivore)
+  herbivore
 }

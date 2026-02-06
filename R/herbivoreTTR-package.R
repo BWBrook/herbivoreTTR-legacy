@@ -8,6 +8,7 @@
 #' minute-resolution daily steps, and utilities to support analysis.
 #'
 #' @keywords internal
+#' @importFrom graphics axis barplot legend par
 #' @importFrom magrittr %>%
 #' @importFrom stats runif setNames
 #' @importFrom utils tail

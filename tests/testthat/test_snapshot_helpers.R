@@ -17,6 +17,7 @@ make_sample_plants <- function() {
 
 make_sample_herbivore <- function() {
   list(
+    herbivore_id = "herbivore_test",
     herb_type = 0L,
     mass = 5e5,
     xcor = 0,

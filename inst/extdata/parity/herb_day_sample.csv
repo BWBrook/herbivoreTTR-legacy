@@ -1,2 +1,2 @@
-"SchemaVersion","Year","Day","HerbType","Mass","xcor","ycor","DailyDistMoved","DailyPEI","DailyNPEI","DailyDMI","DailyForageWater","TotalDMI","WaterBalance","EnergyBalance"
-"0.1.0",1,1826,0,5e+05,7.5,87.5,4.12492582470279,196.080404754077,613.506941685943,4175.75772806587,32083.3373152494,0,10109.6948183668,-30205.524505649
+"RunID","HerbivoreID","SchemaVersion","Year","Day","HerbType","Mass","xcor","ycor","DailyDistMoved","DailyPEI","DailyNPEI","DailyDMI","DailyForageWater","TotalDMI","WaterBalance","EnergyBalance"
+"run_49c8bc238da8","herbivore_1","1.0.0",1,1826,0,5e+05,7.5,87.5,4.12492582470279,196.080404754077,613.506941685943,4175.75772806587,32083.3373152494,0,10109.6948183668,-30205.524505649

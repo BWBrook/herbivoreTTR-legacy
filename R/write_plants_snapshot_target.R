@@ -7,12 +7,14 @@
 #' @param day Integer day index.
 #' @param base_dir Output directory; defaults to `data/outputs`.
 #' @param year Simulation year (default 1).
+#' @param run_id output run identifier for schema v1 tracking.
 #' @return The file path that was written (invisible character scalar).
 #' @noRd
 write_plants_snapshot_target <- function(plants,
                                          day,
                                          base_dir = "data/outputs",
-                                         year = 1L) {
+                                         year = 1L,
+                                         run_id = "run_unknown") {
   if (!dir.exists(base_dir)) {
     created <- dir.create(base_dir, recursive = TRUE, showWarnings = FALSE)
     if (!created) {
@@ -25,6 +27,12 @@ write_plants_snapshot_target <- function(plants,
   }
 
   path <- file.path(base_dir, sprintf("plants_day%03d.csv", as.integer(day)))
-  write_plants_daily(plants = plants, day = day, year = year, path = path) # nolint: object_usage_linter
+  write_plants_daily(
+    plants = plants,
+    day = day,
+    year = year,
+    path = path,
+    run_id = run_id
+  ) # nolint: object_usage_linter
   path
 }

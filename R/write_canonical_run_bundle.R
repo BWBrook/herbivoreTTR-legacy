@@ -7,6 +7,7 @@
 #' @param scenario_slug Scenario identifier for the canonical run folder.
 #' @param seed Scalar integer seed used for the run.
 #' @param scenario_parameters List of scenario parameters to hash in manifest.
+#' @param run_id Optional run identifier for schema v1 tracking.
 #' @param base_dir Root folder for canonical runs.
 #' @return Character vector of written file paths (including manifest path).
 #' @keywords internal
@@ -15,6 +16,7 @@ write_canonical_run_bundle <- function(output_files,
                                        scenario_slug = "smoke_v0",
                                        seed = 1L,
                                        scenario_parameters = list(),
+                                       run_id = NULL,
                                        base_dir = file.path("artefacts", "canonical_runs")) {
   if (!is.character(output_files) || length(output_files) < 1L) {
     rlang::abort(
@@ -52,6 +54,14 @@ write_canonical_run_bundle <- function(output_files,
     }
   }
 
+  if (is.null(run_id)) {
+    run_id <- build_run_id(
+      scenario_slug = scenario_slug,
+      seed = seed,
+      scenario_parameters = scenario_parameters
+    )
+  }
+
   copied_paths <- stats::setNames(character(length(output_files)), names(output_files))
   for (nm in names(output_files)) {
     src <- output_files[[nm]]
@@ -77,7 +87,8 @@ write_canonical_run_bundle <- function(output_files,
     scenario_slug = scenario_slug,
     seed = seed,
     scenario_parameters = scenario_parameters,
-    output_files = relative_outputs
+    output_files = relative_outputs,
+    run_id = run_id
   )
   manifest_path <- file.path(run_dir, "run_manifest.json")
   write_run_manifest(manifest = manifest, path = manifest_path)

@@ -8,8 +8,15 @@
 #' @param day integer day-of-year.
 #' @param year integer simulation year.
 #' @param path file path for output CSV; overwritten if exists.
+#' @param run_id output run identifier for schema v1 tracking.
+#' @param herbivore_id herbivore identifier for schema v1 tracking.
 #' @return Invisibly TRUE on success; errors on validation failure.
-write_herbivores_daily <- function(herbivore, day, year, path) {
+write_herbivores_daily <- function(herbivore,
+                                   day,
+                                   year,
+                                   path,
+                                   run_id = "run_unknown",
+                                   herbivore_id = NULL) {
   schema_version <- output_schema_version()
 
   required <- c(
@@ -26,7 +33,30 @@ write_herbivores_daily <- function(herbivore, day, year, path) {
     )
   }
 
+  if (is.null(herbivore_id)) {
+    herbivore_id <- herbivore$herbivore_id
+  }
+  if (is.null(herbivore_id) || !length(herbivore_id) || !nzchar(as.character(herbivore_id))) {
+    herbivore_id <- "herbivore_1"
+  }
+  if (!is.character(run_id) || length(run_id) != 1L || !nzchar(run_id)) {
+    rlang::abort(
+      "Argument `run_id` must be a non-empty scalar character.",
+      class = "herbivoreTTR_herb_run_id_invalid",
+      run_id = run_id
+    )
+  }
+  if (!is.character(herbivore_id) || length(herbivore_id) != 1L || !nzchar(herbivore_id)) {
+    rlang::abort(
+      "Argument `herbivore_id` must be a non-empty scalar character.",
+      class = "herbivoreTTR_herb_herbivore_id_invalid",
+      herbivore_id = herbivore_id
+    )
+  }
+
   out <- data.frame(
+    RunID = run_id,
+    HerbivoreID = herbivore_id,
     SchemaVersion    = schema_version,
     Year            = as.integer(year),
     Day             = as.integer(day),
@@ -42,7 +72,8 @@ write_herbivores_daily <- function(herbivore, day, year, path) {
     TotalDMI        = herbivore$intake_total,
     WaterBalance    = herbivore$water_balance,
     EnergyBalance   = herbivore$energy_balance,
-    check.names = FALSE
+    check.names = FALSE,
+    stringsAsFactors = FALSE
   )
 
   # Validation: schema version present and finite numeric state
@@ -52,7 +83,7 @@ write_herbivores_daily <- function(herbivore, day, year, path) {
       class = "herbivoreTTR_herb_schema_missing"
     )
   }
-  numeric_out <- out[, setdiff(names(out), "SchemaVersion"), drop = FALSE]
+  numeric_out <- out[, setdiff(names(out), c("RunID", "HerbivoreID", "SchemaVersion")), drop = FALSE]
   if (any(!vapply(numeric_out, is.numeric, logical(1L)))) {
     rlang::abort(
       "Non-numeric values in herbivore output",
@@ -69,7 +100,7 @@ write_herbivores_daily <- function(herbivore, day, year, path) {
   utils::write.table(out, file = path, sep = ";", row.names = FALSE, col.names = TRUE,
                      quote = FALSE, fileEncoding = "UTF-8", eol = "\n")
 
-  header_expected <- paste(required_herbivore_output_columns_v0(), collapse = ";")
+  header_expected <- paste(required_herbivore_output_columns_v1(), collapse = ";")
   hdr <- readLines(path, n = 1L, warn = FALSE)
   if (!identical(hdr, header_expected)) {
     rlang::abort(

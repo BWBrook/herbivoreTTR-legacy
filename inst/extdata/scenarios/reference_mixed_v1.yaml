@@ -1,0 +1,28 @@
+schema_version: "1.0.0"
+scenario_id: "reference_mixed_v1"
+runtime:
+  seed: 403
+  minute_limit: 120
+  days: 7
+  start_day: 1826
+plot:
+  veg_types: [0, 1, 2]
+  plot_size_m2: 10000
+  plants_in_x: 20
+  plants_in_y: 20
+climate:
+  mode: "flat"
+  mean_temp: 15
+  amplitude: 10
+  sw_scale: 1
+  n_scale: 1
+population:
+  mode: "explicit_single"
+  cohort:
+    - herbivore_id: "mixed_ref"
+      mass_g: 500000
+      herb_type: 2
+      MRT_hours: 24
+      foraging_mode: "nutrient_targeting"
+outputs:
+  scenario_slug: "reference_mixed_v1"

@@ -43,12 +43,16 @@ test_that("pipeline manifest lists expected targets and file formats", {
     targets::tar_manifest(
       fields = c("name", "format"),
       callr_function = NULL,
-    script = basename(script)
-  )
-})
+      script = basename(script)
+    )
+  })
+
   expect_true(all(c(
+    "canonical_scenario_yaml_path",
+    "canonical_scenario",
     "canonical_seed",
     "canonical_scenario_slug",
+    "canonical_run_id",
     "canonical_scenario_parameters",
     "conditions",
     "plants0",
@@ -68,11 +72,25 @@ test_that("pipeline manifest lists expected targets and file formats", {
     "foraging_contract_bundle_files",
     "digestion_contract_bundle_files",
     "water_contract_bundle_files",
-    "day_in_life_bundle_files"
+    "day_in_life_bundle_files",
+    "cohort_scenario_yaml_path",
+    "cohort_scenario",
+    "cohort_bundle_files",
+    "implicit_scenario_yaml_path",
+    "implicit_scenario",
+    "implicit_bundle_files",
+    "reference_library_bundle_files",
+    "experiment_a_bundle_files",
+    "experiment_b_bundle_files",
+    "experiment_c_bundle_files",
+    "benchmark_appendix_bundle_files",
+    "performance_budget_bundle_files",
+    "paper_pipeline_bundle_files"
   ) %in% manifest$name))
 
   file_targets <- manifest[
     manifest$name %in% c(
+      "canonical_scenario_yaml_path",
       "plants_day1_csv",
       "herb_day1_csv",
       "plants_day7_csv",
@@ -85,7 +103,18 @@ test_that("pipeline manifest lists expected targets and file formats", {
       "foraging_contract_bundle_files",
       "digestion_contract_bundle_files",
       "water_contract_bundle_files",
-      "day_in_life_bundle_files"
+      "day_in_life_bundle_files",
+      "cohort_scenario_yaml_path",
+      "cohort_bundle_files",
+      "implicit_scenario_yaml_path",
+      "implicit_bundle_files",
+      "reference_library_bundle_files",
+      "experiment_a_bundle_files",
+      "experiment_b_bundle_files",
+      "experiment_c_bundle_files",
+      "benchmark_appendix_bundle_files",
+      "performance_budget_bundle_files",
+      "paper_pipeline_bundle_files"
     ),
   ]
   expect_true(all(file_targets$format == "file"))

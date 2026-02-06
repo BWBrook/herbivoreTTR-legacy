@@ -4,7 +4,14 @@
 \alias{write_herbivores_daily}
 \title{Write daily herbivore outputs to CSV (semicolon-delimited)}
 \usage{
-write_herbivores_daily(herbivore, day, year, path)
+write_herbivores_daily(
+  herbivore,
+  day,
+  year,
+  path,
+  run_id = "run_unknown",
+  herbivore_id = NULL
+)
 }
 \arguments{
 \item{herbivore}{list-like herbivore object.}
@@ -14,6 +21,10 @@ write_herbivores_daily(herbivore, day, year, path)
 \item{year}{integer simulation year.}
 
 \item{path}{file path for output CSV; overwritten if exists.}
+
+\item{run_id}{output run identifier for schema v1 tracking.}
+
+\item{herbivore_id}{herbivore identifier for schema v1 tracking.}
 }
 \value{
 Invisibly TRUE on success; errors on validation failure.

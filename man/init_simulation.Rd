@@ -9,7 +9,8 @@ init_simulation(
   veg_types = c(0, 1, 2),
   herbivore_mass = 5e+05,
   herb_type = 0,
-  MRT = 24
+  MRT = 24,
+  herbivore_id = "herbivore_1"
 )
 }
 \arguments{
@@ -23,6 +24,8 @@ init_simulation(
 \item{herb_type}{Herbivore functional type (0=grazer, 1=browser, 2=mixed).}
 
 \item{MRT}{Mean retention time (hours) for the gut compartments.}
+
+\item{herbivore_id}{Stable herbivore identifier.}
 }
 \value{
 List with \code{conditions}, \code{plants}, and \code{herbivore} objects.

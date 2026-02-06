@@ -10,7 +10,8 @@ calc_plant_tastiness(plants_in_range, herbivore, desired_dp_dc_ratio)
 \item{plants_in_range}{data.frame of nearby plants; expects \code{ns}, \code{cs},
 \code{distance}, optional \code{bdef}, and optional \code{ms} (shoot biomass).}
 
-\item{herbivore}{Herbivore state list (unused placeholder for future use).}
+\item{herbivore}{Herbivore state list used for functional-type weighting and
+browse-height gating.}
 
 \item{desired_dp_dc_ratio}{Numeric target ratio of digestible protein to
 digestible carbohydrate.}
@@ -19,8 +20,26 @@ digestible carbohydrate.}
 Numeric vector of tastiness scores aligned to \code{plants_in_range}.
 }
 \description{
-Heuristic combining distance, nutrient ratio mismatch, and defence to
-prioritise plants for feeding. Larger values are more attractive.
+Heuristic plant-selection score used as stochastic sampling weight.
+}
+\details{
+Score direction of effect (all else equal):
+\itemize{
+\item Higher nutrient mismatch (\code{DP:DC} vs target) reduces score.
+\item Greater distance reduces score.
+\item Higher structural defence biomass (\code{bdef}) reduces score.
+\item Larger shoot biomass (\code{ms}) increases score up to a saturation scale.
+\item Functional-type multipliers (\code{herb_type}) up/down-weight vegetation types.
+}
+
+Constraint gating:
+\itemize{
+\item Plants beyond \code{CONSTANTS$DETECTION_DISTANCE} are assigned score \code{0}.
+\item Plants at or below \code{CONSTANTS$MIN_SHOOT} are assigned score \code{0}.
+\item Browser/mixed feeders (\code{herb_type \%in\% c(1, 2)}) assign score \code{0} to
+plants above browse reach (\code{LEAF_HEIGHT * height > BROWSE_HEIGHT}) when
+a \code{height} column is present.
+}
 }
 \examples{
 # scores <- calc_plant_tastiness(plants_in_range, herb, 0.2)

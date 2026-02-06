@@ -11,7 +11,9 @@ run_daily_herbivore_simulation(
   day_of_simulation = 1,
   minute_limit = 1440,
   capture_diagnostics = FALSE,
-  seed = NULL
+  seed = NULL,
+  apply_growth = TRUE,
+  plant_backend = "internal_ttr"
 )
 }
 \arguments{
@@ -31,6 +33,11 @@ start/end plant and herbivore states for downstream logging.}
 
 \item{seed}{Optional integer seed for deterministic RNG behavior during this
 function call. The caller RNG state is restored afterwards.}
+
+\item{apply_growth}{Logical; if \code{TRUE} daily plant growth is applied before
+herbivory. Set \code{FALSE} when growth was already applied by an outer runner.}
+
+\item{plant_backend}{Plant backend name or backend interface list.}
 }
 \value{
 List with updated \code{herbivore}, \code{plants}, \code{daily_record} (optional
@@ -38,8 +45,8 @@ minute-by-minute snapshots), and \code{daily_summary}.
 }
 \description{
 Coordinates daily behaviour (decision, movement, feeding) and interactions
-with plants. Also advances the plant TTR state at the start of the day via
-\code{transport_resistance()} and updates daily energy and water balances.
+with plants. Also advances the plant state at the start of the day through
+the configured plant backend and updates daily energy and water balances.
 }
 \examples{
 sim <- init_simulation()
