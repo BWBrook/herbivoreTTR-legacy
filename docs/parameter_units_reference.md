@@ -62,6 +62,7 @@ Key parameters (from `parameter_reference_table()`):
 | `TASTINESS_DISTANCE_WEIGHT` | `1` | unitless | Weight for distance penalty in plant-selection denominator | Plant-selection contract (v0.4.3) |
 | `TASTINESS_DEFENCE_WEIGHT` | `1` | unitless | Weight for defence (`bdef`) penalty in plant-selection denominator | Plant-selection contract (v0.4.3) |
 | `TASTINESS_EPSILON` | `1e-6` | unitless | Numeric floor added to selection denominator | Plant-selection contract (v0.4.3) |
+| `MOVEMENT_DISRUPTION_PROB` | `0.1` | unitless probability | Per-step probability of dropping current target while moving | Movement contract (v0.4.4) |
 | `SANITY_MAX_DAILY_ENERGY_JUMP` | `100000` | kJ / day | Max tolerated day-to-day energy jump guardrail | Domain sanity policy (v0) |
 | `SANITY_MAX_DAILY_WATER_JUMP` | `50000` | water units / day | Max tolerated day-to-day water jump guardrail | Domain sanity policy (v0) |
 
@@ -128,6 +129,20 @@ Current v0.4.3 behavior in `calc_plant_tastiness()`:
 
 Controlled selection-contract artefacts are written by `run_selection_contract_scenario()` under:
 - `artefacts/canonical_runs/selection_contract_v0/`
+
+## Movement contract policy (WP-0.4.4)
+
+Current v0.4.4 behavior:
+- Movement toward targets uses toroidal shortest-path geometry through `herbivore_move()`.
+- Per-minute movement distance is capped at:
+  - `max_distance = fv_max * 60`
+- While in `MOVING` state with a valid target:
+  - target is retained unless a disruption draw succeeds,
+  - disruption draw probability is `movement_disruption_prob` (defaults to `MOVEMENT_DISRUPTION_PROB`).
+- Disrupted or invalid targets trigger stochastic reselection via plant-selection weights.
+
+Controlled movement-contract artefacts are written by `run_movement_contract_scenario()` under:
+- `artefacts/canonical_runs/movement_contract_v0/`
 
 ## Citations named in constants
 

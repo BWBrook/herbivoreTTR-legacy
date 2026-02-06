@@ -159,5 +159,23 @@ list(
       )
     },
     format = "file"
+  ),
+
+  targets::tar_target(
+    movement_contract_bundle_files,
+    {
+      movement_run <- run_movement_contract_scenario(
+        seed = canonical_seed,
+        steps = 400L,
+        scenario_slug = "movement_contract_v0"
+      )
+      c(
+        movement_run$movement_probe_path,
+        movement_run$disruption_probe_path,
+        movement_run$summary_path,
+        movement_run$manifest_path
+      )
+    },
+    format = "file"
   )
 )

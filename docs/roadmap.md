@@ -72,7 +72,7 @@ A WP is “Done” only when all are true:
 - [x] **WP-0.4.1 — Functional types validated: grazer vs browser are measurably distinct**
 - [x] **WP-0.4.2 — Mixed feeder policy validated: explicit interpolation with measurable outcomes**
 - [x] **WP-0.4.3 — Plant selection contract: tastiness scoring + stochastic choice documented & tested**
-- [ ] **WP-0.4.4 — Movement contract: torus geometry + disruption probability parameterised & tested**
+- [x] **WP-0.4.4 — Movement contract: torus geometry + disruption probability parameterised & tested**
 - [ ] **WP-0.4.5 — Foraging rate & defence handling penalty validated & documented**
 - [ ] **WP-0.4.6 — Digestion model v1: hourly queues + realistic init + MRT parameter policy**
 - [ ] **WP-0.4.7 — Water balance v1: metabolic water + drinking penalty + outputs**

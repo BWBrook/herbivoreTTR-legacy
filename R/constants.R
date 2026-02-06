@@ -55,6 +55,7 @@ CONSTANTS <- list(
   TASTINESS_DISTANCE_WEIGHT = 1.0, # weight on distance penalty in tastiness denominator
   TASTINESS_DEFENCE_WEIGHT = 1.0, # weight on defence penalty in tastiness denominator
   TASTINESS_EPSILON = 1e-6, # numeric floor to keep tastiness denominator finite
+  MOVEMENT_DISRUPTION_PROB = 0.1, # probability of dropping current target while moving
   DETECTION_DISTANCE = 10,  # maximum distance at which a herbivore can detect plants [m]
   EAT_RADIUS = 1.0,         # distance at which a herbivore can commence eating a plant [m]
   NPE_TO_PE_TARGET = 4.55,  # ratio non-protein energy to protein energy

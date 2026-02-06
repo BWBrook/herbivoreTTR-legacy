@@ -116,3 +116,15 @@ Constants introduced:
 **Rationale:** WP-0.4.3 requires that selection factors and direction of effects are explicit and testable, while preserving stochastic choice behavior (not always selecting the single best plant).
 
 **Implications:** Selection behavior is now auditable through controlled artefacts (`selection_contract_v0`) and acceptance tests that enforce zero-probability constraints, directional defence/distance effects, and fixed-seed determinism.
+
+## 2026-02-06 — Movement contract with explicit disruption probability (v0.4.4)
+**Decision:** Herbivore movement follows explicit toroidal shortest-path geometry through a single movement primitive (`herbivore_move()`), and target disruption is parameterised by `MOVEMENT_DISRUPTION_PROB` (per-step probability, clamped to `[0, 1]` via `movement_disruption_prob` in herbivore state).
+
+Operational policy:
+- while moving, herbivores retain their current valid target unless a disruption draw succeeds;
+- if disrupted or target invalid, a new target is selected stochastically;
+- movement per minute is capped at `fv_max * 60` and wrapped on a torus.
+
+**Rationale:** WP-0.4.4 requires interpretable edge-wrapping movement and a configurable mechanism that controls retargeting frequency.
+
+**Implications:** Movement and retargeting behavior are now testable against explicit contracts (wrap correctness, step cap, disruption effect) and auditable via `movement_contract_v0` artefacts.

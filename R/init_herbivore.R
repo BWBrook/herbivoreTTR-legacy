@@ -16,6 +16,7 @@ init_herbivore <- function(mass = 5e5, herb_type = 0, MRT = 24) {
     mass = mass,                                   # [g] average white rhino is 2.18e6 (Steuer et al. 2010)
     herb_type = herb_type,                         # GRAZER, BROWSER, MIXED
     mixed_browser_weight = CONSTANTS$MIXED_BROWSER_WEIGHT, # interpolation weight used when herb_type == 2
+    movement_disruption_prob = CONSTANTS$MOVEMENT_DISRUPTION_PROB, # chance of dropping target while moving
     xcor = runif(1, 0, sqrt(CONSTANTS$PLOT_SIZE)), # x-coordinate
     ycor = runif(1, 0, sqrt(CONSTANTS$PLOT_SIZE)), # y-coordinate
     current_hour = 0,                              # hour the herbivore is currently foraging in (continuous across days)

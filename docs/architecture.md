@@ -108,7 +108,10 @@ Responsibilities:
   - grazer (`herb_type = 0`): grass-upweighted, woody-downweighted
   - browser (`herb_type = 1`): woody-upweighted, grass-downweighted
   - mixed (`herb_type = 2`): explicit interpolation between grazer/browser multipliers using `mixed_browser_weight`
-- Movement and intake mechanics (handling time, bite size, gut capacity constraints)
+- Movement mechanics:
+  - shortest-path toroidal motion (`herbivore_move()`) with explicit per-minute distance cap,
+  - configurable target disruption probability (`movement_disruption_prob` / `MOVEMENT_DISRUPTION_PROB`) controlling retargeting frequency.
+- Intake mechanics (handling time, bite size, gut capacity constraints)
 - Digestion advancement and daily budget bookkeeping
 
 Interfaces:

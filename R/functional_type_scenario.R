@@ -36,6 +36,9 @@ run_functional_type_single <- function(initial_plants,
     herbivore <- init_herbivore(mass = herbivore_mass, herb_type = herb_type)
     herbivore <- reset_daily_variables(herbivore)
     herbivore <- calc_foraging_traits(herbivore)
+    # Keep this controlled scenario focused on diet preferences rather than
+    # movement persistence by forcing immediate retargeting each moving step.
+    herbivore$movement_disruption_prob <- 1
     herbivore$xcor <- 50
     herbivore$ycor <- 50
     herbivore$selected_plant_id <- NA_integer_
