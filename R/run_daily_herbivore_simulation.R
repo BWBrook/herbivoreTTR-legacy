@@ -46,6 +46,16 @@ run_daily_herbivore_simulation <- function(herbivore, plants, conditions,
     diagnostics$plants_after_growth <- plants
   }
 
+  assert_domain_sanity_state(
+    plants = plants,
+    herbivore = herbivore,
+    day_of_simulation = day_of_simulation,
+    minute_of_day = 0L,
+    phase = "post_growth",
+    check_plants = TRUE,
+    check_herbivore = FALSE
+  )
+
   # 1) Reset daily variables for herbivore
   herbivore <- reset_daily_variables(herbivore)
 
@@ -54,6 +64,14 @@ run_daily_herbivore_simulation <- function(herbivore, plants, conditions,
   if (capture_diagnostics) {
     diagnostics$herbivore_start <- herbivore
   }
+
+  assert_domain_sanity_state(
+    plants = plants,
+    herbivore = herbivore,
+    day_of_simulation = day_of_simulation,
+    minute_of_day = 0L,
+    phase = "start_of_day"
+  )
 
   # MRT allocation guard
   if (length(herbivore$digestion$dc_leaf) != herbivore$MRT) {
@@ -89,6 +107,14 @@ run_daily_herbivore_simulation <- function(herbivore, plants, conditions,
       herbivore <- hourly_digestion_step(herbivore)
     }
 
+    assert_domain_sanity_state(
+      plants = plants,
+      herbivore = herbivore,
+      day_of_simulation = day_of_simulation,
+      minute_of_day = as.integer(minute),
+      phase = "minute_loop"
+    )
+
     # (d) Optionally record data for debugging
     daily_record[[minute]] <- list(
       minute              = minute,
@@ -115,6 +141,14 @@ run_daily_herbivore_simulation <- function(herbivore, plants, conditions,
 
   herbivore <- check_daily_water_balance(herbivore)
   herbivore <- calc_daily_energy_balance(herbivore)
+
+  assert_domain_sanity_state(
+    plants = plants,
+    herbivore = herbivore,
+    day_of_simulation = day_of_simulation,
+    minute_of_day = as.integer(minute_limit),
+    phase = "end_of_day"
+  )
 
   # 7) Summarize daily outcomes
   daily_summary <- list(

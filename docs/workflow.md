@@ -29,6 +29,9 @@ Inspect outputs and confirm:
 - Gut capacity constraints are respected
 - Energy/water balances behave plausibly (no explosive drift in a tiny demo run)
 
+Runtime note:
+- Daily runners now fail fast with `herbivoreTTR_domain_sanity_violation` errors that include day/minute/phase and offending component. Treat these as first-class model faults.
+
 ### 3) Interpretation
 Write down:
 - What changed and why

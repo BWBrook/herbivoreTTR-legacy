@@ -44,3 +44,53 @@ test_that("domain sanity: coupled run keeps core state finite and non-negative",
   )
   expect_true(all(dig_ok))
 })
+
+test_that("domain sanity runtime checks include component and timestep context", {
+  sim <- init_simulation(temp_mode = "flat", veg_types = c(0, 1, 2), herbivore_mass = 5e5)
+  herb <- calc_foraging_traits(reset_daily_variables(sim$herbivore))
+  plants <- sim$plants
+
+  plants$ms[1] <- NaN
+  cnd_plants <- rlang::catch_cnd(
+    assert_domain_sanity_state(
+      plants = plants,
+      herbivore = herb,
+      day_of_simulation = 42L,
+      minute_of_day = 17L,
+      phase = "unit_test"
+    )
+  )
+  expect_s3_class(cnd_plants, "herbivoreTTR_domain_sanity_violation")
+  expect_match(cnd_plants$message, "plants\\$ms")
+  expect_equal(cnd_plants$day, 42L)
+  expect_equal(cnd_plants$minute, 17L)
+  expect_equal(cnd_plants$phase, "unit_test")
+
+  plants$ms[1] <- max(sim$plants$ms[1], CONSTANTS$TOLERANCE)
+  herb$gut_content <- herb$gut_capacity + 10
+  cnd_herb <- rlang::catch_cnd(
+    assert_domain_sanity_state(
+      plants = plants,
+      herbivore = herb,
+      day_of_simulation = 99L,
+      minute_of_day = 3L,
+      phase = "unit_test"
+    )
+  )
+  expect_s3_class(cnd_herb, "herbivoreTTR_domain_sanity_violation")
+  expect_match(cnd_herb$message, "herbivore\\$gut_content")
+  expect_match(cnd_herb$message, "day 99 minute 3")
+})
+
+test_that("domain sanity: canonical daily balance jumps stay within guardrails", {
+  res <- run_herbivore_days(days = 7L, minute_limit = 60, seed = 1L)
+  summary <- res$daily_summary
+
+  energy_jump <- abs(diff(summary$energy_balance))
+  water_jump <- abs(diff(summary$water_balance))
+
+  expect_true(all(is.finite(energy_jump)))
+  expect_true(all(is.finite(water_jump)))
+  expect_true(all(energy_jump <= CONSTANTS$SANITY_MAX_DAILY_ENERGY_JUMP))
+  expect_true(all(water_jump <= CONSTANTS$SANITY_MAX_DAILY_WATER_JUMP))
+})

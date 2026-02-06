@@ -61,3 +61,8 @@ This file records decisions that are hard to reverse. Each entry should include 
 **Decision:** Exported runners (`run_daily_herbivore_simulation()`, `run_herbivore_days()`) accept optional `seed` and execute with local RNG scoping that restores caller RNG state after return. Canonical determinism is strict equality on same OS/runtime; cross-OS numeric drift policy defaults to tolerance `1e-10` when approximate comparison is needed.  
 **Rationale:** Deterministic seeded runs are required for reproducible smoke artefacts and trustworthy regression tests without contaminating external RNG workflows.  
 **Implications:** Determinism tests must include seeded repeatability and RNG restoration behavior; canonical artefact comparisons should ignore only explicit volatile fields (for example manifest timestamp).
+
+## 2026-02-06 — Domain sanity fail-fast policy (v0)
+**Decision:** The simulation runners enforce explicit runtime domain checks and abort with contextual diagnostics when violated. The v0 checks cover finite/non-negative plant pools, gut-capacity constraints, finite energy/water balances, and finite/non-negative digestion queues. Multi-day summaries additionally enforce bounded day-to-day jumps using `SANITY_MAX_DAILY_ENERGY_JUMP` and `SANITY_MAX_DAILY_WATER_JUMP`.  
+**Rationale:** Silent non-physical state drift undermines scientific trust. Fast, contextual failure is preferable to producing artefacts that look valid but encode invalid states.  
+**Implications:** Runs may now fail earlier when invalid states appear; failures will include offending component plus day/minute/phase and should be treated as model defects (not ignored as numerical noise).

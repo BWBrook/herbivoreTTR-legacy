@@ -51,6 +51,28 @@ A `list` with:
 
 Key invariant: gut content never exceeds capacity beyond tolerance; daily intakes are non-negative; energy/water updates are finite.
 
+## Domain sanity guards (v0)
+The runner executes fail-fast domain checks at key points in `run_daily_herbivore_simulation()`:
+- after daily plant growth (`phase = "post_growth"`),
+- at day start after herbivore trait refresh (`phase = "start_of_day"`),
+- at each simulated minute (`phase = "minute_loop"`),
+- after daily water/energy bookkeeping (`phase = "end_of_day"`).
+
+Checks enforced:
+- plant core pools are finite and non-negative within tolerance (`ms`, `mr`, `bleaf`, `bstem`, `bdef`, `cs`, `cr`, `ns`, `nr`, `cd`, `nd`, `md`);
+- herbivore gut constraints remain valid (`gut_capacity > 0`, `0 <= gut_content <= gut_capacity + tolerance`);
+- herbivore movement and daily balances remain finite (`distance_moved`, `energy_balance`, `water_balance`);
+- digestion queues are numeric, finite, and non-negative.
+
+Error diagnostics:
+- failures raise class `herbivoreTTR_domain_sanity_violation`,
+- messages include the offending component plus day/minute/phase context for fast triage.
+
+Multi-day jump guards:
+- `run_herbivore_days()` enforces maximum day-to-day jumps for canonical sanity:
+  - `CONSTANTS$SANITY_MAX_DAILY_ENERGY_JUMP`
+  - `CONSTANTS$SANITY_MAX_DAILY_WATER_JUMP`
+
 ## Module boundaries (logical, not necessarily directory-based)
 
 ### 1) Plant subsystem (TTR)

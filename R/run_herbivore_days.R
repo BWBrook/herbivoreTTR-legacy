@@ -62,6 +62,8 @@ run_herbivore_days <- function(days = 3L,
 
   start_day <- CONSTANTS$SPIN_UP_LENGTH * nrow(conditions) + 1L
   summaries <- vector("list", days)
+  prev_energy_balance <- NA_real_
+  prev_water_balance <- NA_real_
 
   for (i in seq_len(days)) {
     current_day <- start_day + i - 1L
@@ -73,6 +75,26 @@ run_herbivore_days <- function(days = 3L,
       minute_limit = minute_limit
     )
     summaries[[i]] <- step_res[["daily_summary"]]
+
+    assert_daily_balance_jump(
+      previous_value = prev_energy_balance,
+      current_value = step_res[["daily_summary"]]$energy_balance,
+      max_jump = CONSTANTS$SANITY_MAX_DAILY_ENERGY_JUMP,
+      component = "herbivore$energy_balance",
+      day_of_simulation = current_day,
+      phase = "multi_day_summary"
+    )
+    assert_daily_balance_jump(
+      previous_value = prev_water_balance,
+      current_value = step_res[["daily_summary"]]$water_balance,
+      max_jump = CONSTANTS$SANITY_MAX_DAILY_WATER_JUMP,
+      component = "herbivore$water_balance",
+      day_of_simulation = current_day,
+      phase = "multi_day_summary"
+    )
+
+    prev_energy_balance <- step_res[["daily_summary"]]$energy_balance
+    prev_water_balance <- step_res[["daily_summary"]]$water_balance
     herbivore <- step_res[["herbivore"]]
     plants <- step_res[["plants"]]
   }

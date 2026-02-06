@@ -52,6 +52,8 @@ CONSTANTS <- list(
   PLANT_DENSITY = 0.25,     # local availability of plants in the area
   DP_TO_DC_TARGET = 0.2,    # digestible protein to digestible carbohydrate target
   TEMP_WATER_SCALING = 0.1, # scaling water requirements based on temperature
+  SANITY_MAX_DAILY_ENERGY_JUMP = 1e5, # kJ/day: max tolerated day-to-day energy balance jump in canonical runs
+  SANITY_MAX_DAILY_WATER_JUMP = 5e4,  # water units/day: max tolerated day-to-day water balance jump in canonical runs
 
   # Plot settings
   PLANTS_IN_X = 20,
