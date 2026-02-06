@@ -70,6 +70,7 @@ Depending on the runner and options, outputs include:
 * Plant and herbivore snapshot CSVs (stable-schema artefacts intended for downstream analysis)
 
 See `docs/architecture.md` for state object schemas and invariants.
+See `docs/parameter_units_reference.md` for parameter defaults, units, and cited allometric relationships.
 
 ## Reproducibility
 

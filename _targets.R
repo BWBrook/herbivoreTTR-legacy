@@ -18,19 +18,13 @@ list(
   targets::tar_target(canonical_seed, 1L),
   targets::tar_target(canonical_scenario_slug, "smoke_v0"),
   targets::tar_target(conditions, init_conditions(mode = "flat")),
-  targets::tar_target(plants0, init_plants(veg_types = c(0, 1, 2))),
-  targets::tar_target(herb0, init_herbivore(mass = 5e5)),
-  targets::tar_target(day_after_spinup, CONSTANTS$SPIN_UP_LENGTH * nrow(conditions) + 1L),
+  targets::tar_target(canonical_scenario_parameters, canonical_smoke_parameters(conditions = conditions)),
+  targets::tar_target(plants0, init_plants(veg_types = canonical_scenario_parameters$veg_types)),
+  targets::tar_target(herb0, init_herbivore(mass = canonical_scenario_parameters$herbivore_mass)),
+  targets::tar_target(day_after_spinup, canonical_scenario_parameters$start_day),
   targets::tar_target(
-    canonical_scenario_parameters,
-    list(
-      temp_mode = "flat",
-      veg_types = c(0, 1, 2),
-      herbivore_mass = 5e5,
-      minute_limit = 60,
-      start_day = day_after_spinup,
-      days = 7L
-    )
+    canonical_minute_limit,
+    canonical_scenario_parameters$minute_limit
   ),
 
   # One-day simulation snapshot
@@ -39,7 +33,7 @@ list(
     plants = plants0,
     conditions = conditions,
     day_of_simulation = day_after_spinup,
-    minute_limit = 60,
+    minute_limit = canonical_minute_limit,
     seed = canonical_seed
   )),
 
@@ -65,13 +59,17 @@ list(
   # Three-day demo run after spin-up
   targets::tar_target(
     sim_day3_demo,
-    run_herbivore_days(days = 3L, minute_limit = 60, seed = canonical_seed)
+    run_herbivore_days(days = 3L, minute_limit = canonical_minute_limit, seed = canonical_seed)
   ),
 
   # 7-day continuation
   targets::tar_target(
     sim_day7,
-    run_herbivore_days(days = 7L, minute_limit = 60, seed = canonical_seed)
+    run_herbivore_days(
+      days = canonical_scenario_parameters$days,
+      minute_limit = canonical_minute_limit,
+      seed = canonical_seed
+    )
   ),
 
   targets::tar_target(

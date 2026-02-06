@@ -132,6 +132,13 @@ Interfaces:
   - pipeline outputs (CSV snapshots)
 - Floating point tolerance rules must be explicitly documented for any approximate comparisons.
 
+## Parameter and units reference
+- Authoritative parameter metadata is maintained by:
+  - `parameter_reference_table()`
+  - `units_conventions_table()`
+  - `canonical_smoke_parameters()`
+- User-facing reference documentation is maintained in `docs/parameter_units_reference.md`.
+
 ## Extension points
 - New herbivore types: implement as strategy parameters plus a documented “selection + bite allocation” policy.
 - New climate drivers: extend `conditions` schema and plant update function(s).

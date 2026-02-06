@@ -65,7 +65,7 @@ A WP is “Done” only when all are true:
 - [x] **WP-0.3.5 — Canonical smoke scenario artefacts: reproducible + targets-integrated**
 - [x] **WP-0.3.6 — Determinism contract: seed plumbing + regression test**
 - [x] **WP-0.3.7 — Domain sanity suite v0: invariants for plants + herbivores**
-- [ ] **WP-0.3.8 — Parameter & units reference: allometries + defaults + citations**
+- [x] **WP-0.3.8 — Parameter & units reference: allometries + defaults + citations**
 - [ ] **WP-0.3.9 — TTR stability & defence controls: guardrails + tests**
 
 ### Line 0.4.x — Herbivore behavioural realism (make the ecology defensible)
