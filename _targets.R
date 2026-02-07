@@ -492,6 +492,12 @@ list(
       )
       c(
         out$summary_path,
+        out$parallel_benchmark_path,
+        out$break_even_path,
+        out$break_even_gate_path,
+        out$kernel_profile_raw_path,
+        out$kernel_profile_self_path,
+        out$kernel_profile_total_path,
         out$report_path,
         out$manifest_path
       )

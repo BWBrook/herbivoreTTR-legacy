@@ -54,6 +54,42 @@ build_ensemble_summary <- function(replicate_summary) {
   out
 }
 
+run_single_ensemble_seed_v1 <- function(seed_index,
+                                        seed_vec,
+                                        validated_scenario,
+                                        parent_slug,
+                                        ensemble_label,
+                                        base_dir,
+                                        write_outputs) {
+  seed_value <- as.integer(seed_vec[[seed_index]])
+  replicate_slug <- file.path(parent_slug, ensemble_label, sprintf("seed_%03d", seed_value))
+
+  replicate_scenario <- validated_scenario
+  replicate_scenario$runtime$seed <- seed_value
+  replicate_scenario$outputs$scenario_slug <- replicate_slug
+
+  run_result <- run_scenario_v1(
+    scenario = replicate_scenario,
+    base_dir = base_dir,
+    write_outputs = write_outputs
+  )
+
+  list(
+    summary = summarise_run_result_for_ensemble(
+      run_result = run_result,
+      seed_value = seed_value,
+      seed_index = seed_index
+    ),
+    manifest = data.frame(
+      seed_index = as.integer(seed_index),
+      seed_value = seed_value,
+      replicate_slug = replicate_slug,
+      run_id = as.character(run_result$run_id),
+      stringsAsFactors = FALSE
+    )
+  )
+}
+
 #' Run a scenario as a deterministic multi-seed ensemble
 #'
 #' Executes repeated scenario runs across a supplied seed vector and writes
@@ -64,6 +100,9 @@ build_ensemble_summary <- function(replicate_summary) {
 #' @param base_dir Base artefact directory.
 #' @param ensemble_label Label for ensemble output folder.
 #' @param write_outputs Logical; when `FALSE`, summaries are returned in memory.
+#' @param execution_mode Execution mode (`auto`, `serial`, or `multicore`).
+#' @param workers Optional worker count override.
+#' @param reserve_cores Number of CPU cores to keep free on the host.
 #'
 #' @return List with seed manifest, replicate summary, ensemble summary, and
 #'   optional written file paths.
@@ -71,7 +110,10 @@ run_scenario_ensemble_v1 <- function(scenario,
                                      seeds = 1:10,
                                      base_dir = file.path("artefacts", "canonical_runs"),
                                      ensemble_label = "ensemble_v1",
-                                     write_outputs = TRUE) {
+                                     write_outputs = TRUE,
+                                     execution_mode = c("auto", "serial", "multicore"),
+                                     workers = NULL,
+                                     reserve_cores = 1L) {
   validated <- if (is.character(scenario)) {
     compile_scenario_yaml(scenario)
   } else {
@@ -80,47 +122,43 @@ run_scenario_ensemble_v1 <- function(scenario,
 
   seed_vec <- normalise_ensemble_seeds(seeds)
   parent_slug <- validated$outputs$scenario_slug
+  plan <- resolve_parallel_execution_plan_v1(
+    execution_mode = execution_mode,
+    workers = workers,
+    n_tasks = length(seed_vec),
+    reserve_cores = reserve_cores
+  )
 
-  run_rows <- vector("list", length(seed_vec))
-  manifest_rows <- vector("list", length(seed_vec))
+  run_results <- execute_indexed_jobs_v1(
+    index = seq_along(seed_vec),
+    job_fn = function(i) {
+      run_single_ensemble_seed_v1(
+        seed_index = i,
+        seed_vec = seed_vec,
+        validated_scenario = validated,
+        parent_slug = parent_slug,
+        ensemble_label = ensemble_label,
+        base_dir = base_dir,
+        write_outputs = write_outputs
+      )
+    },
+    execution_plan = plan
+  )
 
-  for (i in seq_along(seed_vec)) {
-    seed_value <- as.integer(seed_vec[[i]])
-    replicate_slug <- file.path(parent_slug, ensemble_label, sprintf("seed_%03d", seed_value))
-
-    replicate_scenario <- validated
-    replicate_scenario$runtime$seed <- seed_value
-    replicate_scenario$outputs$scenario_slug <- replicate_slug
-
-    run_result <- run_scenario_v1(
-      scenario = replicate_scenario,
-      base_dir = base_dir,
-      write_outputs = write_outputs
-    )
-
-    run_rows[[i]] <- summarise_run_result_for_ensemble(
-      run_result = run_result,
-      seed_value = seed_value,
-      seed_index = i
-    )
-
-    manifest_rows[[i]] <- data.frame(
-      seed_index = as.integer(i),
-      seed_value = seed_value,
-      replicate_slug = replicate_slug,
-      run_id = as.character(run_result$run_id),
-      stringsAsFactors = FALSE
-    )
-  }
+  run_rows <- lapply(run_results, `[[`, "summary")
+  manifest_rows <- lapply(run_results, `[[`, "manifest")
 
   seed_manifest <- do.call(rbind, manifest_rows)
   replicate_summary <- do.call(rbind, run_rows)
   rownames(seed_manifest) <- NULL
   rownames(replicate_summary) <- NULL
+  seed_manifest <- seed_manifest[order(seed_manifest$seed_index), , drop = FALSE]
+  replicate_summary <- replicate_summary[order(replicate_summary$seed_index), , drop = FALSE]
   ensemble_summary <- build_ensemble_summary(replicate_summary)
 
   if (!isTRUE(write_outputs)) {
     return(list(
+      execution_plan = plan,
       seed_manifest = seed_manifest,
       replicate_summary = replicate_summary,
       ensemble_summary = ensemble_summary
@@ -144,7 +182,10 @@ run_scenario_ensemble_v1 <- function(scenario,
     scenario_parameters = list(
       parent_slug = parent_slug,
       ensemble_label = ensemble_label,
-      seeds = seed_vec
+      seeds = seed_vec,
+      execution_mode_requested = plan$execution_mode_requested,
+      execution_mode_resolved = plan$execution_mode_resolved,
+      workers_used = plan$workers_used
     ),
     output_files = c(
       seed_manifest = file.path(base_dir, parent_slug, ensemble_label, basename(seed_manifest_path)),
@@ -161,6 +202,7 @@ run_scenario_ensemble_v1 <- function(scenario,
     replicate_summary_path = replicate_summary_path,
     ensemble_summary_path = ensemble_summary_path,
     manifest_path = manifest_path,
+    execution_plan = plan,
     seed_manifest = seed_manifest,
     replicate_summary = replicate_summary,
     ensemble_summary = ensemble_summary

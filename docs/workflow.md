@@ -54,11 +54,21 @@ The repo provides a Makefile; use it where available:
 - `make render-v2` — render the post-1.0 paper pipeline report
 - `make repro-check-v2` — run v2 clean-library reproducibility run-through
 - `make release-bundle-v2` — build the v1.1 RC bundle with v2 artefacts
+- `R -q -e "for (f in list.files('R', pattern = '\\\\.R$$', full.names = TRUE)) sys.source(f, envir = globalenv()); run_post_v1_scaling_profile()"` — refresh scaling + kernel + break-even benchmark artefacts
 
 ## Failure handling
 - If tests fail: minimize the diff, reproduce deterministically, fix root cause, and add a regression test.
 - If outputs change: treat it as a scientific event—explain the change, update fixtures only with justification.
 - If CI is flaky: reduce nondeterminism (seeds, parallelism), tighten tolerances, and document.
+- If parallel break-even shifts unexpectedly: inspect `parallel_overhead_benchmark_v1.csv` and `parallel_break_even_summary_v1.csv` before changing defaults.
+
+## Parallel execution defaults (v2.6)
+- Across-run orchestration uses `execution_mode`:
+  - `auto`: serial on CI, multicore on local hosts (subject to available cores).
+  - `serial`: force one worker.
+  - `multicore`: use process-level workers up to task/core limits.
+- Use `workers` and `reserve_cores` arguments on ensemble/stability/scaling helpers for explicit control.
+- Keep break-even gate non-blocking by default unless running on a controlled baseline machine.
 
 ## Documentation discipline
 - Public API changes require:

@@ -280,3 +280,13 @@ Full and fractional visits are executed deterministically; outputs are explicitl
   
 **Rationale:** This keeps day-to-day development fast while preserving regular deep scientific and reproducibility audits.  
 **Implications:** PR failures are immediate blockers; nightly/weekly failures must be logged and triaged with explicit remediation steps in `docs/log/`.
+
+## 2026-02-07 — Across-run parallel execution defaults for ensembles and stability suites (WP-2.6.1)
+**Decision:** Multi-run workloads now share an explicit execution-mode contract (`execution_mode = auto|serial|multicore`) with deterministic output ordering guarantees. In `auto`, runs default to serial on CI and multicore on local hosts (bounded by available cores and `reserve_cores`).  
+**Rationale:** The model is CPU-bound at the replicate/scenario level, and process-level parallelism provides a strong throughput opportunity without changing within-run ecological mechanics. A unified execution plan keeps behavior reproducible and auditable.  
+**Implications:** Ensemble/stability artefacts now include execution metadata in manifests. Serial and multicore runs with identical seeds must remain numerically equivalent in summaries; this is regression-tested.
+
+## 2026-02-07 — Break-even benchmarking policy for parallel overhead (WP-2.6.3)
+**Decision:** `run_post_v1_scaling_profile()` now emits a serial-vs-parallel benchmark matrix and break-even summary (`parallel_overhead_benchmark_v1.csv`, `parallel_break_even_summary_v1.csv`) plus an optional break-even gate. The gate is non-blocking by default (`enforce_break_even_gate = FALSE`) unless explicitly enabled on controlled hardware.  
+**Rationale:** Hardware-dependent overhead can invert expected speedups for small replicate counts; policy decisions should be based on measured break-even curves rather than assumptions. Default non-blocking behavior preserves CI stability while still surfacing performance drift evidence.  
+**Implications:** Performance tuning should consult break-even artefacts before changing default worker policies. If strict break-even gating is desired, projects must set explicit thresholds and runner assumptions.

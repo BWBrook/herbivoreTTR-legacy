@@ -150,6 +150,11 @@ Failure semantics:
 - [x] **WP-2.5.3 - External reproducibility run-through v2**
 - [x] **WP-2.5.4 - v1.1 RC bundle and next-queue promotion**
 
+### Line 2.6.x - Parallel throughput and kernel performance hardening
+- [x] **WP-2.6.1 - Across-run deterministic parallel execution controls**
+- [x] **WP-2.6.2 - Kernel hotspot profiler and evidence artefacts**
+- [x] **WP-2.6.3 - Serial-vs-parallel break-even benchmark and default policy**
+
 ---
 
 ## 5) Milestone gates (commit and progress control)
@@ -161,6 +166,7 @@ Milestones are line-level completion points:
 - **Milestone M2.3:** all `WP-2.3.x` complete
 - **Milestone M2.4:** all `WP-2.4.x` complete
 - **Milestone M2.5:** all `WP-2.5.x` complete
+- **Milestone M2.6:** all `WP-2.6.x` complete
 
 At each milestone:
 
@@ -1099,6 +1105,158 @@ v1.1 hardening cycle is packaged, evidenced, and ready for maintainer sign-off.
 
 ---
 
+### WP-2.6.1 - Across-run deterministic parallel execution controls
+
+**Outcome**
+
+Reference ensemble and stability workloads can execute across CPU cores while preserving deterministic ordering and reproducible summaries.
+
+**Scope**
+
+- In:
+  - process-level across-run parallelism for seed/scenario replicates,
+  - explicit execution-mode controls (`auto`/`serial`/`multicore`),
+  - deterministic row-order guarantees in outputs.
+- Out:
+  - within-run timestep parallelism (minute/day kernels remain sequential).
+
+**Required implementation**
+
+1. Add a shared execution-plan resolver for:
+   - worker-count validation,
+   - CI-aware defaults,
+   - deterministic fallback behavior.
+2. Update ensemble runner to:
+   - execute seeds via the execution plan,
+   - preserve deterministic seed-index ordering in manifests and summaries,
+   - record resolved execution settings in run manifests.
+3. Update long-horizon stability suite to:
+   - execute scenario-seed jobs using the same execution plan,
+   - preserve deterministic scenario/seed row order,
+   - expose execution metadata in outputs/manifests.
+
+**Acceptance criteria**
+
+- Serial and multicore modes produce equivalent replicate summaries for fixed seeds.
+- Output row ordering is stable and deterministic regardless of worker count.
+- Existing callers remain backward compatible (defaults continue to work without new arguments).
+
+**Required tests**
+
+- Unit test: execution-plan worker bounds and fallback behavior.
+- Integration test: ensemble serial vs multicore result parity.
+- Integration test: scaling/stability suite still writes required artefacts under parallel controls.
+
+**Artefact evidence**
+
+- Updated `seed_manifest.csv`/`replicate_summary.csv` outputs with deterministic ordering.
+- Stability suite replicate and summary artefacts produced under the updated execution controls.
+
+**Stop condition**
+
+Across-run parallel execution is available, deterministic, and reproducible for core multi-run workflows.
+
+---
+
+### WP-2.6.2 - Kernel hotspot profiler and evidence artefacts
+
+**Outcome**
+
+Each scaling run emits a reproducible hotspot profile identifying dominant runtime kernels, so speed-up work is evidence-led rather than guess-based.
+
+**Scope**
+
+- In:
+  - profiling harness for representative scenario execution,
+  - machine-readable hotspot tables (`by_self`, `by_total`),
+  - report integration of top hotspots.
+- Out:
+  - low-level algorithm rewrites in this WP.
+
+**Required implementation**
+
+1. Add a profiling helper that:
+   - executes a representative canonical scenario under `Rprof`,
+   - writes raw profile output and summarized CSV tables.
+2. Integrate profiling into `run_post_v1_scaling_profile()` output bundle.
+3. Include hotspot summary lines in `scaling_report_v1.md`.
+
+**Acceptance criteria**
+
+- Scaling profile artefact directory contains raw and summarized hotspot outputs.
+- Hotspot summaries are parseable and include top self-time calls.
+- Profiling run is deterministic in setup (seeded scenario) and non-interactive.
+
+**Required tests**
+
+- Integration test: scaling profile run emits kernel profile artefacts.
+
+**Artefact evidence**
+
+- `kernel_profile_v1.out`
+- `kernel_profile_v1_by_self.csv`
+- `kernel_profile_v1_by_total.csv`
+- hotspot section in `scaling_report_v1.md`
+
+**Stop condition**
+
+Kernel hotspot evidence is generated automatically with each scaling profile run.
+
+---
+
+### WP-2.6.3 - Serial-vs-parallel break-even benchmark and default policy
+
+**Outcome**
+
+The project quantifies when parallel orchestration helps versus hurts, and records a defensible default policy for workstation and CI use.
+
+**Scope**
+
+- In:
+  - benchmark matrix over replicate counts and worker tiers,
+  - speedup/efficiency calculations versus serial baseline,
+  - break-even summary and optional gate.
+- Out:
+  - enforcing strict speedup failures on PR CI by default.
+
+**Required implementation**
+
+1. Add benchmark-design helper (replicate sizes x worker tiers) with serial baseline coverage.
+2. Execute benchmark matrix within scaling profile and compute:
+   - elapsed/cpu/memory,
+   - speedup versus serial,
+   - efficiency versus serial,
+   - break-even replicate count by worker tier.
+3. Add break-even gate summary output:
+   - pass/fail detail table,
+   - optional enforcement flag (default non-blocking).
+4. Record recommended worker tier from observed break-even summary.
+
+**Acceptance criteria**
+
+- Benchmark and break-even CSV artefacts are produced for each scaling run.
+- Break-even summary identifies threshold crossing where present; otherwise reports explicit non-detection.
+- Default gate posture remains CI-safe (non-blocking unless explicitly enabled).
+
+**Required tests**
+
+- Unit test: benchmark-design helper invariants.
+- Unit test: break-even summarizer and gate logic on toy data.
+- Integration test: scaling profile writes benchmark + break-even + gate artefacts.
+
+**Artefact evidence**
+
+- `parallel_overhead_benchmark_v1.csv`
+- `parallel_break_even_summary_v1.csv`
+- `parallel_break_even_gate_v1.csv`
+- break-even section in `scaling_report_v1.md`
+
+**Stop condition**
+
+Parallelization overhead and benefit are measured and documented with reproducible break-even outputs.
+
+---
+
 ## 7) Explicit assumptions and defaults for v2
 
 These defaults apply unless a WP overrides them and logs a decision:
@@ -1118,6 +1276,10 @@ These defaults apply unless a WP overrides them and logs a decision:
 
 5. Documentation policy:
    - Every non-trivial ecological assumption must be logged in `docs/decisions.md`.
+
+6. Parallel defaults:
+   - `execution_mode = "auto"` resolves to serial on CI and multicore on local workstations (subject to available cores and reserve policy).
+   - Break-even gate remains non-blocking by default; enable explicitly for controlled hardware baselines.
 
 ---
 
@@ -1144,11 +1306,13 @@ If all above are true, autonomous execution stops and awaits next queue promotio
   - `make test`
   - `make lint`
   - `TARGETS_PROFILE=ci make smoke`
-  - `make check` (environmental warning remains: missing `qpdf`; non-blocking notes unchanged)
-  - `make repro-check-v2`
-  - `make release-bundle-v2`
+  - `make check` (qpdf warning resolved; remaining notes are standard non-blocking submission/top-level notes)
 - v1.1 RC bundle assembled:
   - `artefacts/release_candidates/v1.1.0-rc1/`
+- New WP-2.6.x artefacts generated:
+  - `artefacts/benchmarks/post_v1_scaling_v1/parallel_overhead_benchmark_v1.csv`
+  - `artefacts/benchmarks/post_v1_scaling_v1/parallel_break_even_summary_v1.csv`
+  - `artefacts/benchmarks/post_v1_scaling_v1/kernel_profile_v1_by_self.csv`
 
 ### What remains open (scientific interpretation, not build blockers)
 
@@ -1160,12 +1324,12 @@ If all above are true, autonomous execution stops and awaits next queue promotio
 
 ### Proposed next line (roadmap_v3 seed queue)
 
-1. Across-run parallel execution framework:
-   - deterministic worker scheduling across seeds/scenarios,
-   - profile-aware defaults for workstation and CI.
-2. Kernel speed-up hardening:
-   - hotspot profiling and vectorization/compiled-path candidates,
-   - no behavioural drift tolerance tests.
-3. Performance-overhead benchmarking:
-   - serial vs parallel speedup curves by run size,
-   - break-even thresholds and recommended defaults for laptop-class and server-class hardware.
+1. Kernel hotspot reduction pass:
+   - target top self-time paths (`transport_resistance`, data-frame indexing/mutation),
+   - compare vectorized/data-layout alternatives with no-behaviour-drift tests.
+2. Optional compiled-path experiments:
+   - evaluate candidate `Rcpp` kernels for dominant pure-compute paths,
+   - maintain strict parity tests against reference R implementation.
+3. Hardware-profile-aware defaults:
+   - benchmark laptop/server tiers and codify recommended worker defaults by profile,
+   - keep CI profile conservative and deterministic.

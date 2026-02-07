@@ -34,6 +34,55 @@ test_that("scenario ensemble runner writes deterministic seed-ordered summaries"
   )
 })
 
+test_that("ensemble runner preserves deterministic summaries across execution modes", {
+  skip_on_cran()
+  skip_if_not(.Platform$OS.type == "unix")
+
+  serial <- run_scenario_ensemble_v1(
+    scenario = scenario_contract_reference_path("canonical_smoke_v1"),
+    seeds = 201:204,
+    base_dir = tempdir(),
+    ensemble_label = "ensemble_mode_serial_v1",
+    write_outputs = FALSE,
+    execution_mode = "serial"
+  )
+
+  multicore <- run_scenario_ensemble_v1(
+    scenario = scenario_contract_reference_path("canonical_smoke_v1"),
+    seeds = 201:204,
+    base_dir = tempdir(),
+    ensemble_label = "ensemble_mode_multicore_v1",
+    write_outputs = FALSE,
+    execution_mode = "multicore",
+    workers = 2
+  )
+
+  cols <- c("seed_value", "mean_daily_dmi", "mean_energy_balance", "final_total_shoot_biomass_kg")
+  expect_equal(serial$replicate_summary[, cols], multicore$replicate_summary[, cols])
+  expect_identical(serial$seed_manifest$seed_value, multicore$seed_manifest$seed_value)
+  expect_lte(multicore$execution_plan$workers_used, 2L)
+  expect_gte(multicore$execution_plan$workers_used, 1L)
+})
+
+test_that("parallel execution plan resolves sensible worker bounds", {
+  serial_plan <- resolve_parallel_execution_plan_v1(
+    execution_mode = "serial",
+    workers = 8,
+    n_tasks = 4
+  )
+  expect_equal(serial_plan$workers_used, 1L)
+  expect_identical(serial_plan$execution_mode_resolved, "serial")
+
+  multi_plan <- resolve_parallel_execution_plan_v1(
+    execution_mode = "multicore",
+    workers = 8,
+    n_tasks = 3,
+    reserve_cores = 0
+  )
+  expect_gte(multi_plan$workers_used, 1L)
+  expect_lte(multi_plan$workers_used, 3L)
+})
+
 test_that("claim registry evaluation and required-claim gating work", {
   claims <- read_claim_registry_v1()
   expect_true(nrow(claims) >= 3L)

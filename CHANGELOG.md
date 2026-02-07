@@ -215,6 +215,18 @@ Rationale: Help collaborators get productive quickly with consistent, reproducib
 ## Unreleased
 
 ### Added
+- Deterministic across-run parallel execution controls for ensembles and stability suites:
+  - new execution helpers in `R/parallel_execution_v1.R`,
+  - new `execution_mode`, `workers`, and `reserve_cores` controls in
+    `run_scenario_ensemble_v1()` and `run_long_horizon_stability_suite_v1()`.
+- Kernel hotspot profiling outputs integrated into scaling runs:
+  - `kernel_profile_v1.out`,
+  - `kernel_profile_v1_by_self.csv`,
+  - `kernel_profile_v1_by_total.csv`.
+- Parallel break-even benchmarking artefacts and gate summary:
+  - `parallel_overhead_benchmark_v1.csv`,
+  - `parallel_break_even_summary_v1.csv`,
+  - `parallel_break_even_gate_v1.csv`.
 - Roxygen2 docs expanded; package doc; examples for exports.
 - Vignette `vignettes/herbivoreTTR-intro.Rmd` (getting started).
 - GitHub Actions `R-CMD-check` workflow enabled.
@@ -223,6 +235,10 @@ Rationale: Help collaborators get productive quickly with consistent, reproducib
 - New tests for energy wiring and defence transport/growth.
 
 ### Changed
+- `_targets.R` scaling bundle now includes kernel-profile and break-even benchmark outputs.
+- `docs/roadmap_v2.md` now includes completed Line `2.6.x` work packages for
+  parallel throughput and kernel performance hardening.
+- `docs/workflow.md` now documents parallel execution defaults and break-even review guidance.
 - README.md rewritten and hard-wrapped to 100 columns.
 - DESCRIPTION Suggests/VignetteBuilder/Language updated.
 - Standardized energy units to kJ in `hourly_digestion_step()` (no extra 1000× factor).

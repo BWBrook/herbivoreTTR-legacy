@@ -52,63 +52,98 @@ count_gut_capacity_violations <- function(final_herbivores, tolerance = CONSTANT
   as.integer(sum(violations))
 }
 
+run_stability_job_v1 <- function(job_row, scenario_base, base_dir) {
+  scenario <- scenario_base
+  scenario$runtime$seed <- as.integer(job_row$seed_value[[1]])
+  scenario$outputs$scenario_slug <- file.path(
+    "long_horizon_v1",
+    "runs",
+    sprintf("%s_seed_%03d", job_row$scenario_name[[1]], scenario$runtime$seed)
+  )
+
+  run <- run_scenario_v1(scenario = scenario, base_dir = base_dir)
+  herb <- run$herbivore_daily
+
+  nan_inf_count <- count_non_finite_values(herb) + count_non_finite_values(run$structure_fuel_metrics)
+  negative_biomass <- count_negative_biomass_violations(run$final_plants)
+  gut_capacity_violations <- count_gut_capacity_violations(run$final_herbivores)
+  prolonged_stress_days <- as.integer(sum(herb$PhysiologicalStressFlag > 0))
+
+  data.frame(
+    scenario_name = job_row$scenario_name[[1]],
+    seed_value = as.integer(job_row$seed_value[[1]]),
+    run_id = as.character(run$run_id),
+    nan_inf_count = nan_inf_count,
+    negative_biomass_violations = negative_biomass,
+    gut_capacity_violations = gut_capacity_violations,
+    prolonged_stress_days = prolonged_stress_days,
+    min_energy_balance = min(herb$EnergyBalance),
+    min_water_balance = min(herb$WaterBalance),
+    any_violation = as.integer(
+      nan_inf_count > 0L ||
+        negative_biomass > 0L ||
+        gut_capacity_violations > 0L
+    ),
+    stringsAsFactors = FALSE
+  )
+}
+
 #' Run the long-horizon stability suite v1
 #'
 #' @param base_dir Base directory for stability artefacts.
 #' @param seeds Integer vector of seeds.
 #' @param days Number of simulated days per scenario.
 #' @param minute_limit Daily minute budget for baseline scenarios.
+#' @param execution_mode Execution mode (`auto`, `serial`, or `multicore`).
+#' @param workers Optional worker count override.
+#' @param reserve_cores Number of CPU cores to keep free on the host.
 #'
 #' @return List with summary and artefact paths.
 run_long_horizon_stability_suite_v1 <- function(base_dir = file.path("artefacts", "stability"),
                                                 seeds = 801:810,
                                                 days = 365L,
-                                                minute_limit = 120L) {
+                                                minute_limit = 120L,
+                                                execution_mode = c("auto", "serial", "multicore"),
+                                                workers = NULL,
+                                                reserve_cores = 1L) {
   scenarios <- build_stability_scenarios_v1(days = days, minute_limit = minute_limit)
   seed_vec <- normalise_ensemble_seeds(seeds)
 
-  rows <- list()
-  idx <- 0L
-  run_base <- file.path(base_dir, "long_horizon_v1", "runs")
+  scenario_order <- names(scenarios)
+  jobs <- expand.grid(
+    scenario_name = scenario_order,
+    seed_value = seed_vec,
+    stringsAsFactors = FALSE
+  )
+  jobs$scenario_index <- match(jobs$scenario_name, scenario_order)
+  jobs <- jobs[order(jobs$scenario_index, jobs$seed_value), c("scenario_name", "seed_value"), drop = FALSE]
+  rownames(jobs) <- NULL
 
-  for (scenario_name in names(scenarios)) {
-    scenario_base <- scenarios[[scenario_name]]
-    for (seed in seed_vec) {
-      idx <- idx + 1L
-      scenario <- scenario_base
-      scenario$runtime$seed <- as.integer(seed)
-      scenario$outputs$scenario_slug <- file.path("long_horizon_v1", "runs", sprintf("%s_seed_%03d", scenario_name, seed))
+  plan <- resolve_parallel_execution_plan_v1(
+    execution_mode = execution_mode,
+    workers = workers,
+    n_tasks = nrow(jobs),
+    reserve_cores = reserve_cores
+  )
 
-      run <- run_scenario_v1(scenario = scenario, base_dir = base_dir)
-      herb <- run$herbivore_daily
-
-      nan_inf_count <- count_non_finite_values(herb) + count_non_finite_values(run$structure_fuel_metrics)
-      negative_biomass <- count_negative_biomass_violations(run$final_plants)
-      gut_capacity_violations <- count_gut_capacity_violations(run$final_herbivores)
-      prolonged_stress_days <- as.integer(sum(herb$PhysiologicalStressFlag > 0))
-
-      rows[[idx]] <- data.frame(
-        scenario_name = scenario_name,
-        seed_value = as.integer(seed),
-        run_id = as.character(run$run_id),
-        nan_inf_count = nan_inf_count,
-        negative_biomass_violations = negative_biomass,
-        gut_capacity_violations = gut_capacity_violations,
-        prolonged_stress_days = prolonged_stress_days,
-        min_energy_balance = min(herb$EnergyBalance),
-        min_water_balance = min(herb$WaterBalance),
-        any_violation = as.integer(
-          nan_inf_count > 0L ||
-            negative_biomass > 0L ||
-            gut_capacity_violations > 0L
-        ),
-        stringsAsFactors = FALSE
+  rows <- execute_indexed_jobs_v1(
+    index = seq_len(nrow(jobs)),
+    job_fn = function(i) {
+      job <- jobs[i, , drop = FALSE]
+      run_stability_job_v1(
+        job_row = job,
+        scenario_base = scenarios[[job$scenario_name[[1]]]],
+        base_dir = base_dir
       )
-    }
-  }
+    },
+    execution_plan = plan
+  )
+
+  run_base <- file.path(base_dir, "long_horizon_v1", "runs")
 
   replicate_df <- do.call(rbind, rows)
   rownames(replicate_df) <- NULL
+  replicate_df <- replicate_df[order(match(replicate_df$scenario_name, scenario_order), replicate_df$seed_value), , drop = FALSE]
 
   scenario_summary <- do.call(
     rbind,
@@ -165,7 +200,10 @@ run_long_horizon_stability_suite_v1 <- function(base_dir = file.path("artefacts"
     scenario_parameters = list(
       scenarios = names(scenarios),
       seeds = seed_vec,
-      days = as.integer(days)
+      days = as.integer(days),
+      execution_mode_requested = plan$execution_mode_requested,
+      execution_mode_resolved = plan$execution_mode_resolved,
+      workers_used = plan$workers_used
     ),
     output_files = c(
       replicates = file.path(base_dir, "long_horizon_v1", basename(replicate_path)),
@@ -183,6 +221,7 @@ run_long_horizon_stability_suite_v1 <- function(base_dir = file.path("artefacts"
     summary_path = summary_path,
     report_path = report_path,
     manifest_path = manifest_path,
+    execution_plan = plan,
     replicates = replicate_df,
     summary = scenario_summary
   )
