@@ -261,3 +261,22 @@ Full and fractional visits are executed deterministically; outputs are explicitl
 **Decision:** `DESCRIPTION` version is now `1.0.0`, with matching changelog header and release artefact pipeline records.  
 **Rationale:** Release checklist SemVer requirements and API-freeze posture require an explicit v1 version anchor rather than a development-only `0.0.0.9000` marker.  
 **Implications:** Subsequent changes post-RC should increment version according to SemVer and deprecation policy.
+
+## 2026-02-07 — Scenario-level RNG determinism is mandatory for full run execution (WP-2.4 reproducibility hardening)
+**Decision:** `run_scenario_v1()` now executes within a scenario-seeded RNG scope (`with_optional_seed(validated$runtime$seed, ...)`) so stochastic initial state construction (`init_plants()`, herbivore initial coordinates, and any downstream random draws outside per-day local seeds) is deterministic and does not depend on caller RNG history.  
+**Rationale:** External v2 reproducibility failed intermittently when long-horizon stability suites inherited different RNG states from earlier runs in the same R session. This caused occasional domain-sanity violations under identical scenario configs.  
+**Implications:** Fixed-seed scenario runs are now reproducible across invocation order; parity fixtures and canonical day-1 snapshots were refreshed to the new deterministic baseline.
+
+## 2026-02-07 — Experiment A v2 claim policy distinguishes required integrity checks from optional directional ecology claims (WP-2.1.4)
+**Decision:** Claim gating for Experiment A v2 uses a minimal required claim (`n_replicates >= 1`) plus optional directional/support-share claims (`required = FALSE`) recorded as supported/not_supported in report tables.  
+**Rationale:** Directional biomass/fuel claims can be violated at small ensemble sizes without indicating a broken pipeline. Blocking on those claims produced false gate failures that obscured execution integrity checks.  
+**Implications:** Report consumers must treat directional claim rows as interpretive evidence, not hard run validity; required claims remain strict release-gate criteria.
+
+## 2026-02-07 — Tiered CI is the default v1.1 operating model (WP-2.4.3)
+**Decision:** CI responsibilities are split into:
+- lean blocking PR checks (`check` + `test` + `lint` + smoke targets),
+- nightly deep ecological suites,
+- weekly clean-library reproducibility runs.
+  
+**Rationale:** This keeps day-to-day development fast while preserving regular deep scientific and reproducibility audits.  
+**Implications:** PR failures are immediate blockers; nightly/weekly failures must be logged and triaged with explicit remediation steps in `docs/log/`.

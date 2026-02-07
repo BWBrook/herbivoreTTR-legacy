@@ -3,7 +3,7 @@
 This workflow is designed to keep the project scientifically trustworthy and engineering-clean.
 
 ## The iteration loop
-1. **Choose a milestone task** from `docs/roadmap.md`.
+1. **Choose a milestone task** from the active roadmap (`docs/roadmap.md` or `docs/roadmap_v2.md`).
 2. **Make a small implementation change** (aim for a single concept per commit).
 3. **Run quality gates** relevant to the change:
    - tests, lint, targets smoke, and package check as appropriate
@@ -51,6 +51,9 @@ The repo provides a Makefile; use it where available:
 - `make lint` — run lintr
 - `make smoke` — run a minimal targets pipeline under CI profile
 - `make test-battery` — run the full battery (pipeline + tests + optional coverage)
+- `make render-v2` — render the post-1.0 paper pipeline report
+- `make repro-check-v2` — run v2 clean-library reproducibility run-through
+- `make release-bundle-v2` — build the v1.1 RC bundle with v2 artefacts
 
 ## Failure handling
 - If tests fail: minimize the diff, reproduce deterministically, fix root cause, and add a regression test.
@@ -68,6 +71,16 @@ The repo provides a Makefile; use it where available:
 - `make rc-gates` — full local release gate set (tests + lint + smoke + check)
 - `make release-bundle` — assemble release-candidate bundle under `artefacts/release_candidates/`
 - `make repro-check` — run clean-library reproducibility run-through and write evidence logs
+- `make release-bundle-v2` — assemble the post-1.0 hardening RC bundle
+- `make repro-check-v2` — clean-library v2 reproducibility run-through
+
+## CI tiers (v2)
+- `PR CI` (`.github/workflows/ci.yml`): blocking gates for `check` + `test` + `lint` + `smoke`.
+- `Nightly Deep` (`.github/workflows/nightly.yml`): scheduled deep ecological suites and report render.
+- `Weekly Repro` (`.github/workflows/weekly_repro.yml`): clean-library reproducibility replay and artefact audit.
+- Failure handling policy:
+  - `PR CI` failures are blocking and require immediate fix.
+  - `Nightly Deep` / `Weekly Repro` failures must be logged in `docs/log/` with triage notes and a follow-up action owner.
 
 Reference docs:
 - `docs/api_surface_v1.md`

@@ -35,3 +35,21 @@ This checklist must be satisfied before tagging a release.
 ## Final sanity
 - [ ] Domain sanity checks reviewed (finite state, non-negativity, plausible budgets)
 - [ ] `docs/decisions.md` updated if assumptions changed
+
+## Post-1.0 hardening (v1.1 track)
+- [ ] Tiered CI definitions present and validated:
+  - `.github/workflows/ci.yml`
+  - `.github/workflows/nightly.yml`
+  - `.github/workflows/weekly_repro.yml`
+- [ ] Long-horizon stability suite output present:
+  - `artefacts/stability/long_horizon_v1/stability_summary_v1.csv`
+- [ ] Scaling profile output + regression table present:
+  - `artefacts/benchmarks/post_v1_scaling_v1/scaling_summary_v1.csv`
+  - `artefacts/benchmarks/post_v1_scaling_v1/scaling_regression_check_v1.csv`
+- [ ] v2 report artefacts + deterministic manifest present:
+  - `artefacts/reports_v2/paper_pipeline_v2.html`
+  - `artefacts/reports_v2/figure_table_manifest_v2.csv`
+- [ ] External v2 reproducibility run-through passes:
+  - `make repro-check-v2`
+- [ ] v1.1 release bundle generated:
+  - `make release-bundle-v2`

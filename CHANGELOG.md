@@ -2,6 +2,42 @@
 
 All notable changes in this module are documented here.
 
+## [1.1.0] - 2026-02-07
+
+### Added
+- Post-1.0 hardening modules for roadmap_v2:
+  - paired-contrast scenario parity validation and ensemble execution (`R/scenario_contract_v1.R`, `R/ensemble_runner_v1.R`)
+  - claim-to-evidence registry and report gating (`R/claims_v1.R`, `config/claims/claim_registry_v1.csv`)
+  - herbivore diagnostics and body-condition feedback wiring (`R/herbivore_diagnostics_v2.R`)
+  - experiment v2 orchestration and reporting for Experiment A/C (`R/reference_experiments_v2.R`)
+  - units/metric metadata registry and sidecar writers (`R/metric_units_v1.R`, `config/units/metric_units_v1.csv`)
+  - observational data contract and validation adapters (`R/observational_contract_v1.R`, `docs/observational_data_contract_v1.md`)
+  - validation benchmark battery (`R/validation_metrics_v1.R`)
+  - long-horizon stability suite and post-v1 scaling/regression gate (`R/stability_suite_v1.R`, `R/scaling_profile_v1.R`)
+  - report hardening utilities and v2 release pipeline (`R/report_manifest_v2.R`, `R/release_pipeline_v2.R`, `reports/paper_pipeline_v2.qmd`)
+- Tiered CI workflows:
+  - lean PR CI (`.github/workflows/ci.yml`)
+  - nightly deep suite (`.github/workflows/nightly.yml`)
+  - weekly reproducibility check (`.github/workflows/weekly_repro.yml`)
+- New automation scripts:
+  - `scripts/run_external_repro_check_v2.R`
+  - `scripts/build_release_bundle_v2.R`
+
+### Changed
+- Scenario execution determinism was hardened:
+  - `run_scenario_v1()` now seeds full scenario state initialisation from scenario seed and restores caller RNG state.
+- Parity fixtures were refreshed to the deterministic v1.1 baseline:
+  - `inst/extdata/parity/plants_day_sample.csv`
+  - `inst/extdata/parity/herb_day_sample.csv`
+- `Makefile` extended with v2 targets:
+  - `render-v2`
+  - `release-bundle-v2`
+  - `repro-check-v2`
+
+### Fixed
+- Resolved intermittent external reproducibility failures in v2 suite runs caused by ambient-RNG-dependent initial plant/herbivore states.
+- Updated parity test fixture discovery to prefer repository fixtures during source-checkout runs (`tests/testthat/test_parity_outputs.R`).
+
 ## [1.0.0] - 2026-02-06
 
 ### Added
