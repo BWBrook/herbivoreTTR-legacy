@@ -1,0 +1,114 @@
+---
+title: "herbivoreTTR Ecologist Report"
+format:
+  html:
+    toc: true
+  pdf:
+    toc: true
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+run_dir <- Sys.getenv("HERBIVORE_PORTAL_RUN_DIR", unset = "")
+if (!nzchar(run_dir)) {
+  run_dir <- "."
+}
+
+read_safe <- function(path) {
+  if (!file.exists(path)) {
+    return(NULL)
+  }
+  utils::read.csv(path, stringsAsFactors = FALSE)
+}
+
+run_index <- read_safe(file.path(run_dir, "run_index.csv"))
+daily_summary <- read_safe(file.path(run_dir, "tables", "daily_summary.csv"))
+endpoint_summary <- read_safe(file.path(run_dir, "tables", "endpoint_summary.csv"))
+domain_sanity <- read_safe(file.path(run_dir, "tables", "domain_sanity_summary.csv"))
+
+sens_design <- read_safe(file.path(run_dir, "tables", "sensitivity_design.csv"))
+sens_endpoint <- read_safe(file.path(run_dir, "tables", "sensitivity_endpoint_summary.csv"))
+sens_sanity <- read_safe(file.path(run_dir, "tables", "sensitivity_domain_sanity_summary.csv"))
+
+figure_files <- list.files(file.path(run_dir, "figures"), pattern = "[.]png$", full.names = TRUE)
+```
+
+## Run Overview
+
+- Run directory: `r normalizePath(run_dir, winslash = "/", mustWork = FALSE)`
+- Generated at: `r format(Sys.time(), "%Y-%m-%d %H:%M:%S")`
+
+```{r}
+if (!is.null(run_index)) {
+  knitr::kable(run_index, digits = 3, caption = "Run index")
+} else {
+  cat("Run index file not found.")
+}
+```
+
+## Daily Trajectories (Single-Run Mode)
+
+```{r}
+if (!is.null(daily_summary)) {
+  knitr::kable(utils::head(daily_summary, 12), digits = 3, caption = "Daily summary (first 12 rows)")
+} else {
+  cat("No single-run daily summary detected. If this was a sensitivity run, see next sections.")
+}
+```
+
+```{r}
+if (!is.null(endpoint_summary)) {
+  knitr::kable(endpoint_summary, digits = 3, caption = "Single-run endpoint summary")
+}
+```
+
+```{r}
+if (!is.null(domain_sanity)) {
+  knitr::kable(domain_sanity, digits = 3, caption = "Domain sanity summary")
+}
+```
+
+## Sensitivity Results
+
+```{r}
+if (!is.null(sens_design)) {
+  knitr::kable(sens_design, digits = 3, caption = "Sensitivity design table")
+} else {
+  cat("No sensitivity design table found for this run.")
+}
+```
+
+```{r}
+if (!is.null(sens_endpoint)) {
+  knitr::kable(sens_endpoint, digits = 3, caption = "Sensitivity endpoint summary")
+}
+```
+
+```{r}
+if (!is.null(sens_sanity)) {
+  knitr::kable(sens_sanity, digits = 3, caption = "Sensitivity domain sanity summary")
+}
+```
+
+## Figures
+
+```{r}
+if (length(figure_files) < 1L) {
+  cat("No figures were found in this run.")
+} else {
+  for (p in figure_files) {
+    cat("###", basename(p), "\n\n")
+    knitr::include_graphics(p)
+    cat("\n\n")
+  }
+}
+```
+
+## Interpretation Guardrails
+
+- Treat unsupported hypotheses as explicit non-findings rather than failures.
+- Use the domain sanity tables to confirm no numerical/pathological behavior before interpretation.
+- For publication or sharing, preserve this report together with `run_index.csv` and `portal_run_manifest.json`.

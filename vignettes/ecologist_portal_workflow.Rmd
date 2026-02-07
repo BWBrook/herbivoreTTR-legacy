@@ -1,0 +1,63 @@
+---
+title: "Ecologist Portal Workflow (YAML + CLI)"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Ecologist Portal Workflow}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```r
+#| label: setup
+#| include: false
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+Introduction
+------------
+
+This vignette documents the non-coder workflow: edit a YAML plan and run one command.
+
+Portal entrypoint
+-----------------
+
+Use files under `portal/`:
+
+- `portal/plans/templates/` for YAML templates
+- `portal/run_plan.R` for single-run execution
+- `portal/run_sensitivity.R` for sensitivity execution
+- `portal/launch_gui_stub.R` for optional GUI
+
+Command-line workflow
+---------------------
+
+```bash
+# 1) Validate plan only
+Rscript portal/run_plan.R portal/plans/templates/single_scenario_template.yaml --dry-run
+
+# 2) Execute
+Rscript portal/run_plan.R portal/plans/templates/single_scenario_template.yaml
+
+# 3) Sensitivity example
+Rscript portal/run_sensitivity.R portal/plans/templates/sensitivity_template.yaml
+```
+
+What to inspect
+---------------
+
+After a run, inspect:
+
+- `artefacts/portal_runs/<plan_id_slug>/run_index.csv`
+- `artefacts/portal_runs/<plan_id_slug>/tables/*.csv`
+- `artefacts/portal_runs/<plan_id_slug>/figures/*.png`
+- `artefacts/portal_runs/<plan_id_slug>/reports/*.html`
+
+Plan contract
+-------------
+
+See `docs/portal_plan_contract_v1.md` for complete schema details.
+
+Quickstart doc
+--------------
+
+See `docs/ecologist_quickstart_v1.md` for a compact checklist.

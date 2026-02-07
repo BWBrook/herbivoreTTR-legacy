@@ -215,6 +215,21 @@ Rationale: Help collaborators get productive quickly with consistent, reproducib
 ## Unreleased
 
 ### Added
+- Ecologist-facing portal workflow (`Line 3.1.x`) with single-source YAML plans:
+  - plan schema/compiler/validation helpers in `R/portal_plan_v1.R`,
+  - portal orchestration and reporting runner in `R/portal_runner_v1.R`,
+  - ecologist table/figure builders in `R/portal_visuals_v1.R`,
+  - CLI entrypoints under `portal/` (`run_plan.R`, `run_sensitivity.R`, `render_report.R`),
+  - optional Shiny GUI stub under `portal/gui/app.R`,
+  - portal plan templates under `portal/plans/templates/`.
+- Portal-facing documentation and onboarding:
+  - `docs/portal_plan_contract_v1.md`,
+  - `docs/ecologist_quickstart_v1.md`,
+  - `vignettes/ecologist_portal_workflow.Rmd`,
+  - README and workflow updates for non-coder commands.
+- Portal regression coverage:
+  - `tests/testthat/test_portal_plan_v1.R`,
+  - `tests/testthat/test_portal_runner_v1.R`.
 - Deterministic across-run parallel execution controls for ensembles and stability suites:
   - new execution helpers in `R/parallel_execution_v1.R`,
   - new `execution_mode`, `workers`, and `reserve_cores` controls in
@@ -235,6 +250,8 @@ Rationale: Help collaborators get productive quickly with consistent, reproducib
 - New tests for energy wiring and defence transport/growth.
 
 ### Changed
+- `run_scenario_v1()` now returns `first_day_plants` and `final_plants` in run results to support portal spatial snapshot outputs.
+- Portal report rendering now treats HTML as explicit default output and only attempts PDF when requested.
 - `_targets.R` scaling bundle now includes kernel-profile and break-even benchmark outputs.
 - `docs/roadmap_v2.md` now includes completed Line `2.6.x` work packages for
   parallel throughput and kernel performance hardening.

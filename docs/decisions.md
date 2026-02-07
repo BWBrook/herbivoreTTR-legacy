@@ -290,3 +290,13 @@ Full and fractional visits are executed deterministically; outputs are explicitl
 **Decision:** `run_post_v1_scaling_profile()` now emits a serial-vs-parallel benchmark matrix and break-even summary (`parallel_overhead_benchmark_v1.csv`, `parallel_break_even_summary_v1.csv`) plus an optional break-even gate. The gate is non-blocking by default (`enforce_break_even_gate = FALSE`) unless explicitly enabled on controlled hardware.  
 **Rationale:** Hardware-dependent overhead can invert expected speedups for small replicate counts; policy decisions should be based on measured break-even curves rather than assumptions. Default non-blocking behavior preserves CI stability while still surfacing performance drift evidence.  
 **Implications:** Performance tuning should consult break-even artefacts before changing default worker policies. If strict break-even gating is desired, projects must set explicit thresholds and runner assumptions.
+
+## 2026-02-07 — Ecologist portal contract uses YAML as the primary non-coder control surface (WP-3.1.1 to WP-3.1.7)
+**Decision:** Non-coder execution is standardized around a versioned portal plan schema (`schema_version = "1.0.0"`) with one YAML file defining scenario source, overrides, sensitivity design, output/report options, and execution controls. CLI scripts and the GUI stub both route through the same backend runner (`run_portal_plan_v1()`).  
+**Rationale:** The target audience includes ecologists who prefer declarative experiment setup over direct R coding. A single source-of-truth plan file lowers entry friction while preserving reproducibility and auditability.  
+**Implications:** Backward-incompatible portal plan changes require schema version bumps and migration notes. User-facing onboarding should continue to prioritize YAML templates and command-line calls.
+
+## 2026-02-07 — Portal reporting defaults to HTML; PDF is optional best-effort (WP-3.1.5)
+**Decision:** Portal report rendering always targets requested formats explicitly and defaults to HTML-only unless PDF is requested. PDF rendering is treated as optional and non-failing, with outcomes logged to `reports/report_render_notes.md`.  
+**Rationale:** Requiring PDF toolchains for all users creates avoidable platform friction for non-coder workflows. HTML provides a robust baseline output for local inspection and sharing.  
+**Implications:** CI and local validation should treat HTML report generation as the required report artefact. Missing PDF output is informational unless explicitly configured as a project-level requirement.

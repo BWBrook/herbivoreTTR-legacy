@@ -55,6 +55,9 @@ The repo provides a Makefile; use it where available:
 - `make repro-check-v2` — run v2 clean-library reproducibility run-through
 - `make release-bundle-v2` — build the v1.1 RC bundle with v2 artefacts
 - `R -q -e "for (f in list.files('R', pattern = '\\\\.R$$', full.names = TRUE)) sys.source(f, envir = globalenv()); run_post_v1_scaling_profile()"` — refresh scaling + kernel + break-even benchmark artefacts
+- `Rscript portal/run_plan.R portal/plans/templates/single_scenario_template.yaml` — non-coder single-run portal workflow
+- `Rscript portal/run_sensitivity.R portal/plans/templates/sensitivity_template.yaml` — non-coder sensitivity workflow
+- `Rscript portal/launch_gui_stub.R` — optional GUI stub over the same YAML+runner backend
 
 ## Failure handling
 - If tests fail: minimize the diff, reproduce deterministically, fix root cause, and add a regression test.

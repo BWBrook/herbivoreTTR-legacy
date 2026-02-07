@@ -155,6 +155,16 @@ Failure semantics:
 - [x] **WP-2.6.2 - Kernel hotspot profiler and evidence artefacts**
 - [x] **WP-2.6.3 - Serial-vs-parallel break-even benchmark and default policy**
 
+### Line 3.1.x - Ecologist-facing usability portal and reporting UX
+- [x] **WP-3.1.1 - Portal plan YAML contract v1 (single-source-of-truth run file)**
+- [x] **WP-3.1.2 - Non-coder CLI entrypoints (single run + sensitivity + report render)**
+- [x] **WP-3.1.3 - Portal runner and sensitivity orchestration with deterministic indexing**
+- [x] **WP-3.1.4 - Rich ecologist output bundle (time/spatial/comparison plots + CSV tables)**
+- [x] **WP-3.1.5 - Quarto ecologist report template (HTML/PDF best-effort)**
+- [x] **WP-3.1.6 - GUI stub (Shiny wrapper over YAML + CLI backend)**
+- [x] **WP-3.1.7 - Ecologist docs and vignette workflow updates**
+- [x] **WP-3.1.8 - Validation gates, artefact interpretation log, and queue closure**
+
 ---
 
 ## 5) Milestone gates (commit and progress control)
@@ -167,6 +177,7 @@ Milestones are line-level completion points:
 - **Milestone M2.4:** all `WP-2.4.x` complete
 - **Milestone M2.5:** all `WP-2.5.x` complete
 - **Milestone M2.6:** all `WP-2.6.x` complete
+- **Milestone M3.1:** all `WP-3.1.x` complete
 
 At each milestone:
 
@@ -1257,6 +1268,180 @@ Parallelization overhead and benefit are measured and documented with reproducib
 
 ---
 
+### WP-3.1.1 - Portal plan YAML contract v1 (single-source-of-truth run file)
+
+**Outcome**
+
+Non-coder users can define scenario settings, sensitivity parameters, output preferences, and execution mode in one editable YAML plan.
+
+**Implementation summary**
+
+- Added plan schema/validation/compiler utilities in:
+  - `R/portal_plan_v1.R`
+- Added contract documentation:
+  - `docs/portal_plan_contract_v1.md`
+- Added editable templates:
+  - `portal/plans/templates/single_scenario_template.yaml`
+  - `portal/plans/templates/sensitivity_template.yaml`
+
+**Acceptance notes**
+
+- Invalid schema, missing fields, or bad path references fail with structured portal error classes.
+- Sensitivity parameter paths are pre-validated against the resolved scenario object.
+
+---
+
+### WP-3.1.2 - Non-coder CLI entrypoints (single run + sensitivity + report render)
+
+**Outcome**
+
+Users can run the full workflow from shell commands without writing R code.
+
+**Implementation summary**
+
+- Added CLI scripts:
+  - `portal/run_plan.R`
+  - `portal/run_sensitivity.R`
+  - `portal/render_report.R`
+- Added entrypoint documentation:
+  - `portal/README.md`
+
+**Acceptance notes**
+
+- Single-run and sensitivity workflows each execute from one command.
+- Dry-run mode validates YAML and resolves settings without running simulations.
+
+---
+
+### WP-3.1.3 - Portal runner and sensitivity orchestration with deterministic indexing
+
+**Outcome**
+
+Portal runs produce reproducible run indices and manifests for both single runs and sensitivity designs.
+
+**Implementation summary**
+
+- Added orchestration helpers in:
+  - `R/portal_runner_v1.R`
+- Added deterministic run indexing and per-run summaries:
+  - `run_index.csv`
+  - `tables/*_summary.csv`
+- Added scenario return enrichment for downstream portal tooling:
+  - `R/scenario_runner_v1.R` now returns `first_day_plants` and `final_plants` for write-output runs.
+
+**Acceptance notes**
+
+- One-at-a-time and grid sensitivity designs are both supported.
+- Deterministic ordering is preserved for sensitivity result rows.
+
+---
+
+### WP-3.1.4 - Rich ecologist output bundle (time/spatial/comparison plots + CSV tables)
+
+**Outcome**
+
+Each portal run produces a coherent set of tables and figures suitable for ecological sanity checks and communication.
+
+**Implementation summary**
+
+- Added table/figure builders:
+  - `R/portal_visuals_v1.R`
+- Added outputs:
+  - daily summary tables,
+  - endpoint summaries,
+  - domain sanity summary tables,
+  - time-series figures,
+  - spatial snapshot figures,
+  - sensitivity comparison/effect figures.
+
+**Acceptance notes**
+
+- Domain sanity tables expose NaN/Inf, biomass-negativity, and gut-capacity violation diagnostics.
+- Plot/table outputs are deterministic for fixed inputs.
+
+---
+
+### WP-3.1.5 - Quarto ecologist report template (HTML/PDF best-effort)
+
+**Outcome**
+
+Portal runs generate a human-readable report that collates tables/figures and interpretation guardrails.
+
+**Implementation summary**
+
+- Added Quarto report template:
+  - `portal/reports/ecologist_report_v1.qmd`
+- Added report render helper integration:
+  - `render_portal_report_v1()` in `R/portal_runner_v1.R`
+
+**Acceptance notes**
+
+- HTML render is default when Quarto is available.
+- PDF render is best-effort and logged in `reports/report_render_notes.md`.
+
+---
+
+### WP-3.1.6 - GUI stub (Shiny wrapper over YAML + CLI backend)
+
+**Outcome**
+
+A lightweight GUI is available for users who prefer form-based editing and click-run interaction.
+
+**Implementation summary**
+
+- Added Shiny stub app:
+  - `portal/gui/app.R`
+- Added launcher script:
+  - `portal/launch_gui_stub.R`
+
+**Acceptance notes**
+
+- GUI edits/saves YAML and runs the same backend runner functions as CLI.
+- GUI remains optional and does not replace reproducible CLI workflows.
+
+---
+
+### WP-3.1.7 - Ecologist docs and vignette workflow updates
+
+**Outcome**
+
+Non-coder onboarding docs are explicit, minimal-friction, and aligned to portal entrypoints.
+
+**Implementation summary**
+
+- Added quickstart docs:
+  - `docs/ecologist_quickstart_v1.md`
+- Added vignette:
+  - `vignettes/ecologist_portal_workflow.Rmd`
+- Updated repo onboarding:
+  - `README.md` (Non-Coder Quickstart section)
+  - `docs/workflow.md` (portal commands)
+
+**Acceptance notes**
+
+- Users can complete first run from docs by editing YAML only.
+
+---
+
+### WP-3.1.8 - Validation gates, artefact interpretation log, and queue closure
+
+**Outcome**
+
+Portal line is complete with tests, quality gates, artefact interpretation, and roadmap closure updates.
+
+**Implementation summary**
+
+- Added tests:
+  - `tests/testthat/test_portal_plan_v1.R`
+  - `tests/testthat/test_portal_runner_v1.R`
+- Added decisions/log updates:
+  - `docs/decisions.md`
+  - `docs/log/20260207_wp-3.1_ecologist_portal_usability.md`
+- Updated queue status:
+  - all `WP-3.1.x` entries checked complete in this roadmap.
+
+---
+
 ## 7) Explicit assumptions and defaults for v2
 
 These defaults apply unless a WP overrides them and logs a decision:
@@ -1307,6 +1492,10 @@ If all above are true, autonomous execution stops and awaits next queue promotio
   - `make lint`
   - `TARGETS_PROFILE=ci make smoke`
   - `make check` (qpdf warning resolved; remaining notes are standard non-blocking submission/top-level notes)
+- Line `3.1.x` portal usability bundle validated end-to-end:
+  - portal dry-run + single-run + sensitivity-run command paths exercised,
+  - portal artefacts and domain sanity tables inspected and logged in
+    `docs/log/20260207_wp-3.1_ecologist_portal_usability.md`.
 - v1.1 RC bundle assembled:
   - `artefacts/release_candidates/v1.1.0-rc1/`
 - New WP-2.6.x artefacts generated:

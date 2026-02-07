@@ -53,6 +53,39 @@ Canonical outputs are written under:
 - `run_manifest.json` (schema version, package version, git SHA, seed, parameter hash)
 - output tables (`plants_day*.csv`, `herbivore_daily.csv`, `structure_fuel_daily.csv`)
 
+## Non-Coder Quickstart (Portal Workflow)
+
+The recommended non-coder entrypoint is the dedicated `portal/` folder.
+
+1. Pick a template YAML:
+- `portal/plans/templates/single_scenario_template.yaml`
+- `portal/plans/templates/sensitivity_template.yaml`
+
+2. Edit YAML only (no R code required).
+
+3. Run with one command:
+
+```bash
+Rscript portal/run_plan.R portal/plans/templates/single_scenario_template.yaml
+```
+
+Sensitivity run:
+
+```bash
+Rscript portal/run_sensitivity.R portal/plans/templates/sensitivity_template.yaml
+```
+
+Optional GUI stub:
+
+```bash
+Rscript portal/launch_gui_stub.R
+```
+
+See:
+- `portal/README.md`
+- `docs/portal_plan_contract_v1.md`
+- `docs/ecologist_quickstart_v1.md`
+
 ## Running The Targets Pipeline
 
 The repository includes a `{targets}` pipeline (`_targets.R`) that generates canonical smoke outputs, reference scenarios, experiments A/B/C, benchmark appendix artefacts, and the paper skeleton report.
