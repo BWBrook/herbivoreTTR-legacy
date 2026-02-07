@@ -13,7 +13,8 @@ run_daily_herbivore_simulation(
   capture_diagnostics = FALSE,
   seed = NULL,
   apply_growth = TRUE,
-  plant_backend = "internal_ttr"
+  plant_backend = "internal_ttr",
+  forage_access_scale = 1
 )
 }
 \arguments{
@@ -38,6 +39,9 @@ function call. The caller RNG state is restored afterwards.}
 herbivory. Set \code{FALSE} when growth was already applied by an outer runner.}
 
 \item{plant_backend}{Plant backend name or backend interface list.}
+
+\item{forage_access_scale}{Scalar in \code{(0,1]} that scales effective
+foraging time available in the day.}
 }
 \value{
 List with updated \code{herbivore}, \code{plants}, \code{daily_record} (optional

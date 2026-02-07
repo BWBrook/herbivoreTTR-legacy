@@ -12,6 +12,111 @@ scenario_contract_version <- function() {
 }
 
 ## @noRd
+scenario_pairing_rules_default <- function() {
+  c(
+    "runtime.seed",
+    "runtime.minute_limit",
+    "runtime.days",
+    "runtime.start_day",
+    "climate.mode",
+    "climate.mean_temp",
+    "climate.amplitude",
+    "climate.sw_scale",
+    "climate.n_scale"
+  )
+}
+
+## @noRd
+scenario_extract_nested_value <- function(x, rule_path) {
+  parts <- strsplit(as.character(rule_path), "\\.", fixed = FALSE)[[1]]
+  cursor <- x
+  for (part in parts) {
+    if (!is.list(cursor) || is.null(cursor[[part]])) {
+      return(list(found = FALSE, value = NULL))
+    }
+    cursor <- cursor[[part]]
+  }
+  list(found = TRUE, value = cursor)
+}
+
+## @noRd
+scenario_values_equal_for_pairing <- function(lhs, rhs, tolerance = 1e-8) {
+  if (is.numeric(lhs) && is.numeric(rhs)) {
+    lhs_num <- as.numeric(lhs)
+    rhs_num <- as.numeric(rhs)
+    if (length(lhs_num) != length(rhs_num)) {
+      return(FALSE)
+    }
+    if (any(!is.finite(lhs_num)) || any(!is.finite(rhs_num))) {
+      return(FALSE)
+    }
+    return(all(abs(lhs_num - rhs_num) <= tolerance))
+  }
+  identical(lhs, rhs)
+}
+
+## @noRd
+validate_paired_contrast_parity <- function(primary,
+                                            paired,
+                                            source_path = NA_character_,
+                                            paired_path = NA_character_) {
+  primary_validated <- validate_scenario_v1(primary)
+  paired_validated <- validate_scenario_v1(paired)
+
+  contrast <- primary_validated$contrast
+  if (!isTRUE(contrast$paired_contrast_required) || !nzchar(contrast$paired_with)) {
+    return(invisible(TRUE))
+  }
+
+  rules <- contrast$pairing_rules
+  if (length(rules) < 1L) {
+    rules <- scenario_pairing_rules_default()
+  }
+
+  for (rule in rules) {
+    lhs <- scenario_extract_nested_value(primary_validated, rule)
+    rhs <- scenario_extract_nested_value(paired_validated, rule)
+
+    if (!isTRUE(lhs$found) || !isTRUE(rhs$found)) {
+      rlang::abort(
+        sprintf("Paired contrast rule `%s` could not be resolved in both scenarios.", rule),
+        class = "herbivoreTTR_scenario_v1_pair_rule_missing",
+        rule = rule,
+        source_path = source_path,
+        paired_path = paired_path
+      )
+    }
+
+    if (!scenario_values_equal_for_pairing(lhs$value, rhs$value)) {
+      rlang::abort(
+        sprintf("Paired contrast rule `%s` mismatch between scenario and paired scenario.", rule),
+        class = "herbivoreTTR_scenario_v1_pair_rule_mismatch",
+        rule = rule,
+        value_primary = lhs$value,
+        value_paired = rhs$value,
+        source_path = source_path,
+        paired_path = paired_path
+      )
+    }
+  }
+
+  paired_contrast <- paired_validated$contrast
+  if (isTRUE(paired_contrast$paired_contrast_required) && nzchar(paired_contrast$paired_with)) {
+    expected_back_refs <- c(primary_validated$scenario_id, primary_validated$outputs$scenario_slug)
+    if (!paired_contrast$paired_with %in% expected_back_refs) {
+      rlang::abort(
+        "Paired contrast reciprocal reference is invalid.",
+        class = "herbivoreTTR_scenario_v1_pair_reciprocal_invalid",
+        expected = expected_back_refs,
+        actual = paired_contrast$paired_with
+      )
+    }
+  }
+
+  invisible(TRUE)
+}
+
+## @noRd
 scenario_find_repo_root <- function(start = getwd()) {
   dir <- normalizePath(start, winslash = "/", mustWork = TRUE)
   for (i in 0:12) {
@@ -217,6 +322,8 @@ validate_scenario_v1 <- function(scenario) {
   climate <- scenario$climate
   population <- scenario$population
   outputs <- scenario$outputs
+  contrast_raw <- if (is.null(scenario$contrast)) list() else scenario$contrast
+  feedback_raw <- if (is.null(scenario$feedback)) list() else scenario$feedback
 
   if (!is.list(runtime)) {
     rlang::abort("Scenario `runtime` must be a list.", class = "herbivoreTTR_scenario_v1_runtime_invalid")
@@ -233,11 +340,18 @@ validate_scenario_v1 <- function(scenario) {
   if (!is.list(outputs)) {
     rlang::abort("Scenario `outputs` must be a list.", class = "herbivoreTTR_scenario_v1_outputs_invalid")
   }
+  if (!is.list(contrast_raw)) {
+    rlang::abort("Scenario `contrast` must be a list when provided.", class = "herbivoreTTR_scenario_v1_contrast_invalid")
+  }
+  if (!is.list(feedback_raw)) {
+    rlang::abort("Scenario `feedback` must be a list when provided.", class = "herbivoreTTR_scenario_v1_feedback_invalid")
+  }
 
   seed <- as.integer(runtime$seed)
   minute_limit <- as.integer(runtime$minute_limit)
   days <- as.integer(runtime$days)
   start_day <- as.integer(runtime$start_day)
+  forage_access_scale <- as.numeric(if (is.null(runtime$forage_access_scale)) 1 else runtime$forage_access_scale)
 
   if (length(seed) != 1L || !is.finite(seed)) {
     rlang::abort("Scenario `runtime$seed` must be finite.", class = "herbivoreTTR_scenario_v1_seed_invalid", seed = seed)
@@ -250,6 +364,14 @@ validate_scenario_v1 <- function(scenario) {
   }
   if (length(start_day) != 1L || !is.finite(start_day) || start_day < 1L) {
     rlang::abort("Scenario `runtime$start_day` must be >= 1.", class = "herbivoreTTR_scenario_v1_start_day_invalid", start_day = start_day)
+  }
+  if (length(forage_access_scale) != 1L || !is.finite(forage_access_scale) ||
+      forage_access_scale <= 0 || forage_access_scale > 1) {
+    rlang::abort(
+      "Scenario `runtime$forage_access_scale` must be finite in (0,1].",
+      class = "herbivoreTTR_scenario_v1_forage_access_scale_invalid",
+      forage_access_scale = forage_access_scale
+    )
   }
 
   veg_types <- as.integer(unlist(plot$veg_types, use.names = FALSE))
@@ -379,6 +501,108 @@ validate_scenario_v1 <- function(scenario) {
     scenario_id <- scenario_slug
   }
 
+  contrast_id <- as.character(if (is.null(contrast_raw$contrast_id)) "" else contrast_raw$contrast_id)
+  if (length(contrast_id) != 1L || is.na(contrast_id)) {
+    rlang::abort(
+      "Scenario `contrast$contrast_id` must be scalar character when provided.",
+      class = "herbivoreTTR_scenario_v1_contrast_id_invalid",
+      contrast_id = contrast_id
+    )
+  }
+  paired_with <- as.character(if (is.null(contrast_raw$paired_with)) "" else contrast_raw$paired_with)
+  if (length(paired_with) != 1L || is.na(paired_with)) {
+    rlang::abort(
+      "Scenario `contrast$paired_with` must be scalar character when provided.",
+      class = "herbivoreTTR_scenario_v1_paired_with_invalid",
+      paired_with = paired_with
+    )
+  }
+  paired_contrast_required <- if (is.null(contrast_raw$paired_contrast_required)) {
+    FALSE
+  } else {
+    as.logical(contrast_raw$paired_contrast_required)[1]
+  }
+  if (is.na(paired_contrast_required)) {
+    rlang::abort(
+      "Scenario `contrast$paired_contrast_required` must be TRUE/FALSE when provided.",
+      class = "herbivoreTTR_scenario_v1_paired_required_invalid",
+      paired_contrast_required = paired_contrast_required
+    )
+  }
+  pairing_rules <- if (is.null(contrast_raw$pairing_rules)) {
+    scenario_pairing_rules_default()
+  } else {
+    as.character(unlist(contrast_raw$pairing_rules, use.names = FALSE))
+  }
+  if (length(pairing_rules) < 1L || any(!nzchar(pairing_rules))) {
+    rlang::abort(
+      "Scenario `contrast$pairing_rules` must contain at least one non-empty rule path.",
+      class = "herbivoreTTR_scenario_v1_pairing_rules_invalid",
+      pairing_rules = pairing_rules
+    )
+  }
+  if (isTRUE(paired_contrast_required) && !nzchar(paired_with)) {
+    rlang::abort(
+      "Scenario requires paired contrast but `contrast$paired_with` is empty.",
+      class = "herbivoreTTR_scenario_v1_paired_with_missing"
+    )
+  }
+  if (isTRUE(paired_contrast_required) && paired_with %in% c(scenario_id, scenario_slug)) {
+    rlang::abort(
+      "Scenario paired contrast cannot reference itself.",
+      class = "herbivoreTTR_scenario_v1_paired_self_reference",
+      paired_with = paired_with
+    )
+  }
+
+  feedback_enabled <- if (is.null(feedback_raw$enabled)) TRUE else as.logical(feedback_raw$enabled)[1]
+  feedback_initial_bci <- as.numeric(if (is.null(feedback_raw$initial_bci)) CONSTANTS$BODY_CONDITION_INITIAL else feedback_raw$initial_bci)
+  feedback_gain_coeff <- as.numeric(if (is.null(feedback_raw$gain_coeff)) CONSTANTS$BODY_CONDITION_GAIN_COEFF else feedback_raw$gain_coeff)
+  feedback_loss_coeff <- as.numeric(if (is.null(feedback_raw$loss_coeff)) CONSTANTS$BODY_CONDITION_LOSS_COEFF else feedback_raw$loss_coeff)
+  feedback_effort_threshold <- as.numeric(if (is.null(feedback_raw$effort_threshold)) CONSTANTS$BODY_CONDITION_EFFORT_THRESHOLD else feedback_raw$effort_threshold)
+  feedback_stress_threshold <- as.numeric(if (is.null(feedback_raw$stress_threshold)) CONSTANTS$BODY_CONDITION_STRESS_THRESHOLD else feedback_raw$stress_threshold)
+  feedback_max_foraging_boost <- as.numeric(if (is.null(feedback_raw$max_foraging_boost)) CONSTANTS$BODY_CONDITION_MAX_FORAGING_BOOST else feedback_raw$max_foraging_boost)
+
+  if (is.na(feedback_enabled)) {
+    rlang::abort(
+      "Scenario `feedback$enabled` must be TRUE/FALSE when provided.",
+      class = "herbivoreTTR_scenario_v1_feedback_enabled_invalid",
+      enabled = feedback_enabled
+    )
+  }
+  if (!is.finite(feedback_initial_bci) || feedback_initial_bci < 0 || feedback_initial_bci > 1) {
+    rlang::abort(
+      "Scenario `feedback$initial_bci` must be finite in [0,1].",
+      class = "herbivoreTTR_scenario_v1_feedback_initial_bci_invalid",
+      initial_bci = feedback_initial_bci
+    )
+  }
+  if (!is.finite(feedback_gain_coeff) || feedback_gain_coeff < 0 ||
+      !is.finite(feedback_loss_coeff) || feedback_loss_coeff < 0) {
+    rlang::abort(
+      "Scenario feedback gain/loss coefficients must be non-negative finite values.",
+      class = "herbivoreTTR_scenario_v1_feedback_coeff_invalid",
+      gain_coeff = feedback_gain_coeff,
+      loss_coeff = feedback_loss_coeff
+    )
+  }
+  if (!is.finite(feedback_effort_threshold) || feedback_effort_threshold <= 0 || feedback_effort_threshold > 1 ||
+      !is.finite(feedback_stress_threshold) || feedback_stress_threshold < 0 || feedback_stress_threshold > 1) {
+    rlang::abort(
+      "Scenario feedback thresholds must be finite and in [0,1], with effort threshold > 0.",
+      class = "herbivoreTTR_scenario_v1_feedback_threshold_invalid",
+      effort_threshold = feedback_effort_threshold,
+      stress_threshold = feedback_stress_threshold
+    )
+  }
+  if (!is.finite(feedback_max_foraging_boost) || feedback_max_foraging_boost < 0) {
+    rlang::abort(
+      "Scenario `feedback$max_foraging_boost` must be finite and >= 0.",
+      class = "herbivoreTTR_scenario_v1_feedback_boost_invalid",
+      max_foraging_boost = feedback_max_foraging_boost
+    )
+  }
+
   list(
     schema_version = scenario_contract_version(),
     scenario_id = scenario_id,
@@ -386,7 +610,8 @@ validate_scenario_v1 <- function(scenario) {
       seed = seed,
       minute_limit = minute_limit,
       days = days,
-      start_day = start_day
+      start_day = start_day,
+      forage_access_scale = forage_access_scale
     ),
     plot = list(
       veg_types = veg_types,
@@ -408,7 +633,22 @@ validate_scenario_v1 <- function(scenario) {
       stocking_density_per_km2 = stocking_density_per_km2,
       visitation_rate_per_day = visitation_rate_per_day
     ),
-    outputs = list(scenario_slug = scenario_slug)
+    outputs = list(scenario_slug = scenario_slug),
+    contrast = list(
+      contrast_id = contrast_id,
+      paired_with = paired_with,
+      paired_contrast_required = paired_contrast_required,
+      pairing_rules = pairing_rules
+    ),
+    feedback = list(
+      enabled = feedback_enabled,
+      initial_bci = feedback_initial_bci,
+      gain_coeff = feedback_gain_coeff,
+      loss_coeff = feedback_loss_coeff,
+      effort_threshold = feedback_effort_threshold,
+      stress_threshold = feedback_stress_threshold,
+      max_foraging_boost = feedback_max_foraging_boost
+    )
   )
 }
 
@@ -421,7 +661,7 @@ validate_scenario_v1 <- function(scenario) {
 #'
 #' @return Validated scenario list.
 #' @export
-compile_scenario_yaml <- function(path) {
+compile_scenario_yaml <- function(path, enforce_pairing = TRUE) {
   resolved_path <- resolve_scenario_yaml_path(path)
 
   if (!requireNamespace("yaml", quietly = TRUE)) {
@@ -434,6 +674,20 @@ compile_scenario_yaml <- function(path) {
   raw <- yaml::read_yaml(resolved_path)
   scenario <- validate_scenario_v1(raw)
   scenario$source_yaml <- resolved_path
+
+  if (isTRUE(enforce_pairing) &&
+      isTRUE(scenario$contrast$paired_contrast_required) &&
+      nzchar(scenario$contrast$paired_with)) {
+    paired_path <- resolve_scenario_yaml_path(scenario$contrast$paired_with)
+    paired <- compile_scenario_yaml(paired_path, enforce_pairing = FALSE)
+    validate_paired_contrast_parity(
+      primary = scenario,
+      paired = paired,
+      source_path = resolved_path,
+      paired_path = paired_path
+    )
+  }
+
   scenario
 }
 
@@ -460,6 +714,7 @@ scenario_to_canonical_parameters <- function(scenario, conditions) {
     minute_limit = validated$runtime$minute_limit,
     days = validated$runtime$days,
     start_day = validated$runtime$start_day,
+    forage_access_scale = validated$runtime$forage_access_scale,
     seed = validated$runtime$seed,
     scenario_slug = validated$outputs$scenario_slug,
     climate_mode = validated$climate$mode,

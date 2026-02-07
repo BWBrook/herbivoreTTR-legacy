@@ -37,6 +37,15 @@ check_daily_water_balance <- function(herbivore) {
     herbivore$intake_water_forage +
     herbivore$intake_water_drinking -
     herbivore$daily_water_requirement
+  herbivore$daily_water_intake_total <- herbivore$metabolic_water_day +
+    herbivore$intake_water_forage +
+    herbivore$intake_water_drinking
+  herbivore$water_requirement_day <- herbivore$daily_water_requirement
+  herbivore$water_balance_ratio <- if (herbivore$daily_water_requirement > 0) {
+    herbivore$daily_net_water_balance / herbivore$daily_water_requirement
+  } else {
+    0
+  }
   herbivore$water_balance <- herbivore$water_balance + herbivore$daily_net_water_balance
 
   return(herbivore)

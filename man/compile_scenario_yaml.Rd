@@ -4,10 +4,13 @@
 \alias{compile_scenario_yaml}
 \title{Compile and validate a scenario YAML file}
 \usage{
-compile_scenario_yaml(path)
+compile_scenario_yaml(path, enforce_pairing = TRUE)
 }
 \arguments{
 \item{path}{Path to a scenario YAML file or a scenario slug.}
+
+\item{enforce_pairing}{Logical; when \code{TRUE}, paired-contrast parity rules
+are validated for scenarios that declare paired constraints.}
 }
 \value{
 Validated scenario list.

@@ -400,5 +400,121 @@ list(
       )
     },
     format = "file"
+  ),
+
+  targets::tar_target(
+    experiment_a_v2_bundle_files,
+    {
+      out <- run_experiment_a_presence_removal_v2(
+        base_dir = file.path("artefacts", "canonical_runs"),
+        seeds = 301:304
+      )
+      c(
+        out$replicate_path,
+        out$summary_path,
+        out$delta_path,
+        out$claims_path,
+        out$summary_units_path,
+        out$delta_units_path,
+        out$figure_path,
+        out$report_path,
+        out$manifest_path
+      )
+    },
+    format = "file"
+  ),
+
+  targets::tar_target(
+    experiment_c_v2_bundle_files,
+    {
+      out <- run_experiment_c_aridity_gradient_v2(
+        base_dir = file.path("artefacts", "canonical_runs"),
+        seeds = 701:703
+      )
+      c(
+        out$matrix_path,
+        out$replicate_path,
+        out$summary_path,
+        out$expected_path,
+        out$claims_path,
+        out$summary_units_path,
+        out$expected_units_path,
+        out$figure_path,
+        out$report_path,
+        out$manifest_path
+      )
+    },
+    format = "file"
+  ),
+
+  targets::tar_target(
+    pilot_validation_bundle_files,
+    {
+      out <- run_pilot_validation_benchmark_v1(base_dir = file.path("artefacts", "validation"))
+      c(
+        out$observed_path,
+        out$model_path,
+        out$summary_path,
+        out$report_path,
+        out$manifest_path
+      )
+    },
+    format = "file"
+  ),
+
+  targets::tar_target(
+    long_horizon_stability_bundle_files,
+    {
+      out <- run_long_horizon_stability_suite_v1(
+        base_dir = file.path("artefacts", "stability"),
+        seeds = 801:802,
+        days = 30L
+      )
+      c(
+        out$replicate_path,
+        out$summary_path,
+        out$report_path,
+        out$manifest_path
+      )
+    },
+    format = "file"
+  ),
+
+  targets::tar_target(
+    post_v1_scaling_bundle_files,
+    {
+      out <- run_post_v1_scaling_profile(
+        base_dir = file.path("artefacts", "benchmarks"),
+        ensemble_seeds = 1:6,
+        stability_days = 20L,
+        stability_seeds = 1:2,
+        enforce_regression_gate = FALSE
+      )
+      c(
+        out$summary_path,
+        out$report_path,
+        out$manifest_path
+      )
+    },
+    format = "file"
+  ),
+
+  targets::tar_target(
+    paper_pipeline_v2_bundle_files,
+    {
+      deps <- c(
+        experiment_a_v2_bundle_files,
+        experiment_c_v2_bundle_files,
+        pilot_validation_bundle_files,
+        long_horizon_stability_bundle_files
+      )
+      out <- render_paper_pipeline_report_v2(
+        input = file.path("reports", "paper_pipeline_v2.qmd"),
+        output_dir = file.path("artefacts", "reports_v2")
+      )
+      files <- c(out$html, out$manifest_path, file.path("reports", "paper_pipeline_v2.qmd"), deps)
+      files[!is.na(files) & nzchar(files)]
+    },
+    format = "file"
   )
 )

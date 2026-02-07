@@ -73,3 +73,48 @@ test_that("implicit scenarios require stocking-density and visitation fields", {
     class = "herbivoreTTR_scenario_v1_visitation_rate_invalid"
   )
 })
+
+test_that("paired reference scenarios compile with enforced parity", {
+  present <- compile_scenario_yaml(scenario_contract_reference_path("reference_presence_present_v1"))
+  removed <- compile_scenario_yaml(scenario_contract_reference_path("reference_presence_removed_v1"))
+
+  expect_true(isTRUE(present$contrast$paired_contrast_required))
+  expect_true(isTRUE(removed$contrast$paired_contrast_required))
+  expect_equal(present$runtime$seed, removed$runtime$seed)
+  expect_true(isTRUE(validate_paired_contrast_parity(present, removed)))
+})
+
+test_that("paired contrast parity validator rejects rule mismatch", {
+  present <- compile_scenario_yaml(scenario_contract_reference_path("reference_presence_present_v1"))
+  removed <- compile_scenario_yaml(scenario_contract_reference_path("reference_presence_removed_v1"), enforce_pairing = FALSE)
+  removed$runtime$seed <- removed$runtime$seed + 1L
+
+  expect_error(
+    validate_paired_contrast_parity(present, removed),
+    class = "herbivoreTTR_scenario_v1_pair_rule_mismatch"
+  )
+})
+
+test_that("paired contrast requires paired_with reference when marked required", {
+  scenario <- compile_scenario_yaml(scenario_contract_reference_path("reference_presence_present_v1"), enforce_pairing = FALSE)
+  scenario$contrast$paired_with <- ""
+
+  expect_error(
+    validate_scenario_v1(scenario),
+    class = "herbivoreTTR_scenario_v1_paired_with_missing"
+  )
+})
+
+test_that("scenario feedback config validates and normalizes defaults", {
+  scenario <- compile_scenario_yaml(scenario_contract_reference_path("canonical_smoke_v1"))
+
+  expect_true(isTRUE(scenario$feedback$enabled))
+  expect_true(is.finite(scenario$feedback$initial_bci))
+
+  bad <- scenario
+  bad$feedback$initial_bci <- 2
+  expect_error(
+    validate_scenario_v1(bad),
+    class = "herbivoreTTR_scenario_v1_feedback_initial_bci_invalid"
+  )
+})

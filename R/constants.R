@@ -71,6 +71,12 @@ CONSTANTS <- list(
   TEMP_WATER_SCALING = 0.1, # scaling water requirements based on temperature
   SANITY_MAX_DAILY_ENERGY_JUMP = 1e5, # kJ/day: max tolerated day-to-day energy balance jump in canonical runs
   SANITY_MAX_DAILY_WATER_JUMP = 5e4,  # water units/day: max tolerated day-to-day water balance jump in canonical runs
+  BODY_CONDITION_INITIAL = 0.8,       # unitless [0,1] initial body condition index
+  BODY_CONDITION_GAIN_COEFF = 0.05,   # gain coefficient applied to positive energy balance ratio
+  BODY_CONDITION_LOSS_COEFF = 0.08,   # loss coefficient applied to negative energy balance ratio
+  BODY_CONDITION_EFFORT_THRESHOLD = 0.4, # below this BCI, foraging effort is up-weighted
+  BODY_CONDITION_STRESS_THRESHOLD = 0.2, # below this BCI, physiological stress flag is triggered
+  BODY_CONDITION_MAX_FORAGING_BOOST = 0.15, # maximum proportional increase in foraging window
   TTR_MAX_POOL_ABS = 1e4,             # absolute per-plant pool cap used by TTR stability guardrails
   TTR_MAX_DAILY_POOL_MULTIPLIER = 5,  # max tolerated one-day multiplicative jump in key TTR pools
   TTR_MAX_DEFENCE_FRACTION = 0.35,    # upper bound: defence biomass as fraction of shoot mass

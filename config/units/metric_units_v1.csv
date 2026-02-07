@@ -1,0 +1,26 @@
+metric_name,unit,description,sign_convention
+total_shoot_biomass_kg,kg_dm,Total shoot biomass at summary horizon,non_negative
+fine_fuel_proxy_kg,kg_dm,Fine-fuel proxy biomass at summary horizon,non_negative
+browseable_biomass_kg,kg_dm,Browseable biomass at summary horizon,non_negative
+delta_total_shoot_biomass_kg,kg_dm,Removal minus present total shoot biomass,positive_means_removal_higher
+delta_fine_fuel_proxy_kg,kg_dm,Removal minus present fine fuel proxy,positive_means_removal_higher
+delta_browseable_biomass_kg,kg_dm,Removal minus present browseable biomass,positive_means_removal_higher
+mean_daily_dmi,g_dm_per_day,Mean daily dry matter intake,non_negative
+mean_daily_dist_m,m_per_day,Mean daily distance moved,non_negative
+mean_daily_forage_water,g_h2o_per_day,Mean daily forage water intake,non_negative
+mean_daily_drinking_water,g_h2o_per_day,Mean daily drinking water intake,non_negative
+mean_energy_balance,kJ,Mean cumulative energy balance across days,positive_means_surplus
+final_total_shoot_biomass_kg,kg_dm,Final total shoot biomass,non_negative
+final_fine_fuel_proxy_kg,kg_dm,Final fine fuel proxy,non_negative
+MaintenanceEnergyReq,kJ_per_day,Daily maintenance energy requirement,non_negative
+EnergyBalanceRatio,unitless,Daily energy balance ratio (delta/requirement),positive_means_surplus
+WaterRequirement,g_h2o_per_day,Daily water requirement,non_negative
+WaterBalanceRatio,unitless,Daily water balance ratio (delta/requirement),positive_means_surplus
+EnergyDeficitStreakDays,day,Consecutive days with negative energy delta,non_negative
+WaterDeficitStreakDays,day,Consecutive days with negative water delta,non_negative
+BodyConditionIndex,unitless,Body condition index bounded in [0,1],range_0_1
+PhysiologicalStressFlag,binary,Physiological stress indicator (0/1),1_means_stress
+water_monotonic_signal,binary,Monotonic increase signal across aridity,1_means_supported
+intake_monotonic_signal,binary,Monotonic intake signal across access axis,1_means_supported
+delta_intake_low_vs_high,g_dm_per_day,High-stress minus low-stress intake difference,negative_means_intake_decline
+support_share,unitless_share,Fraction of seeds supporting expected direction,range_0_1

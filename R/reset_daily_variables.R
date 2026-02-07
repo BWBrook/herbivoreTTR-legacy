@@ -19,6 +19,15 @@ reset_daily_variables <- function(herbivore) {
   herbivore$intake_water_forage <- 0
   herbivore$metabolic_water_day <- 0
   herbivore$daily_net_water_balance <- 0
+  herbivore$daily_water_intake_total <- 0
+  herbivore$water_requirement_day <- 0
+  herbivore$water_balance_ratio <- 0
+  herbivore$maintenance_energy_requirement_day <- 0
+  herbivore$total_energy_requirement_day <- 0
+  herbivore$daily_energy_intake <- 0
+  herbivore$daily_energy_delta <- 0
+  herbivore$energy_balance_ratio <- 0
+  herbivore$physiological_stress_flag <- 0L
   herbivore$distance_moved <- 0
   herbivore$gut_content <-  max(0,
                                 sum(c(herbivore$digestion$bleaf,

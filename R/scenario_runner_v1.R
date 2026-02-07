@@ -22,7 +22,7 @@ scenario_plot_area_km2 <- function(scenario) {
   validated$plot$plot_size_m2 / 1e6
 }
 
-init_herbivore_from_spec <- function(spec) {
+init_herbivore_from_spec <- function(spec, feedback = NULL) {
   herb <- init_herbivore(
     mass = spec$mass_g,
     herb_type = spec$herb_type,
@@ -30,6 +30,7 @@ init_herbivore_from_spec <- function(spec) {
     herbivore_id = spec$herbivore_id
   )
   herb$foraging_mode <- spec$foraging_mode
+  herb <- apply_scenario_feedback_config(herb, feedback)
   herb
 }
 
@@ -43,7 +44,7 @@ init_cohort_from_scenario <- function(scenario) {
     )
   }
 
-  cohort <- lapply(validated$population$cohort, init_herbivore_from_spec)
+  cohort <- lapply(validated$population$cohort, init_herbivore_from_spec, feedback = validated$feedback)
   ids <- vapply(cohort, `[[`, character(1), "herbivore_id")
   names(cohort) <- ids
   cohort
@@ -92,6 +93,14 @@ make_herbivore_daily_row <- function(herbivore, daily_summary, day_of_simulation
     DailyDMI = as.numeric(daily_summary$total_biomass_eaten),
     DailyForageWater = as.numeric(daily_summary$daily_water_forage),
     DailyWaterDrinking = as.numeric(daily_summary$daily_water_drinking),
+    MaintenanceEnergyReq = as.numeric(herbivore$maintenance_energy_requirement_day),
+    EnergyBalanceRatio = as.numeric(herbivore$energy_balance_ratio),
+    WaterRequirement = as.numeric(herbivore$water_requirement_day),
+    WaterBalanceRatio = as.numeric(herbivore$water_balance_ratio),
+    EnergyDeficitStreakDays = as.integer(herbivore$energy_deficit_streak_days),
+    WaterDeficitStreakDays = as.integer(herbivore$water_deficit_streak_days),
+    BodyConditionIndex = as.numeric(herbivore$body_condition_index),
+    PhysiologicalStressFlag = as.integer(herbivore$physiological_stress_flag),
     WaterBalance = as.numeric(daily_summary$water_balance),
     EnergyBalance = as.numeric(daily_summary$energy_balance),
     stringsAsFactors = FALSE
@@ -103,6 +112,7 @@ run_daily_herbivore_cohort <- function(herbivores,
                                        conditions,
                                        day_of_simulation,
                                        minute_limit,
+                                       forage_access_scale = 1,
                                        seed = NULL) {
   ordered <- sort_herbivore_cohort(herbivores)
 
@@ -123,6 +133,7 @@ run_daily_herbivore_cohort <- function(herbivores,
       conditions = conditions,
       day_of_simulation = day_of_simulation,
       minute_limit = minute_limit,
+      forage_access_scale = forage_access_scale,
       seed = local_seed,
       apply_growth = FALSE
     )
@@ -152,6 +163,7 @@ run_herbivore_cohort_days <- function(herbivores,
                                       start_day,
                                       days,
                                       minute_limit,
+                                      forage_access_scale = 1,
                                       seed = NULL) {
   state_herbivores <- sort_herbivore_cohort(herbivores)
   state_plants <- plants
@@ -170,6 +182,7 @@ run_herbivore_cohort_days <- function(herbivores,
       conditions = conditions,
       day_of_simulation = current_day,
       minute_limit = minute_limit,
+      forage_access_scale = forage_access_scale,
       seed = day_seed
     )
 
@@ -225,6 +238,8 @@ run_daily_implicit_representative <- function(representative_spec,
                                               conditions,
                                               day_of_simulation,
                                               minute_limit,
+                                              forage_access_scale = 1,
+                                              feedback = NULL,
                                               seed = NULL) {
   day_index <- ((day_of_simulation - 1L) %% nrow(conditions)) + 1L
   plants_state <- transport_resistance(plants, conditions, day_index)
@@ -233,7 +248,7 @@ run_daily_implicit_representative <- function(representative_spec,
   visit_counter <- 0L
 
   run_visit <- function(weight, minutes, tag, visit_seed_offset) {
-    herb <- init_herbivore_from_spec(representative_spec)
+    herb <- init_herbivore_from_spec(representative_spec, feedback = feedback)
     herb$herbivore_id <- sprintf("%s_%s", representative_spec$herbivore_id, tag)
 
     res <- run_daily_herbivore_simulation(
@@ -242,6 +257,7 @@ run_daily_implicit_representative <- function(representative_spec,
       conditions = conditions,
       day_of_simulation = day_of_simulation,
       minute_limit = minutes,
+      forage_access_scale = forage_access_scale,
       seed = if (is.null(seed)) NULL else as.integer(seed + visit_seed_offset),
       apply_growth = FALSE
     )
@@ -291,6 +307,14 @@ run_daily_implicit_representative <- function(representative_spec,
       DailyDMI = numeric(),
       DailyForageWater = numeric(),
       DailyWaterDrinking = numeric(),
+      MaintenanceEnergyReq = numeric(),
+      EnergyBalanceRatio = numeric(),
+      WaterRequirement = numeric(),
+      WaterBalanceRatio = numeric(),
+      EnergyDeficitStreakDays = integer(),
+      WaterDeficitStreakDays = integer(),
+      BodyConditionIndex = numeric(),
+      PhysiologicalStressFlag = integer(),
       WaterBalance = numeric(),
       EnergyBalance = numeric(),
       VisitWeight = numeric(),
@@ -308,6 +332,14 @@ run_daily_implicit_representative <- function(representative_spec,
       DailyDMI = 0,
       DailyForageWater = 0,
       DailyWaterDrinking = 0,
+      MaintenanceEnergyReq = 0,
+      EnergyBalanceRatio = 0,
+      WaterRequirement = 0,
+      WaterBalanceRatio = 0,
+      EnergyDeficitStreakDays = 0L,
+      WaterDeficitStreakDays = 0L,
+      BodyConditionIndex = as.numeric(if (is.null(feedback$initial_bci)) CONSTANTS$BODY_CONDITION_INITIAL else feedback$initial_bci),
+      PhysiologicalStressFlag = 0L,
       WaterBalance = 0,
       EnergyBalance = 0,
       EffectiveVisitsPerDay = visitation$effective_visits_per_day,
@@ -339,6 +371,14 @@ run_daily_implicit_representative <- function(representative_spec,
     DailyDMI = weighted_mean(visit_df$DailyDMI),
     DailyForageWater = weighted_mean(visit_df$DailyForageWater),
     DailyWaterDrinking = weighted_mean(visit_df$DailyWaterDrinking),
+    MaintenanceEnergyReq = weighted_mean(visit_df$MaintenanceEnergyReq),
+    EnergyBalanceRatio = weighted_mean(visit_df$EnergyBalanceRatio),
+    WaterRequirement = weighted_mean(visit_df$WaterRequirement),
+    WaterBalanceRatio = weighted_mean(visit_df$WaterBalanceRatio),
+    EnergyDeficitStreakDays = as.integer(round(weighted_mean(visit_df$EnergyDeficitStreakDays))),
+    WaterDeficitStreakDays = as.integer(round(weighted_mean(visit_df$WaterDeficitStreakDays))),
+    BodyConditionIndex = weighted_mean(visit_df$BodyConditionIndex),
+    PhysiologicalStressFlag = as.integer(round(weighted_mean(visit_df$PhysiologicalStressFlag))),
     WaterBalance = weighted_mean(visit_df$WaterBalance),
     EnergyBalance = weighted_mean(visit_df$EnergyBalance),
     EffectiveVisitsPerDay = visitation$effective_visits_per_day,
@@ -367,7 +407,10 @@ normalise_herbivore_daily_output <- function(daily_df,
   preferred <- c(
     "RunID", "SchemaVersion", "ScenarioID", "ScenarioSlug", "PopulationMode",
     "HerbivoreID", "Day", "HerbType", "DailyDistMoved", "DailyPEI", "DailyNPEI",
-    "DailyDMI", "DailyForageWater", "DailyWaterDrinking", "WaterBalance", "EnergyBalance"
+    "DailyDMI", "DailyForageWater", "DailyWaterDrinking",
+    "MaintenanceEnergyReq", "EnergyBalanceRatio", "WaterRequirement", "WaterBalanceRatio",
+    "EnergyDeficitStreakDays", "WaterDeficitStreakDays", "BodyConditionIndex", "PhysiologicalStressFlag",
+    "WaterBalance", "EnergyBalance"
   )
   remaining <- setdiff(names(out), preferred)
   out <- out[, c(preferred, remaining), drop = FALSE]
@@ -395,229 +438,235 @@ run_scenario_v1 <- function(scenario,
     validate_scenario_v1(scenario)
   }
 
-  conditions <- build_conditions_from_scenario(validated)
-  plants <- init_plants(veg_types = validated$plot$veg_types)
+  with_optional_seed(validated$runtime$seed, {
+    conditions <- build_conditions_from_scenario(validated)
+    plants <- init_plants(veg_types = validated$plot$veg_types)
 
-  run_id <- build_run_id(
-    scenario_slug = validated$outputs$scenario_slug,
-    seed = validated$runtime$seed,
-    scenario_parameters = validated
-  )
-
-  run_dir <- file.path(base_dir, validated$outputs$scenario_slug)
-  first_day <- validated$runtime$start_day
-  last_day <- validated$runtime$start_day + validated$runtime$days - 1L
-
-  herb_daily <- NULL
-  metrics_rows <- vector("list", validated$runtime$days)
-  visit_detail <- NULL
-  final_herbivores <- list()
-  first_day_plants <- NULL
-  final_plants <- plants
-
-  if (validated$population$mode == "explicit_single") {
-    herb <- init_herbivore_from_spec(validated$population$cohort[[1]])
-
-    herb_rows <- vector("list", validated$runtime$days)
-    for (i in seq_len(validated$runtime$days)) {
-      current_day <- first_day + i - 1L
-      day_seed <- as.integer(validated$runtime$seed + i * 100000L)
-
-      day_res <- run_daily_herbivore_simulation(
-        herbivore = herb,
-        plants = final_plants,
-        conditions = conditions,
-        day_of_simulation = current_day,
-        minute_limit = validated$runtime$minute_limit,
-        seed = day_seed,
-        apply_growth = TRUE
-      )
-
-      herb <- day_res$herbivore
-      final_plants <- day_res$plants
-      herb_rows[[i]] <- make_herbivore_daily_row(herb, day_res$daily_summary, current_day)
-      metrics_rows[[i]] <- derive_structure_fuel_metrics(
-        plants = final_plants,
-        day_of_simulation = current_day,
-        run_id = run_id,
-        scenario_id = validated$scenario_id,
-        scenario_slug = validated$outputs$scenario_slug,
-        population_mode = validated$population$mode
-      )
-
-      if (i == 1L) {
-        first_day_plants <- final_plants
-      }
-    }
-
-    herb_daily <- do.call(rbind, herb_rows)
-    final_herbivores <- list(herb)
-
-  } else if (validated$population$mode == "explicit_cohort") {
-    cohort <- init_cohort_from_scenario(validated)
-    cohort_res <- run_herbivore_cohort_days(
-      herbivores = cohort,
-      plants = final_plants,
-      conditions = conditions,
-      start_day = first_day,
-      days = validated$runtime$days,
-      minute_limit = validated$runtime$minute_limit,
-      seed = validated$runtime$seed
+    run_id <- build_run_id(
+      scenario_slug = validated$outputs$scenario_slug,
+      seed = validated$runtime$seed,
+      scenario_parameters = validated
     )
 
-    herb_daily <- cohort_res$daily_summary
-    first_day_plants <- cohort_res$first_day_plants
-    final_plants <- cohort_res$plants
-    final_herbivores <- cohort_res$herbivores
+    run_dir <- file.path(base_dir, validated$outputs$scenario_slug)
+    first_day <- validated$runtime$start_day
+    last_day <- validated$runtime$start_day + validated$runtime$days - 1L
 
-    for (i in seq_len(validated$runtime$days)) {
-      current_day <- first_day + i - 1L
-      metrics_rows[[i]] <- derive_structure_fuel_metrics(
-        plants = cohort_res$plants_by_day[[i]],
-        day_of_simulation = current_day,
-        run_id = run_id,
-        scenario_id = validated$scenario_id,
-        scenario_slug = validated$outputs$scenario_slug,
-        population_mode = validated$population$mode
-      )
-    }
+    herb_daily <- NULL
+    metrics_rows <- vector("list", validated$runtime$days)
+    visit_detail <- NULL
+    final_herbivores <- list()
+    first_day_plants <- NULL
+    final_plants <- plants
 
-  } else if (validated$population$mode == "implicit_representative") {
-    representative <- validated$population$representative
-    visitation <- derive_implicit_visitation(validated)
+    if (validated$population$mode == "explicit_single") {
+      herb <- init_herbivore_from_spec(validated$population$cohort[[1]], feedback = validated$feedback)
 
-    daily_rows <- vector("list", validated$runtime$days)
-    visit_rows <- vector("list", validated$runtime$days)
+      herb_rows <- vector("list", validated$runtime$days)
+      for (i in seq_len(validated$runtime$days)) {
+        current_day <- first_day + i - 1L
+        day_seed <- as.integer(validated$runtime$seed + i * 100000L)
 
-    for (i in seq_len(validated$runtime$days)) {
-      current_day <- first_day + i - 1L
-      day_seed <- as.integer(validated$runtime$seed + i * 100000L)
+        day_res <- run_daily_herbivore_simulation(
+          herbivore = herb,
+          plants = final_plants,
+          conditions = conditions,
+          day_of_simulation = current_day,
+          minute_limit = validated$runtime$minute_limit,
+          forage_access_scale = validated$runtime$forage_access_scale,
+          seed = day_seed,
+          apply_growth = TRUE
+        )
 
-      day_res <- run_daily_implicit_representative(
-        representative_spec = representative,
-        visitation = visitation,
+        herb <- day_res$herbivore
+        final_plants <- day_res$plants
+        herb_rows[[i]] <- make_herbivore_daily_row(herb, day_res$daily_summary, current_day)
+        metrics_rows[[i]] <- derive_structure_fuel_metrics(
+          plants = final_plants,
+          day_of_simulation = current_day,
+          run_id = run_id,
+          scenario_id = validated$scenario_id,
+          scenario_slug = validated$outputs$scenario_slug,
+          population_mode = validated$population$mode
+        )
+
+        if (i == 1L) {
+          first_day_plants <- final_plants
+        }
+      }
+
+      herb_daily <- do.call(rbind, herb_rows)
+      final_herbivores <- list(herb)
+
+    } else if (validated$population$mode == "explicit_cohort") {
+      cohort <- init_cohort_from_scenario(validated)
+      cohort_res <- run_herbivore_cohort_days(
+        herbivores = cohort,
         plants = final_plants,
         conditions = conditions,
-        day_of_simulation = current_day,
+        start_day = first_day,
+        days = validated$runtime$days,
         minute_limit = validated$runtime$minute_limit,
-        seed = day_seed
+        forage_access_scale = validated$runtime$forage_access_scale,
+        seed = validated$runtime$seed
       )
 
-      final_plants <- day_res$plants
-      daily_rows[[i]] <- day_res$aggregated_summary
-      visit_rows[[i]] <- day_res$visit_summary
-      metrics_rows[[i]] <- derive_structure_fuel_metrics(
-        plants = final_plants,
-        day_of_simulation = current_day,
-        run_id = run_id,
-        scenario_id = validated$scenario_id,
-        scenario_slug = validated$outputs$scenario_slug,
-        population_mode = validated$population$mode
-      )
+      herb_daily <- cohort_res$daily_summary
+      first_day_plants <- cohort_res$first_day_plants
+      final_plants <- cohort_res$plants
+      final_herbivores <- cohort_res$herbivores
 
-      if (i == 1L) {
-        first_day_plants <- final_plants
+      for (i in seq_len(validated$runtime$days)) {
+        current_day <- first_day + i - 1L
+        metrics_rows[[i]] <- derive_structure_fuel_metrics(
+          plants = cohort_res$plants_by_day[[i]],
+          day_of_simulation = current_day,
+          run_id = run_id,
+          scenario_id = validated$scenario_id,
+          scenario_slug = validated$outputs$scenario_slug,
+          population_mode = validated$population$mode
+        )
       }
+
+    } else if (validated$population$mode == "implicit_representative") {
+      representative <- validated$population$representative
+      visitation <- derive_implicit_visitation(validated)
+
+      daily_rows <- vector("list", validated$runtime$days)
+      visit_rows <- vector("list", validated$runtime$days)
+
+      for (i in seq_len(validated$runtime$days)) {
+        current_day <- first_day + i - 1L
+        day_seed <- as.integer(validated$runtime$seed + i * 100000L)
+
+        day_res <- run_daily_implicit_representative(
+          representative_spec = representative,
+          visitation = visitation,
+          plants = final_plants,
+          conditions = conditions,
+          day_of_simulation = current_day,
+          minute_limit = validated$runtime$minute_limit,
+          forage_access_scale = validated$runtime$forage_access_scale,
+          feedback = validated$feedback,
+          seed = day_seed
+        )
+
+        final_plants <- day_res$plants
+        daily_rows[[i]] <- day_res$aggregated_summary
+        visit_rows[[i]] <- day_res$visit_summary
+        metrics_rows[[i]] <- derive_structure_fuel_metrics(
+          plants = final_plants,
+          day_of_simulation = current_day,
+          run_id = run_id,
+          scenario_id = validated$scenario_id,
+          scenario_slug = validated$outputs$scenario_slug,
+          population_mode = validated$population$mode
+        )
+
+        if (i == 1L) {
+          first_day_plants <- final_plants
+        }
+      }
+
+      herb_daily <- do.call(rbind, daily_rows)
+      visit_detail <- do.call(rbind, visit_rows)
+      final_herbivores <- list()
+
+      herb_daily$stocking_density_per_km2 <- visitation$stocking_density_per_km2
+      herb_daily$visitation_rate_per_day <- visitation$visitation_rate_per_day
+      herb_daily$effective_visits_per_day <- visitation$effective_visits_per_day
     }
 
-    herb_daily <- do.call(rbind, daily_rows)
-    visit_detail <- do.call(rbind, visit_rows)
-    final_herbivores <- list()
+    herb_daily <- normalise_herbivore_daily_output(
+      daily_df = herb_daily,
+      run_id = run_id,
+      scenario_id = validated$scenario_id,
+      scenario_slug = validated$outputs$scenario_slug,
+      population_mode = validated$population$mode
+    )
 
-    herb_daily$stocking_density_per_km2 <- visitation$stocking_density_per_km2
-    herb_daily$visitation_rate_per_day <- visitation$visitation_rate_per_day
-    herb_daily$effective_visits_per_day <- visitation$effective_visits_per_day
-  }
+    structure_metrics <- do.call(rbind, metrics_rows)
+    rownames(structure_metrics) <- NULL
 
-  herb_daily <- normalise_herbivore_daily_output(
-    daily_df = herb_daily,
-    run_id = run_id,
-    scenario_id = validated$scenario_id,
-    scenario_slug = validated$outputs$scenario_slug,
-    population_mode = validated$population$mode
-  )
+    if (!isTRUE(write_outputs)) {
+      return(list(
+        run_id = run_id,
+        run_dir = run_dir,
+        scenario = validated,
+        first_day_plants = first_day_plants,
+        final_plants = final_plants,
+        final_herbivores = final_herbivores,
+        herbivore_daily = herb_daily,
+        structure_fuel_metrics = structure_metrics,
+        visit_detail = visit_detail
+      ))
+    }
 
-  structure_metrics <- do.call(rbind, metrics_rows)
-  rownames(structure_metrics) <- NULL
+    dir.create(run_dir, recursive = TRUE, showWarnings = FALSE)
 
-  if (!isTRUE(write_outputs)) {
-    return(list(
+    plants_first_path <- file.path(run_dir, sprintf("plants_day%d.csv", first_day))
+    plants_last_path <- file.path(run_dir, sprintf("plants_day%d.csv", last_day))
+    herb_daily_path <- file.path(run_dir, "herbivore_daily.csv")
+    structure_path <- file.path(run_dir, "structure_fuel_daily.csv")
+
+    write_plants_daily(
+      plants = first_day_plants,
+      day = first_day,
+      year = 1L,
+      path = plants_first_path,
+      run_id = run_id
+    )
+    write_plants_daily(
+      plants = final_plants,
+      day = last_day,
+      year = 1L,
+      path = plants_last_path,
+      run_id = run_id
+    )
+    utils::write.csv(herb_daily, herb_daily_path, row.names = FALSE)
+    write_structure_fuel_metrics(structure_metrics, structure_path)
+
+    output_files <- c(
+      plants_first_day = file.path(base_dir, validated$outputs$scenario_slug, basename(plants_first_path)),
+      plants_last_day = file.path(base_dir, validated$outputs$scenario_slug, basename(plants_last_path)),
+      herbivore_daily = file.path(base_dir, validated$outputs$scenario_slug, basename(herb_daily_path)),
+      structure_fuel_daily = file.path(base_dir, validated$outputs$scenario_slug, basename(structure_path))
+    )
+
+    visit_path <- NULL
+    if (!is.null(visit_detail) && nrow(visit_detail) > 0L) {
+      visit_path <- file.path(run_dir, "implicit_visit_detail.csv")
+      utils::write.csv(visit_detail, visit_path, row.names = FALSE)
+      output_files <- c(
+        output_files,
+        implicit_visit_detail = file.path(base_dir, validated$outputs$scenario_slug, basename(visit_path))
+      )
+    }
+
+    manifest <- build_run_manifest(
+      scenario_slug = validated$outputs$scenario_slug,
+      seed = validated$runtime$seed,
+      scenario_parameters = validated,
+      output_files = output_files,
+      run_id = run_id
+    )
+    manifest_path <- file.path(run_dir, "run_manifest.json")
+    write_run_manifest(manifest, manifest_path)
+
+    list(
       run_id = run_id,
       run_dir = run_dir,
       scenario = validated,
-      first_day_plants = first_day_plants,
-      final_plants = final_plants,
+      plants_first_path = plants_first_path,
+      plants_last_path = plants_last_path,
+      herbivore_daily_path = herb_daily_path,
+      structure_fuel_path = structure_path,
+      implicit_visit_path = visit_path,
+      manifest_path = manifest_path,
       final_herbivores = final_herbivores,
       herbivore_daily = herb_daily,
       structure_fuel_metrics = structure_metrics,
       visit_detail = visit_detail
-    ))
-  }
-
-  dir.create(run_dir, recursive = TRUE, showWarnings = FALSE)
-
-  plants_first_path <- file.path(run_dir, sprintf("plants_day%d.csv", first_day))
-  plants_last_path <- file.path(run_dir, sprintf("plants_day%d.csv", last_day))
-  herb_daily_path <- file.path(run_dir, "herbivore_daily.csv")
-  structure_path <- file.path(run_dir, "structure_fuel_daily.csv")
-
-  write_plants_daily(
-    plants = first_day_plants,
-    day = first_day,
-    year = 1L,
-    path = plants_first_path,
-    run_id = run_id
-  )
-  write_plants_daily(
-    plants = final_plants,
-    day = last_day,
-    year = 1L,
-    path = plants_last_path,
-    run_id = run_id
-  )
-  utils::write.csv(herb_daily, herb_daily_path, row.names = FALSE)
-  write_structure_fuel_metrics(structure_metrics, structure_path)
-
-  output_files <- c(
-    plants_first_day = file.path(base_dir, validated$outputs$scenario_slug, basename(plants_first_path)),
-    plants_last_day = file.path(base_dir, validated$outputs$scenario_slug, basename(plants_last_path)),
-    herbivore_daily = file.path(base_dir, validated$outputs$scenario_slug, basename(herb_daily_path)),
-    structure_fuel_daily = file.path(base_dir, validated$outputs$scenario_slug, basename(structure_path))
-  )
-
-  visit_path <- NULL
-  if (!is.null(visit_detail) && nrow(visit_detail) > 0L) {
-    visit_path <- file.path(run_dir, "implicit_visit_detail.csv")
-    utils::write.csv(visit_detail, visit_path, row.names = FALSE)
-    output_files <- c(
-      output_files,
-      implicit_visit_detail = file.path(base_dir, validated$outputs$scenario_slug, basename(visit_path))
     )
-  }
-
-  manifest <- build_run_manifest(
-    scenario_slug = validated$outputs$scenario_slug,
-    seed = validated$runtime$seed,
-    scenario_parameters = validated,
-    output_files = output_files,
-    run_id = run_id
-  )
-  manifest_path <- file.path(run_dir, "run_manifest.json")
-  write_run_manifest(manifest, manifest_path)
-
-  list(
-    run_id = run_id,
-    run_dir = run_dir,
-    scenario = validated,
-    plants_first_path = plants_first_path,
-    plants_last_path = plants_last_path,
-    herbivore_daily_path = herb_daily_path,
-    structure_fuel_path = structure_path,
-    implicit_visit_path = visit_path,
-    manifest_path = manifest_path,
-    final_herbivores = final_herbivores,
-    herbivore_daily = herb_daily,
-    structure_fuel_metrics = structure_metrics,
-    visit_detail = visit_detail
-  )
+  })
 }

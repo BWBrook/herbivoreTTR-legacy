@@ -1,0 +1,45 @@
+name: Weekly Repro Check
+
+on:
+  schedule:
+    - cron: "0 4 * * 1"
+  workflow_dispatch:
+
+concurrency:
+  group: weekly-repro-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  weekly-repro:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      RENV_CONFIG_REPOS_OVERRIDE: https://cloud.r-project.org
+      TARGETS_PROFILE: ci
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-pandoc@v2
+
+      - name: Install Linux system dependencies
+        run: sudo apt-get update && sudo apt-get install -y qpdf libglpk40
+
+      - uses: r-lib/actions/setup-renv@v2
+
+      - name: Session info
+        run: R -q -e "sessionInfo()"
+
+      - name: External reproducibility run-through v2
+        run: Rscript scripts/run_external_repro_check_v2.R
+
+      - name: Upload reproducibility artefacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: weekly-repro-artefacts
+          if-no-files-found: warn
+          path: |
+            artefacts/reproducibility/external_run_v2/**

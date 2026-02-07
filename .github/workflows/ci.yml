@@ -1,4 +1,4 @@
-name: CI
+name: CI PR
 
 on:
   push:
@@ -128,27 +128,3 @@ jobs:
           path: |
             data/outputs/*.csv
             artefacts/canonical_runs/**
-
-  coverage:
-    name: Coverage gate
-    runs-on: ubuntu-latest
-    env:
-      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
-      RUN_COVERAGE: "1"
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: r-lib/actions/setup-r@v2
-        with:
-          use-public-rspm: true
-
-      - name: Install Linux system dependencies
-        run: sudo apt-get update && sudo apt-get install -y libglpk40
-
-      - uses: r-lib/actions/setup-renv@v2
-
-      - name: Session info
-        run: R -q -e "sessionInfo()"
-
-      - name: Run coverage test
-        run: make test

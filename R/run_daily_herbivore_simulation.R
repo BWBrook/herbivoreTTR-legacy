@@ -17,6 +17,8 @@
 #' @param apply_growth Logical; if `TRUE` daily plant growth is applied before
 #'   herbivory. Set `FALSE` when growth was already applied by an outer runner.
 #' @param plant_backend Plant backend name or backend interface list.
+#' @param forage_access_scale Scalar in `(0,1]` that scales effective
+#'   foraging time available in the day.
 #' @return List with updated `herbivore`, `plants`, `daily_record` (optional
 #'   minute-by-minute snapshots), and `daily_summary`.
 #' @examples
@@ -30,7 +32,8 @@ run_daily_herbivore_simulation <- function(herbivore, plants, conditions,
                                            capture_diagnostics = FALSE,
                                            seed = NULL,
                                            apply_growth = TRUE,
-                                           plant_backend = "internal_ttr") {
+                                           plant_backend = "internal_ttr",
+                                           forage_access_scale = 1) {
 
   with_optional_seed(seed, {
 
@@ -70,6 +73,16 @@ run_daily_herbivore_simulation <- function(herbivore, plants, conditions,
 
   # 2) Pre-compute foraging traits (bite size, gut capacity, etc.)
   herbivore <- calc_foraging_traits(herbivore)
+  herbivore <- apply_body_condition_feedback(
+    herbivore = herbivore,
+    minute_limit = minute_limit
+  )
+  access_scale <- as.numeric(forage_access_scale)
+  if (!is.finite(access_scale) || access_scale <= 0 || access_scale > 1) {
+    access_scale <- 1
+  }
+  herbivore$forage_access_scale <- access_scale
+  herbivore$time_spent_foraging <- herbivore$time_spent_foraging * access_scale
   if (capture_diagnostics) {
     diagnostics$herbivore_start <- herbivore
   }
@@ -166,6 +179,7 @@ run_daily_herbivore_simulation <- function(herbivore, plants, conditions,
 
   herbivore <- check_daily_water_balance(herbivore)
   herbivore <- calc_daily_energy_balance(herbivore)
+  herbivore <- update_herbivore_daily_diagnostics(herbivore)
 
   assert_domain_sanity_state(
     plants = plants,
@@ -186,6 +200,18 @@ run_daily_herbivore_simulation <- function(herbivore, plants, conditions,
     daily_metabolic_water = herbivore$metabolic_water_day,
     daily_water_drinking = herbivore$intake_water_drinking,
     daily_net_water_balance = herbivore$daily_net_water_balance,
+    daily_water_intake_total = herbivore$daily_water_intake_total,
+    water_requirement_day = herbivore$water_requirement_day,
+    water_balance_ratio = herbivore$water_balance_ratio,
+    maintenance_energy_requirement_day = herbivore$maintenance_energy_requirement_day,
+    total_energy_requirement_day = herbivore$total_energy_requirement_day,
+    daily_energy_intake = herbivore$daily_energy_intake,
+    daily_energy_delta = herbivore$daily_energy_delta,
+    energy_balance_ratio = herbivore$energy_balance_ratio,
+    energy_deficit_streak_days = herbivore$energy_deficit_streak_days,
+    water_deficit_streak_days = herbivore$water_deficit_streak_days,
+    physiological_stress_flag = herbivore$physiological_stress_flag,
+    body_condition_index = herbivore$body_condition_index,
     energy_balance        = herbivore$energy_balance,
     water_balance         = herbivore$water_balance,
     plant_backend = backend$name

@@ -1,0 +1,136 @@
+---
+title: "herbivoreTTR Post-1.0 Ecological Report (v2)"
+format:
+  html:
+    toc: true
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+read_safe <- function(path) {
+  if (!file.exists(path)) return(NULL)
+  utils::read.csv(path, stringsAsFactors = FALSE)
+}
+
+paths <- list(
+  exp_a_summary = file.path("artefacts", "canonical_runs", "experiment_a_presence_removal_v2", "experiment_a_summary_v2.csv"),
+  exp_a_delta = file.path("artefacts", "canonical_runs", "experiment_a_presence_removal_v2", "experiment_a_delta_ensemble_v2.csv"),
+  exp_a_claims = file.path("artefacts", "canonical_runs", "experiment_a_presence_removal_v2", "experiment_a_claims_v2.csv"),
+  exp_a_units = file.path("artefacts", "canonical_runs", "experiment_a_presence_removal_v2", "experiment_a_summary_v2_units.csv"),
+  exp_c_summary = file.path("artefacts", "canonical_runs", "experiment_c_aridity_gradient_v2", "experiment_c_summary_v2.csv"),
+  exp_c_claims = file.path("artefacts", "canonical_runs", "experiment_c_aridity_gradient_v2", "experiment_c_claims_v2.csv"),
+  exp_c_units = file.path("artefacts", "canonical_runs", "experiment_c_aridity_gradient_v2", "experiment_c_summary_v2_units.csv"),
+  validation_summary = file.path("artefacts", "validation", "pilot_benchmark_v1", "pilot_metrics_summary_v1.csv"),
+  stability_summary = file.path("artefacts", "stability", "long_horizon_v1", "stability_summary_v1.csv")
+)
+
+fig_paths <- list(
+  exp_a = file.path("artefacts", "canonical_runs", "experiment_a_presence_removal_v2", "experiment_a_presence_removal_v2.png"),
+  exp_c = file.path("artefacts", "canonical_runs", "experiment_c_aridity_gradient_v2", "experiment_c_aridity_gradient_v2.png")
+)
+
+exp_a_summary <- read_safe(paths$exp_a_summary)
+exp_a_delta <- read_safe(paths$exp_a_delta)
+exp_a_claims <- read_safe(paths$exp_a_claims)
+exp_a_units <- read_safe(paths$exp_a_units)
+exp_c_summary <- read_safe(paths$exp_c_summary)
+exp_c_claims <- read_safe(paths$exp_c_claims)
+exp_c_units <- read_safe(paths$exp_c_units)
+validation_summary <- read_safe(paths$validation_summary)
+stability_summary <- read_safe(paths$stability_summary)
+```
+
+## Overview
+
+This report assembles post-1.0 artefacts with uncertainty summaries, explicit claim status tables, and ecological limitation statements.
+
+## Experiment A v2 (Presence vs Removal)
+
+```{r}
+if (is.null(exp_a_summary)) {
+  cat("Experiment A v2 summary is missing.")
+} else {
+  knitr::kable(exp_a_summary, digits = 3, caption = "Experiment A v2 scenario summary (units in companion table).")
+}
+```
+
+```{r}
+if (is.null(exp_a_delta)) {
+  cat("Experiment A v2 delta summary is missing.")
+} else {
+  knitr::kable(exp_a_delta, digits = 3, caption = "Experiment A v2 delta ensemble summary (removal - present).")
+}
+```
+
+```{r}
+if (!is.null(exp_a_claims)) {
+  knitr::kable(exp_a_claims, digits = 3, caption = "Experiment A v2 claim status.")
+}
+```
+
+```{r}
+if (!is.null(exp_a_units)) {
+  knitr::kable(exp_a_units, digits = 3, caption = "Experiment A v2 metric units.")
+}
+```
+
+```{r}
+if (file.exists(fig_paths$exp_a)) {
+  knitr::include_graphics(fig_paths$exp_a)
+}
+```
+
+## Experiment C v2 (Aridity x Access Matrix)
+
+```{r}
+if (is.null(exp_c_summary)) {
+  cat("Experiment C v2 summary is missing.")
+} else {
+  knitr::kable(exp_c_summary, digits = 3, caption = "Experiment C v2 matrix summary.")
+}
+```
+
+```{r}
+if (!is.null(exp_c_claims)) {
+  knitr::kable(exp_c_claims, digits = 3, caption = "Experiment C v2 claim status.")
+}
+```
+
+```{r}
+if (!is.null(exp_c_units)) {
+  knitr::kable(exp_c_units, digits = 3, caption = "Experiment C v2 metric units.")
+}
+```
+
+```{r}
+if (file.exists(fig_paths$exp_c)) {
+  knitr::include_graphics(fig_paths$exp_c)
+}
+```
+
+## Validation and Stability
+
+```{r}
+if (!is.null(validation_summary)) {
+  knitr::kable(validation_summary, digits = 4, caption = "Pilot ecological validation metrics.")
+} else {
+  cat("Pilot validation summary is missing.")
+}
+```
+
+```{r}
+if (!is.null(stability_summary)) {
+  knitr::kable(stability_summary, digits = 3, caption = "Long-horizon stability summary.")
+} else {
+  cat("Long-horizon stability summary is missing.")
+}
+```
+
+## Limitations
+
+- Claim tables distinguish supported versus unsupported hypotheses.
+- Optional claims remain visible even when unsupported, to prevent narrative overreach.
+- Demography remains out of scope; stress trajectories are interpreted mechanistically.

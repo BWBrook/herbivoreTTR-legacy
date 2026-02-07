@@ -7,8 +7,7 @@
 #'
 #' @return Absolute path to the rendered HTML report.
 #' @export
-render_paper_pipeline_report <- function(input = file.path("reports", "paper_pipeline.qmd"),
-                                         output_dir = file.path("artefacts", "reports")) {
+render_quarto_report_internal <- function(input, output_dir) {
   if (!file.exists(input)) {
     rlang::abort(
       "Paper pipeline input `.qmd` does not exist.",
@@ -57,4 +56,40 @@ render_paper_pipeline_report <- function(input = file.path("reports", "paper_pip
   }
 
   output_file
+}
+
+#' Render the paper pipeline Quarto report from existing artefacts
+#'
+#' @param input Path to the `.qmd` report source.
+#' @param output_dir Directory where rendered outputs are written.
+#'
+#' @return Absolute path to the rendered HTML report.
+#' @export
+render_paper_pipeline_report <- function(input = file.path("reports", "paper_pipeline.qmd"),
+                                         output_dir = file.path("artefacts", "reports")) {
+  render_quarto_report_internal(input = input, output_dir = output_dir)
+}
+
+#' Render the post-1.0 paper pipeline report and write deterministic manifest
+#'
+#' @param input Path to the v2 `.qmd` report source.
+#' @param output_dir Directory where rendered outputs are written.
+#' @param create_manifest Logical; when `TRUE`, write checksum manifest.
+#'
+#' @return List with rendered html path and manifest path.
+render_paper_pipeline_report_v2 <- function(input = file.path("reports", "paper_pipeline_v2.qmd"),
+                                            output_dir = file.path("artefacts", "reports_v2"),
+                                            create_manifest = TRUE) {
+  html <- render_quarto_report_internal(input = input, output_dir = output_dir)
+  manifest_path <- NULL
+  if (isTRUE(create_manifest)) {
+    manifest_path <- write_report_artifact_manifest_v2(
+      output_dir = output_dir,
+      input_files = c(input)
+    )
+  }
+  list(
+    html = html,
+    manifest_path = manifest_path
+  )
 }

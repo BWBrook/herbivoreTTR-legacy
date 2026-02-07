@@ -1,10 +1,24 @@
 schema_version: "1.0.0"
 scenario_id: "reference_presence_removed_v1"
 runtime:
-  seed: 302
+  seed: 301
   minute_limit: 120
   days: 7
   start_day: 1826
+contrast:
+  contrast_id: "experiment_a_presence_removal_v2"
+  paired_with: "reference_presence_present_v1"
+  paired_contrast_required: true
+  pairing_rules:
+    - "runtime.seed"
+    - "runtime.minute_limit"
+    - "runtime.days"
+    - "runtime.start_day"
+    - "climate.mode"
+    - "climate.mean_temp"
+    - "climate.amplitude"
+    - "climate.sw_scale"
+    - "climate.n_scale"
 plot:
   veg_types: [0, 1, 2]
   plot_size_m2: 10000

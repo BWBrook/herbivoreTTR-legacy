@@ -1,0 +1,11 @@
+claim_id,experiment_id,metric_name,support_rule,threshold,required,description
+exp_a_replicates_present,experiment_a_v2,n_replicates,ge,1,TRUE,Experiment A v2 must include at least one replicate.
+exp_a_total_shoot_delta_positive,experiment_a_v2,delta_total_shoot_median,gt,0,FALSE,Removal should increase final total shoot biomass versus present.
+exp_a_fine_fuel_delta_positive,experiment_a_v2,delta_fine_fuel_median,gt,0,FALSE,Removal should increase final fine fuel proxy versus present.
+exp_a_browseable_delta_positive,experiment_a_v2,delta_browseable_median,gt,0,FALSE,Removal should increase final browseable biomass versus present.
+exp_a_total_shoot_support_share,experiment_a_v2,support_share_total_shoot,ge,0.8,FALSE,At least 80 percent of seeds should show positive total shoot delta.
+exp_a_fine_fuel_support_share,experiment_a_v2,support_share_fine_fuel,ge,0.8,FALSE,At least 80 percent of seeds should show positive fine fuel delta.
+exp_a_browseable_support_share,experiment_a_v2,support_share_browseable,ge,0.8,FALSE,At least 80 percent of seeds should show positive browseable delta.
+exp_c_water_monotonic,experiment_c_v2,water_monotonic_signal,ge,1,TRUE,Daily drinking water should rise from low to high aridity.
+exp_c_intake_monotonic,experiment_c_v2,intake_monotonic_signal,ge,1,FALSE,Daily dry matter intake should decline from low to high stress in at least one matrix axis.
+exp_c_intake_drop_low_high,experiment_c_v2,delta_intake_low_vs_high,lt,0,FALSE,Mean intake at high stress should be lower than low stress.
