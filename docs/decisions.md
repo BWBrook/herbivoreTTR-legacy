@@ -68,7 +68,7 @@ This file records decisions that are hard to reverse. Each entry should include 
 **Implications:** Runs may now fail earlier when invalid states appear; failures will include offending component plus day/minute/phase and should be treated as model defects (not ignored as numerical noise).
 
 ## 2026-02-06 — Parameter reference source of truth and nutrient-target wording
-**Decision:** Parameter/units reference metadata is centralized in code via `parameter_reference_table()`, `units_conventions_table()`, and `canonical_smoke_parameters()`, and documented in `docs/parameter_units_reference.md`. Nutrient-target wording explicitly distinguishes reporting target (`NPE_TO_PE_TARGET`) from the current foraging proxy target (`DP_TO_DC_TARGET`).  
+**Decision:** Parameter/units reference metadata is centralized in code via `parameter_reference_table()`, `units_conventions_table()`, and `canonical_smoke_parameters()`, and documented in `docs/reference/parameter_units_reference.md`. Nutrient-target wording explicitly distinguishes reporting target (`NPE_TO_PE_TARGET`) from the current foraging proxy target (`DP_TO_DC_TARGET`).  
 **Rationale:** WP-0.3.8 requires a single authoritative reference that cannot silently drift from defaults used by canonical runs. Separating reporting vs proxy targets reduces ambiguity in interpretation and manuscript wording.  
 **Implications:** Tests must enforce sync between reference tables, constants, and canonical scenario defaults; future target-policy changes must update both code metadata and this decision record.
 
@@ -238,12 +238,12 @@ Full and fractional visits are executed deterministically; outputs are explicitl
 **Implications:** Pipeline target dependencies must ensure experiment artefacts exist before report render.
 
 ## 2026-02-06 — API freeze v1 with scenario-first public entrypoints (WP-1.0.1)
-**Decision:** The v1 public API is frozen and documented in `docs/api_surface_v1.md`, with scenario contract entrypoints as the primary user-facing surface and legacy state-level exports retained as supported advanced APIs.  
+**Decision:** The v1 public API is frozen and documented in `docs/governance/api_surface_v1.md`, with scenario contract entrypoints as the primary user-facing surface and legacy state-level exports retained as supported advanced APIs.  
 **Rationale:** Users need a stable, publication-citable interface while preserving backward-compatible access to lower-level workflows already used in tests and scripts.  
 **Implications:** Changes to exported function names or argument semantics now require deprecation-policy handling and changelog migration notes.
 
 ## 2026-02-06 — Deprecation policy is mandatory for API/schema changes (WP-1.0.1)
-**Decision:** `docs/deprecation_policy.md` is now normative for exported functions and schema contracts.  
+**Decision:** `docs/governance/deprecation_policy.md` is now normative for exported functions and schema contracts.  
 **Rationale:** v1 stabilisation requires explicit compatibility guarantees to avoid accidental breaking changes during publication-facing use.  
 **Implications:** Future removals or breaking behavior changes must follow the documented soft/hard/removal cycle unless an explicitly logged correctness exception applies.
 

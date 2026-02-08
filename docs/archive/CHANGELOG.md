@@ -8,9 +8,9 @@ whenever release tags are published.
 
 ## [Unreleased]
 ### Added
-- `docs/PIPELINE.md` describing the minimal {targets} DAG and execution profile.
+- `docs/development/PIPELINE.md` describing the minimal {targets} DAG and execution profile.
 - Pipeline helper functions that write parity CSVs with directory management for targets.
-- `docs/test_battery.md` detailing the planned comprehensive test suite and logging spec.
+- `docs/development/test_battery.md` detailing the planned comprehensive test suite and logging spec.
 - Structured test logger (`tests/testthat/helper-test_log.R`) and full test battery harness (`scripts/run_test_battery.R`).
 - Extensive testthat coverage for initialisation, energy/water balance, behaviour, utilities, parity, and pipeline manifest checks.
 - `run_herbivore_days()` helper, automated CLI demo (`scripts/run_single_herbivore_demo.R`), and `_targets.R::sim_day3_demo` for multi-day smoke tests.

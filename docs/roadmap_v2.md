@@ -220,8 +220,8 @@ Independent review found seed mismatch in Experiment A paired scenarios, creatin
 3. Add opt-out flag for explicitly unpaired sensitivity experiments:
    - `paired_contrast_required: false` (default true for reference contrasts).
 4. Document the new contract in:
-   - `docs/scenario_contract_v1.md` (or v2 if schema bump is chosen),
-   - `docs/reference_scenarios_v1.md`.
+   - `docs/contracts/scenario_contract_v1.md` (or v2 if schema bump is chosen),
+   - `docs/reference/reference_scenarios_v1.md`.
 
 **Acceptance criteria**
 
@@ -436,7 +436,7 @@ Daily herbivore outputs include explicit diagnostics needed for ecological inter
    - `PhysiologicalStressFlag`.
 2. Define calculations in docs with units and sign conventions.
 3. Bump output schema version if required and add migration tests.
-4. Update `docs/output_contract_v1.md` (or introduce v1.1 contract doc).
+4. Update `docs/contracts/output_contract_v1.md` (or introduce v1.1 contract doc).
 
 **Acceptance criteria**
 
@@ -1087,7 +1087,7 @@ A v1.1 release-candidate bundle is assembled with hardening outputs, and a next-
    - reproducibility checklists,
    - known limitations.
 3. Update:
-   - `docs/CHANGELOG.md`,
+   - `docs/archive/CHANGELOG.md`,
    - `docs/release_checklist.md`,
    - this roadmap checkboxes.
 4. Add roadmap handoff section:
@@ -1279,7 +1279,7 @@ Non-coder users can define scenario settings, sensitivity parameters, output pre
 - Added plan schema/validation/compiler utilities in:
   - `R/portal_plan_v1.R`
 - Added contract documentation:
-  - `docs/portal_plan_contract_v1.md`
+  - `docs/contracts/portal_plan_contract_v1.md`
 - Added editable templates:
   - `portal/plans/templates/single_scenario_template.yaml`
   - `portal/plans/templates/sensitivity_template.yaml`
@@ -1410,7 +1410,7 @@ Non-coder onboarding docs are explicit, minimal-friction, and aligned to portal 
 **Implementation summary**
 
 - Added quickstart docs:
-  - `docs/ecologist_quickstart_v1.md`
+  - `docs/guides/ecologist_quickstart_v1.md`
 - Added vignette:
   - `vignettes/ecologist_portal_workflow.Rmd`
 - Updated repo onboarding:

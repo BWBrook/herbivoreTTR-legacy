@@ -54,8 +54,8 @@ test_that("API and deprecation docs are present and cross-referenced", {
   repo_root <- scenario_find_repo_root(getwd())
   skip_if(is.null(repo_root), "Repo root not detectable in this test context.")
 
-  api_doc <- file.path(repo_root, "docs", "api_surface_v1.md")
-  dep_doc <- file.path(repo_root, "docs", "deprecation_policy.md")
+  api_doc <- file.path(repo_root, "docs", "governance", "api_surface_v1.md")
+  dep_doc <- file.path(repo_root, "docs", "governance", "deprecation_policy.md")
   readme_path <- file.path(repo_root, "README.md")
   architecture_path <- file.path(repo_root, "docs", "architecture.md")
 
@@ -70,8 +70,8 @@ test_that("API and deprecation docs are present and cross-referenced", {
   readme <- paste(readLines(readme_path, warn = FALSE), collapse = "\n")
   architecture <- paste(readLines(architecture_path, warn = FALSE), collapse = "\n")
 
-  expect_match(readme, "docs/api_surface_v1.md", fixed = TRUE)
-  expect_match(readme, "docs/deprecation_policy.md", fixed = TRUE)
-  expect_match(architecture, "docs/api_surface_v1.md", fixed = TRUE)
-  expect_match(architecture, "docs/deprecation_policy.md", fixed = TRUE)
+  expect_match(readme, "docs/governance/api_surface_v1.md", fixed = TRUE)
+  expect_match(readme, "docs/governance/deprecation_policy.md", fixed = TRUE)
+  expect_match(architecture, "docs/governance/api_surface_v1.md", fixed = TRUE)
+  expect_match(architecture, "docs/governance/deprecation_policy.md", fixed = TRUE)
 })

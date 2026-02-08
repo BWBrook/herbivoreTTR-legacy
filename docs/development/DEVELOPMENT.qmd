@@ -18,7 +18,7 @@ title: "Development Notes"
   - `start_day` — first post spin-up day index used internally.
 
 ## Pipeline Hooks
-- `_targets.R` exposes `sim_day3_demo` which reuses the helper at a 60-minute resolution for fast smoke tests; see `docs/PIPELINE.md` for full DAG context.
+- `_targets.R` exposes `sim_day3_demo` which reuses the helper at a 60-minute resolution for fast smoke tests; see `docs/development/PIPELINE.md` for full DAG context.
 
 ## Hourly Logs
 - Use `scripts/run_single_day_hourly_log.R` to run a single post spin-up day (1440 minutes) and emit an hourly herbivore log via `write_hourly_herbivore_log()`.

@@ -55,9 +55,9 @@ After a run, inspect:
 Plan contract
 -------------
 
-See `docs/portal_plan_contract_v1.md` for complete schema details.
+See `docs/contracts/portal_plan_contract_v1.md` for complete schema details.
 
 Quickstart doc
 --------------
 
-See `docs/ecologist_quickstart_v1.md` for a compact checklist.
+See `docs/guides/ecologist_quickstart_v1.md` for a compact checklist.

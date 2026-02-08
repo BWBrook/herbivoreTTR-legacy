@@ -135,7 +135,7 @@ Suggested verification:
 ### MINOR — Unit clarity in experiment summaries could be improved for ecological readers
 
 Evidence:
-- `docs/output_contract_v1.md` lists required columns but not explicit units per field.
+- `docs/contracts/output_contract_v1.md` lists required columns but not explicit units per field.
 - Experiment reports present values (DMI, water, energy) without unit reminders.
 
 Why it matters ecologically:

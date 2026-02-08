@@ -93,4 +93,4 @@
 - Implement `tests/testthat/helper-test_log.R` with a custom reporter.
 - Draft new test files mirroring section headings (e.g., `test_init_conditions.R`, `test_herbivore_move.R`).
 - Populate parity fixtures and performance baselines.
-- Update developer docs (`docs/DEVELOPMENT.qmd`) with instructions for running the full battery and interpreting log outputs.
+- Update developer docs (`docs/development/DEVELOPMENT.qmd`) with instructions for running the full battery and interpreting log outputs.

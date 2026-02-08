@@ -11,7 +11,7 @@ All notable changes in this module are documented here.
   - herbivore diagnostics and body-condition feedback wiring (`R/herbivore_diagnostics_v2.R`)
   - experiment v2 orchestration and reporting for Experiment A/C (`R/reference_experiments_v2.R`)
   - units/metric metadata registry and sidecar writers (`R/metric_units_v1.R`, `config/units/metric_units_v1.csv`)
-  - observational data contract and validation adapters (`R/observational_contract_v1.R`, `docs/observational_data_contract_v1.md`)
+  - observational data contract and validation adapters (`R/observational_contract_v1.R`, `docs/contracts/observational_data_contract_v1.md`)
   - validation benchmark battery (`R/validation_metrics_v1.R`)
   - long-horizon stability suite and post-v1 scaling/regression gate (`R/stability_suite_v1.R`, `R/scaling_profile_v1.R`)
   - report hardening utilities and v2 release pipeline (`R/report_manifest_v2.R`, `R/release_pipeline_v2.R`, `reports/paper_pipeline_v2.qmd`)
@@ -50,9 +50,9 @@ All notable changes in this module are documented here.
   - `scripts/build_release_bundle.R`
   - `scripts/run_external_repro_check.R`
 - New v1 docs:
-  - `docs/api_surface_v1.md`
-  - `docs/deprecation_policy.md`
-  - `docs/reproducibility_runbook_v1.md`
+  - `docs/governance/api_surface_v1.md`
+  - `docs/governance/deprecation_policy.md`
+  - `docs/governance/reproducibility_runbook_v1.md`
 
 ### Changed
 - README and vignettes now use the scenario workflow and canonical artefact outputs.
@@ -62,8 +62,8 @@ All notable changes in this module are documented here.
   - `repro-check`
   - `rc-gates`
 - Release/process docs updated:
-  - `docs/README-dev.md`
-  - `docs/PIPELINE.md`
+  - `docs/guides/README-dev.md`
+  - `docs/development/PIPELINE.md`
   - `docs/release_checklist.md`
   - `docs/workflow.md`
 
@@ -202,13 +202,13 @@ Rationale: Improve developer experience by removing spurious warnings and enabli
 
 ## Docs — Closure Tests Protocol
 
-- Added `docs/closure_tests.md` outlining unit sanity, integration, and determinism tests for validating parity with the C++ implementation.
+- Added `docs/guides/closure_tests.md` outlining unit sanity, integration, and determinism tests for validating parity with the C++ implementation.
 
 Rationale: Provide a concise, versioned protocol for end-to-end verification and future regression triage.
 
 ## Docs — Developer Quickstart
 
-- Added `docs/README-dev.md` with a compact guide for renv bootstrap, running tests, executing the minimal {targets} pipeline, and producing parity CSVs.
+- Added `docs/guides/README-dev.md` with a compact guide for renv bootstrap, running tests, executing the minimal {targets} pipeline, and producing parity CSVs.
 
 Rationale: Help collaborators get productive quickly with consistent, reproducible project workflows.
 
@@ -223,8 +223,8 @@ Rationale: Help collaborators get productive quickly with consistent, reproducib
   - optional Shiny GUI stub under `portal/gui/app.R`,
   - portal plan templates under `portal/plans/templates/`.
 - Portal-facing documentation and onboarding:
-  - `docs/portal_plan_contract_v1.md`,
-  - `docs/ecologist_quickstart_v1.md`,
+  - `docs/contracts/portal_plan_contract_v1.md`,
+  - `docs/guides/ecologist_quickstart_v1.md`,
   - `vignettes/ecologist_portal_workflow.Rmd`,
   - README and workflow updates for non-coder commands.
 - Portal regression coverage:
@@ -246,7 +246,7 @@ Rationale: Help collaborators get productive quickly with consistent, reproducib
 - Vignette `vignettes/herbivoreTTR-intro.Rmd` (getting started).
 - GitHub Actions `R-CMD-check` workflow enabled.
 - Test helper prefers `pkgload::load_all(".")` with fallback to sourcing `R/*.R`.
-- Wiring test plan `docs/wiring_test.md`.
+- Wiring test plan `docs/development/wiring_test.md`.
 - New tests for energy wiring and defence transport/growth.
 
 ### Changed

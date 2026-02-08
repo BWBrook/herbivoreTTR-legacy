@@ -8,10 +8,10 @@
 - Added `.cache/` to `.gitignore` and verified `renv::snapshot(prompt = FALSE)` plus `renv::clean(confirm = FALSE)` complete without errors.
 - Ran `testthat::test_dir()` (fails: missing `tarchetypes` detection, transport tolerance) and `targets::tar_make(names = "conditions")` to smoke-test the toolchain.
 - Added `scripts/run-r` and `scripts/run-rscript` wrappers so CLI calls automatically pick up the project-local cache env vars.
-- Captured `renv` workflow lessons learned in `docs/AGENT_WORKING_WITH_R_RENV.md` for future agents.
+- Captured `renv` workflow lessons learned in `docs/development/AGENT_WORKING_WITH_R_RENV.md` for future agents.
 - Switched root `Makefile` recipes to call the wrapper scripts, keeping cache redirects consistent during automation.
-- Disabled the renv sandbox in wrapper scripts to expose base packages (e.g., `parallel`), added a sanity check for it, and documented the fix in `docs/AGENT_WORKING_WITH_R_RENV.md`.
-- Clarified in `docs/AGENT_WORKING_WITH_R_RENV.md` that cache directories are repo-scoped via the wrapper scripts.
+- Disabled the renv sandbox in wrapper scripts to expose base packages (e.g., `parallel`), added a sanity check for it, and documented the fix in `docs/development/AGENT_WORKING_WITH_R_RENV.md`.
+- Clarified in `docs/development/AGENT_WORKING_WITH_R_RENV.md` that cache directories are repo-scoped via the wrapper scripts.
 - Installed `lintr`, corrected the legacy `.lintr` config syntax, and updated `make lint` with a fail-on-lint helper that prints results.
 - Added `XDG_CACHE_HOME` routing in wrapper scripts and docs so Quarto/Deno caches stay within the repo.
 - Updated wrapper scripts to prefer shared caches under `$HOME/.cache` when writable, falling back to repo-local caches only if necessary; docs updated accordingly.
@@ -19,7 +19,7 @@
 - `tests/testthat/test_sanity.R` now once again checks `requireNamespace()` quietly for `targets`, `parallel`, and `tarchetypes`.
 
 ## 2025-10-20 – Codex housekeeping pass
-- Added `docs/CHANGELOG.md` (Keep a Changelog scaffold) and `docs/PIPELINE.md` summarising the current DAG after auditing repo hygiene.
+- Added `docs/archive/CHANGELOG.md` (Keep a Changelog scaffold) and `docs/development/PIPELINE.md` summarising the current DAG after auditing repo hygiene.
 - Synced `.gitignore`/`.Rbuildignore` with data outputs, docs artefacts, and support directories expected by the workflow.
 - Replaced `stop()` calls in CSV writers and `init_conditions()` with typed `rlang::abort()` messages; renamed internal nitrogen state to `soil_n`.
 - Moved pipeline file writes into `write_plants_snapshot_target()` / `write_herbivore_snapshot_target()` helpers and updated `_targets.R` to call them.
@@ -27,7 +27,7 @@
 - Attempted to adopt `import::from()` but reverted to direct `rlang::abort()` after it introduced runtime errors during tests.
 
 ## 2025-10-21 – Codex test planning
-- Drafted `docs/test_battery.md` outlining comprehensive coverage goals, module-specific test plans, and logging requirements.
+- Drafted `docs/development/test_battery.md` outlining comprehensive coverage goals, module-specific test plans, and logging requirements.
 - Specified structured `data/outputs/test_log_<timestamp>.csv` schema and integration touchpoints for unit/integration/perf suites.
 - Implemented test logging reporter and extended testthat suite across initialisation, behaviour, energy/water balance, utilities, parity, and pipeline manifest coverage.
 - Added `inst/extdata/parity/` snapshots, full test battery script, and Makefile target; configured optional performance (`RUN_PERF_TESTS`) and coverage (`RUN_COVERAGE`) switches.
@@ -37,7 +37,7 @@
 - Updated `init_plants()` to publish `xcor` / `ycor` columns so grazing logic can detect candidates post spin-up.
 - Added `run_herbivore_days()` helper plus `tests/testthat/test_run_herbivore_days.R` to exercise a three-day window and assert biomass intake.
 - Created `scripts/run_single_herbivore_demo.R` to run the wrapper, emit timestamped daily/endpoint CSVs, and append a structured log entry.
-- Extended `_targets.R` with `sim_day3_demo` and refreshed `docs/PIPELINE.md` / `docs/CHANGELOG.md` to document the workflow.
+- Extended `_targets.R` with `sim_day3_demo` and refreshed `docs/development/PIPELINE.md` / `docs/archive/CHANGELOG.md` to document the workflow.
 
 ## 2025-10-22 – Codex hourly logging
 - Captured additional per-minute herbivore state (distance moved, intake, water fluxes) to allow hourly aggregation.

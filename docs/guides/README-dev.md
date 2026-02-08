@@ -75,6 +75,6 @@ Evidence location:
 - `artefacts/reproducibility/external_run_v1/`
 
 See also:
-- `docs/reproducibility_runbook_v1.md`
-- `docs/api_surface_v1.md`
-- `docs/deprecation_policy.md`
+- `docs/governance/reproducibility_runbook_v1.md`
+- `docs/governance/api_surface_v1.md`
+- `docs/governance/deprecation_policy.md`

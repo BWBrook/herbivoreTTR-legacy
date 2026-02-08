@@ -167,9 +167,9 @@ run_release_checklist_v1 <- function(package_tarball,
 
   semver_ok <- grepl("^[0-9]+\\.[0-9]+\\.[0-9]+$", version)
   changelog_ok <- check_changelog_for_version_v1(version = version)
-  api_doc_ok <- file.exists(file.path("docs", "api_surface_v1.md"))
-  dep_doc_ok <- file.exists(file.path("docs", "deprecation_policy.md"))
-  repro_doc_ok <- file.exists(file.path("docs", "reproducibility_runbook_v1.md"))
+  api_doc_ok <- file.exists(file.path("docs", "governance", "api_surface_v1.md"))
+  dep_doc_ok <- file.exists(file.path("docs", "governance", "deprecation_policy.md"))
+  repro_doc_ok <- file.exists(file.path("docs", "governance", "reproducibility_runbook_v1.md"))
   tarball_ok <- file.exists(package_tarball)
   renv_sync <- isTRUE(renv::status()$synchronized)
 
@@ -208,9 +208,9 @@ run_release_checklist_v1 <- function(package_tarball,
     evidence = c(
       version,
       if (changelog_ok) "header found" else "missing header",
-      file.path("docs", "api_surface_v1.md"),
-      file.path("docs", "deprecation_policy.md"),
-      file.path("docs", "reproducibility_runbook_v1.md"),
+      file.path("docs", "governance", "api_surface_v1.md"),
+      file.path("docs", "governance", "deprecation_policy.md"),
+      file.path("docs", "governance", "reproducibility_runbook_v1.md"),
       package_tarball,
       if (renv_sync) "renv synchronized" else "renv out of sync",
       sprintf("%d/%d manifests present", sum(file.exists(expected_manifest_paths)), length(expected_manifest_paths)),
@@ -262,9 +262,9 @@ build_release_bundle_v1 <- function(release_label = NULL,
     "README.md",
     "CHANGELOG.md",
     file.path("docs", "release_checklist.md"),
-    file.path("docs", "api_surface_v1.md"),
-    file.path("docs", "deprecation_policy.md"),
-    file.path("docs", "reproducibility_runbook_v1.md"),
+    file.path("docs", "governance", "api_surface_v1.md"),
+    file.path("docs", "governance", "deprecation_policy.md"),
+    file.path("docs", "governance", "reproducibility_runbook_v1.md"),
     file.path("reports", "paper_pipeline.qmd")
   )
 

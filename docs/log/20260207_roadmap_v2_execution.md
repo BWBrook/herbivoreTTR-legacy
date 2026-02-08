@@ -140,7 +140,7 @@ Interpretation highlights:
 - Added contract validators and adapter functions for observed-series schema.
 - Evidence:
   - `R/observational_contract_v1.R`
-  - `docs/observational_data_contract_v1.md`
+  - `docs/contracts/observational_data_contract_v1.md`
   - `inst/extdata/validation/vegetation_timeseries_example.csv`
   - `inst/extdata/validation/herbivore_timeseries_example.csv`
 

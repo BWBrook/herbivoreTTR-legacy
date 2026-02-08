@@ -83,8 +83,8 @@ Rscript portal/launch_gui_stub.R
 
 See:
 - `portal/README.md`
-- `docs/portal_plan_contract_v1.md`
-- `docs/ecologist_quickstart_v1.md`
+- `docs/contracts/portal_plan_contract_v1.md`
+- `docs/guides/ecologist_quickstart_v1.md`
 
 ## Running The Targets Pipeline
 
@@ -112,11 +112,11 @@ Depending on the runner and options, outputs include:
 * run manifests for all canonical scenarios and experiments
 
 See `docs/architecture.md` for state object schemas and invariants.
-See `docs/parameter_units_reference.md` for parameter defaults, units, and cited allometric relationships.
-See `docs/output_contract_v1.md` for schema-level output details.
-See `docs/scenario_contract_v1.md` for scenario YAML schema.
-See `docs/api_surface_v1.md` for the frozen public API surface.
-See `docs/deprecation_policy.md` for compatibility and deprecation guarantees.
+See `docs/reference/parameter_units_reference.md` for parameter defaults, units, and cited allometric relationships.
+See `docs/contracts/output_contract_v1.md` for schema-level output details.
+See `docs/contracts/scenario_contract_v1.md` for scenario YAML schema.
+See `docs/governance/api_surface_v1.md` for the frozen public API surface.
+See `docs/governance/deprecation_policy.md` for compatibility and deprecation guarantees.
 
 ## Reproducibility
 
@@ -128,6 +128,7 @@ See `docs/deprecation_policy.md` for compatibility and deprecation guarantees.
 Developer workflow and quality gates are described in:
 
 * `AGENTS.md` (autonomous engineering harness)
+* `docs/README.md` (documentation map and folder index)
 * `docs/workflow.md` (result/artefact review cycle)
 * `docs/decisions.md` (scientific and architectural decisions)
 

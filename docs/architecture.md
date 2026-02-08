@@ -10,8 +10,8 @@ It now supports three population execution modes behind a shared scenario contra
 
 Public API freeze status:
 - Scenario-first v1 entrypoints are now the primary stable user surface.
-- Full export inventory is documented in `docs/api_surface_v1.md`.
-- Deprecation and compatibility guarantees are documented in `docs/deprecation_policy.md`.
+- Full export inventory is documented in `docs/governance/api_surface_v1.md`.
+- Deprecation and compatibility guarantees are documented in `docs/governance/deprecation_policy.md`.
 
 Canonical execution path:
 1. Compile scenario YAML (`compile_scenario_yaml()`).
@@ -23,7 +23,7 @@ Canonical execution path:
 ## Scenario Contract Boundary
 
 Scenario contract v1 (`schema_version = 1.0.0`) is the run-entry boundary.
-See `docs/scenario_contract_v1.md`.
+See `docs/contracts/scenario_contract_v1.md`.
 
 Core scenario sections:
 - `runtime`: seed, minute budget, day range.
@@ -107,7 +107,7 @@ This boundary allows optional benchmark backends without changing herbivore orch
 ## Output Contracts
 
 Current canonical output schema: `1.0.0`.
-See `docs/output_contract_v1.md`.
+See `docs/contracts/output_contract_v1.md`.
 
 Key requirements:
 - `RunID` on plant/herbivore outputs

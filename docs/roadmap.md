@@ -791,7 +791,7 @@ The plant model is cleanly encapsulated behind a backend interface, enabling:
 ### WP-0.5.8 — TTR.PGM optional benchmark harness + conditional tests
 **Outcome**  
 TTR.PGM is integrated as an optional benchmark/validation tool (not the default coupled backend), providing credibility checks in overlap cases.
-Read `docs/TTR_PGM.md` for details on the R package.
+Read `docs/reference/TTR_PGM.md` for details on the R package.
 
 **Scope**
 - In:

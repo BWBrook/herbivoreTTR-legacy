@@ -23,7 +23,7 @@ All canonical run bundles are written under:
 
 Each run folder contains:
 - `run_manifest.json` (schema version, run ID, package version, git SHA, seed, parameter hash)
-- schema-versioned CSV outputs documented in `docs/output_contract_v1.md`
+- schema-versioned CSV outputs documented in `docs/contracts/output_contract_v1.md`
 
 ## Release candidate pipeline
 

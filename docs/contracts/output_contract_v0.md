@@ -1,6 +1,6 @@
 # Output Contract v0 (`schema_version = 0.1.0`)
 
-Superseded by `docs/output_contract_v1.md` for new canonical runs.
+Superseded by `docs/contracts/output_contract_v1.md` for new canonical runs.
 v0 is retained as migration input only.
 
 This document defines the minimum stable output schema for canonical smoke runs.

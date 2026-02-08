@@ -4,7 +4,7 @@ This document defines the frozen public API for `herbivoreTTR` v1.0.
 
 Policy:
 - The exported function set is intentional and treated as stable.
-- Any breaking change follows `docs/deprecation_policy.md`.
+- Any breaking change follows `docs/governance/deprecation_policy.md`.
 
 ## Tier 1: Scenario-first entry points
 - `scenario_contract_version()`
