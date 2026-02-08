@@ -17,8 +17,68 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  changes:
+    name: Detect changed paths
+    runs-on: ubuntu-latest
+    outputs:
+      r_cmd_check: ${{ steps.filter.outputs.r_cmd_check }}
+      tests: ${{ steps.filter.outputs.tests }}
+      lint: ${{ steps.filter.outputs.lint }}
+      targets_smoke: ${{ steps.filter.outputs.targets_smoke }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Classify changed files
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            r_cmd_check:
+              - "DESCRIPTION"
+              - "NAMESPACE"
+              - "R/**"
+              - "man/**"
+              - "inst/**"
+              - "vignettes/**"
+              - "renv.lock"
+              - "Makefile"
+              - ".github/workflows/**"
+            tests:
+              - "DESCRIPTION"
+              - "NAMESPACE"
+              - "R/**"
+              - "tests/**"
+              - "inst/**"
+              - "vignettes/**"
+              - "renv.lock"
+              - "Makefile"
+              - ".github/workflows/**"
+            lint:
+              - "DESCRIPTION"
+              - "NAMESPACE"
+              - "R/**"
+              - "tests/**"
+              - "inst/**"
+              - "vignettes/**"
+              - "renv.lock"
+              - "Makefile"
+              - ".github/workflows/**"
+            targets_smoke:
+              - "_targets.R"
+              - "R/**"
+              - "scripts/**"
+              - "config/**"
+              - "profiles/**"
+              - "portal/**"
+              - "reports/**"
+              - "DESCRIPTION"
+              - "renv.lock"
+              - "Makefile"
+              - ".github/workflows/**"
+
   r-cmd-check:
     name: R CMD check (ubuntu-latest)
+    needs: changes
+    if: needs.changes.outputs.r_cmd_check == 'true'
     runs-on: ubuntu-latest
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
@@ -55,6 +115,8 @@ jobs:
 
   tests:
     name: Unit tests
+    needs: changes
+    if: needs.changes.outputs.tests == 'true'
     runs-on: ubuntu-latest
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
@@ -78,6 +140,8 @@ jobs:
 
   lint:
     name: Lint
+    needs: changes
+    if: needs.changes.outputs.lint == 'true'
     runs-on: ubuntu-latest
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
@@ -101,6 +165,8 @@ jobs:
 
   targets-smoke:
     name: Targets smoke (ci profile)
+    needs: changes
+    if: needs.changes.outputs.targets_smoke == 'true'
     runs-on: ubuntu-latest
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
