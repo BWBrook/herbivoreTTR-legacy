@@ -1,4 +1,4 @@
-.PHONY: setup run smoke test lint check render render-v2 clean test-battery release-bundle release-bundle-v2 repro-check repro-check-v2 rc-gates
+.PHONY: setup run smoke smoke-fast smoke-deep test lint check render render-v2 clean test-battery release-bundle release-bundle-v2 repro-check repro-check-v2 rc-gates
 
 ## Initialise the project: install packages via renv, set up pre-commit
 setup:
@@ -9,8 +9,16 @@ setup:
 run:
 	R -q -e "targets::tar_make()"
 
-## Run a smoke test pipeline (uses CI profile)
+## Run deep smoke pipeline (uses CI profile)
 smoke:
+	$(MAKE) smoke-deep
+
+## Run fast smoke subset of core canonical bundles
+smoke-fast:
+	TARGETS_PROFILE=ci R -q -e "targets::tar_make(names = c('canonical_bundle_files', 'cohort_bundle_files', 'implicit_bundle_files', 'day_in_life_bundle_files'), callr_function = NULL)"
+
+## Run full smoke pipeline (uses CI profile)
+smoke-deep:
 	TARGETS_PROFILE=ci R -q -e "targets::tar_make(callr_function = NULL)"
 
 ## Run unit tests

@@ -24,7 +24,8 @@ jobs:
       r_cmd_check: ${{ steps.filter.outputs.r_cmd_check }}
       tests: ${{ steps.filter.outputs.tests }}
       lint: ${{ steps.filter.outputs.lint }}
-      targets_smoke: ${{ steps.filter.outputs.targets_smoke }}
+      targets_smoke_fast: ${{ steps.filter.outputs.targets_smoke_fast }}
+      targets_smoke_deep: ${{ steps.filter.outputs.targets_smoke_deep }}
     steps:
       - uses: actions/checkout@v4
       - name: Classify changed files
@@ -62,14 +63,36 @@ jobs:
               - "renv.lock"
               - "Makefile"
               - ".github/workflows/**"
-            targets_smoke:
+            targets_smoke_fast:
               - "_targets.R"
               - "R/**"
               - "scripts/**"
               - "config/**"
               - "profiles/**"
               - "portal/**"
+              - "DESCRIPTION"
+              - "renv.lock"
+              - "Makefile"
+              - ".github/workflows/**"
+            targets_smoke_deep:
+              - "_targets.R"
+              - "scripts/**"
+              - "config/**"
+              - "profiles/**"
+              - "portal/**"
               - "reports/**"
+              - "R/paper_pipeline.R"
+              - "R/reference_experiments_v1.R"
+              - "R/reference_experiments_v2.R"
+              - "R/release_pipeline.R"
+              - "R/release_pipeline_v2.R"
+              - "R/report_manifest_v2.R"
+              - "R/claims_v1.R"
+              - "R/performance_budget.R"
+              - "R/scaling_profile_v1.R"
+              - "R/stability_suite_v1.R"
+              - "R/validation_metrics_v1.R"
+              - "R/parallel_execution_v1.R"
               - "DESCRIPTION"
               - "renv.lock"
               - "Makefile"
@@ -163,10 +186,33 @@ jobs:
       - name: Lint package
         run: make lint
 
+  targets-smoke-fast:
+    name: Targets smoke (fast)
+    needs: changes
+    if: needs.changes.outputs.targets_smoke_fast == 'true'
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      TARGETS_PROFILE: ci
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      - name: Install Linux system dependencies
+        run: sudo apt-get update && sudo apt-get install -y libglpk40
+
+      - uses: r-lib/actions/setup-renv@v2
+
+      - name: Smoke pipeline (fast)
+        run: make smoke-fast
+
   targets-smoke:
     name: Targets smoke (ci profile)
     needs: changes
-    if: needs.changes.outputs.targets_smoke == 'true'
+    if: needs.changes.outputs.targets_smoke_deep == 'true'
     runs-on: ubuntu-latest
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
@@ -187,7 +233,7 @@ jobs:
       - uses: r-lib/actions/setup-renv@v2
 
       - name: Smoke pipeline
-        run: make smoke
+        run: make smoke-deep
 
       - name: Upload smoke artefacts
         uses: actions/upload-artifact@v4
