@@ -21,6 +21,7 @@ jobs:
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       RENV_CONFIG_REPOS_OVERRIDE: https://cloud.r-project.org
+      NOT_CRAN: "false"
     steps:
       - uses: actions/checkout@v4
 
