@@ -27,19 +27,26 @@ assert_ttr_guardrails <- function(plants,
     )
   }
 
-  for (col in ttr_guardrail_pool_columns()) {
-    if (!col %in% names(plants)) {
-      abort_domain_sanity_violation(
-        component = paste0("ttr$", col),
-        reason = "required TTR pool column is missing",
-        day_of_simulation = day_of_simulation,
-        minute_of_day = 0L,
-        phase = phase
-      )
-    }
+  pool_cols <- ttr_guardrail_pool_columns()
+  multiplier_cols <- ttr_guardrail_multiplier_columns()
+  plant_names <- names(plants)
+  missing_cols <- pool_cols[!pool_cols %in% plant_names]
+  if (length(missing_cols) > 0L) {
+    col <- missing_cols[[1]]
+    abort_domain_sanity_violation(
+      component = paste0("ttr$", col),
+      reason = "required TTR pool column is missing",
+      day_of_simulation = day_of_simulation,
+      minute_of_day = 0L,
+      phase = phase
+    )
+  }
+
+  for (col in pool_cols) {
+    values <- plants[[col]]
 
     assert_domain_sanity_vector(
-      values = plants[[col]],
+      values = values,
       component = paste0("ttr$", col),
       day_of_simulation = day_of_simulation,
       minute_of_day = 0L,
@@ -47,9 +54,9 @@ assert_ttr_guardrails <- function(plants,
       tolerance = tol
     )
 
-    above_cap <- which(plants[[col]] > abs_cap)
-    if (length(above_cap)) {
-      idx <- above_cap[1]
+    above_cap <- as.integer(match(TRUE, values > abs_cap, nomatch = 0L))
+    if (above_cap > 0L) {
+      idx <- above_cap
       abort_domain_sanity_violation(
         component = paste0("ttr$", col),
         reason = sprintf(
@@ -60,13 +67,13 @@ assert_ttr_guardrails <- function(plants,
         minute_of_day = 0L,
         phase = phase,
         index = idx,
-        value = plants[[col]][[idx]]
+        value = values[[idx]]
       )
     }
   }
 
   if (is.data.frame(plants_previous) && nrow(plants_previous) == nrow(plants)) {
-    for (col in ttr_guardrail_multiplier_columns()) {
+    for (col in multiplier_cols) {
       prev <- plants_previous[[col]]
       cur <- plants[[col]]
       valid <- is.finite(prev) & is.finite(cur) & prev > tol
@@ -75,14 +82,15 @@ assert_ttr_guardrails <- function(plants,
       }
 
       ratio <- cur[valid] / prev[valid]
-      bad_local <- which(ratio > max_mult)
-      if (length(bad_local)) {
-        idx <- which(valid)[bad_local[1]]
+      bad_local <- as.integer(match(TRUE, ratio > max_mult, nomatch = 0L))
+      if (bad_local > 0L) {
+        valid_idx <- seq_along(valid)[valid]
+        idx <- valid_idx[[bad_local]]
         abort_domain_sanity_violation(
           component = paste0("ttr$", col),
           reason = sprintf(
             "daily multiplier exceeded stability cap (ratio=%s, cap=%s)",
-            format(ratio[[bad_local[1]]], scientific = TRUE),
+            format(ratio[[bad_local]], scientific = TRUE),
             format(max_mult, scientific = TRUE)
           ),
           day_of_simulation = day_of_simulation,
@@ -97,9 +105,9 @@ assert_ttr_guardrails <- function(plants,
 
   shoot <- pmax(plants$ms, tol)
   defence_fraction <- ifelse(shoot > tol, plants$bdef / shoot, 0)
-  bad_def_frac <- which(defence_fraction > max_def_frac + tol)
-  if (length(bad_def_frac)) {
-    idx <- bad_def_frac[1]
+  bad_def_frac <- as.integer(match(TRUE, defence_fraction > max_def_frac + tol, nomatch = 0L))
+  if (bad_def_frac > 0L) {
+    idx <- bad_def_frac
     abort_domain_sanity_violation(
       component = "ttr$bdef",
       reason = sprintf(
@@ -115,9 +123,9 @@ assert_ttr_guardrails <- function(plants,
     )
   }
 
-  mismatch_md <- which(abs(plants$md - plants$bdef) > tol)
-  if (length(mismatch_md)) {
-    idx <- mismatch_md[1]
+  mismatch_md <- as.integer(match(TRUE, abs(plants$md - plants$bdef) > tol, nomatch = 0L))
+  if (mismatch_md > 0L) {
+    idx <- mismatch_md
     abort_domain_sanity_violation(
       component = "ttr$md",
       reason = "defence mass mismatch: md must mirror bdef",
@@ -129,9 +137,9 @@ assert_ttr_guardrails <- function(plants,
     )
   }
 
-  bad_cd <- which(plants$cd - plants$cs > tol)
-  if (length(bad_cd)) {
-    idx <- bad_cd[1]
+  bad_cd <- as.integer(match(TRUE, plants$cd - plants$cs > tol, nomatch = 0L))
+  if (bad_cd > 0L) {
+    idx <- bad_cd
     abort_domain_sanity_violation(
       component = "ttr$cd",
       reason = "defence carbon exceeded shoot carbon pool",
@@ -143,9 +151,9 @@ assert_ttr_guardrails <- function(plants,
     )
   }
 
-  bad_nd <- which(plants$nd - plants$ns > tol)
-  if (length(bad_nd)) {
-    idx <- bad_nd[1]
+  bad_nd <- as.integer(match(TRUE, plants$nd - plants$ns > tol, nomatch = 0L))
+  if (bad_nd > 0L) {
+    idx <- bad_nd
     abort_domain_sanity_violation(
       component = "ttr$nd",
       reason = "defence nitrogen exceeded shoot nitrogen pool",

@@ -320,3 +320,23 @@ Full and fractional visits are executed deterministically; outputs are explicitl
 **Decision:** Portal report rendering sets `QUARTO_CACHE_DIR` to a run-specific cache under the run reports directory.  
 **Rationale:** Concurrent portal runs rendering the same template can collide in shared project cache paths, causing intermittent render failures.  
 **Implications:** Parallel portal invocations now isolate Quarto cache state and reduce spurious HTML render failures in multi-run workflows.
+
+## 2026-02-09 — Transport kernel optimization uses vector-state caching with equation parity (WP-3.3.1)
+**Decision:** `transport_resistance()` now mutates local numeric vectors and writes them back to the plant data frame once per call, instead of repeatedly mutating data-frame columns inside the per-plant loop. Small derivative helpers (`calc_dCs_dt`, `calc_dCr_dt`, `calc_dNs_dt`, `calc_dNr_dt`, `calc_dCd_dt`, `calc_dNd_dt`) now use direct scalar null checks instead of `sapply(..., is.null)`.
+**Rationale:** Profiling identified repeated data-frame subassignment and null-check helper overhead as dominant kernel costs. The chosen change reduces overhead while keeping equations and guardrails unchanged.
+**Implications:** Runtime throughput is improved for both serial and ensemble workloads, but behavior parity is mandatory and enforced via fixed-seed regression fixture tests and benchmark artefact comparison.
+
+## 2026-02-09 — Promote post-v2 performance backlog into roadmap_v3
+**Decision:** The post-v2 performance hardening seed queue is promoted into `docs/roadmap_v3.md` with strict-order WPs for kernel optimization, guardrail-cost reduction, updated break-even policy, and optional compiled-path evaluation behind feature flags.
+**Rationale:** `roadmap_v2` is complete, and remaining high-value work is performance-centric rather than baseline implementation. A dedicated roadmap isolates performance decisions and evidence requirements from completed v2 scope.
+**Implications:** Autonomous execution should now follow `roadmap_v3` when directed; milestone tracking shifts to `M3.3`/`M3.4` gates.
+
+## 2026-02-09 — Guardrail checks use first-hit scans with payload compatibility lock (WP-3.3.2)
+**Decision:** Domain-sanity and TTR guardrail checks now use first-hit matching (`match(..., nomatch = 0L)`) and precomputed required-column validation to reduce repeated vector scans/allocations. Violation payload semantics (class/component/reason/day/minute/phase) are treated as fixed contract and regression-tested.
+**Rationale:** Profiling identified guardrail helpers as hot-path overhead in daily kernels. The optimization target was overhead reduction without weakening safety or altering failure interpretability.
+**Implications:** Guardrail benchmark/profile artefacts are now tracked under `artefacts/benchmarks/guardrail_cost_reduction_v1/`, and compatibility tests must remain green whenever guardrail internals are refactored.
+
+## 2026-02-09 — Scaling re-baseline v2 and conservative CI performance sentinel (WP-3.3.3)
+**Decision:** Performance policy is refreshed using `post_v1_scaling_v2` artefacts, with break-even recommendations recorded from the updated kernel/guardrail stack. A conservative CI sentinel test now checks for severe transport-kernel regressions (`test_performance_sentinel_v3.R`) without enforcing fragile micro-timing.
+**Rationale:** After kernel and guardrail optimization, previous break-even summaries were stale. A lightweight but meaningful sentinel is needed to catch major regressions while avoiding CI flakiness.
+**Implications:** Parallel defaults remain non-blocking and hardware-aware, with benchmark evidence guiding tuning. Sentinel threshold adjustments require updated artefacts and explicit rationale in decisions/logs.

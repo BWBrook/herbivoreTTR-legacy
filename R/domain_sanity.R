@@ -44,9 +44,9 @@ assert_domain_sanity_vector <- function(values,
                                         minute_of_day,
                                         phase,
                                         tolerance = CONSTANTS$TOLERANCE) {
-  non_finite_idx <- which(!is.finite(values))
-  if (length(non_finite_idx)) {
-    idx <- non_finite_idx[1]
+  non_finite_idx <- as.integer(match(FALSE, is.finite(values), nomatch = 0L))
+  if (non_finite_idx > 0L) {
+    idx <- non_finite_idx
     abort_domain_sanity_violation(
       component = component,
       reason = "encountered non-finite value",
@@ -58,9 +58,9 @@ assert_domain_sanity_vector <- function(values,
     )
   }
 
-  below_idx <- which(values < -tolerance)
-  if (length(below_idx)) {
-    idx <- below_idx[1]
+  below_idx <- as.integer(match(TRUE, values < -tolerance, nomatch = 0L))
+  if (below_idx > 0L) {
+    idx <- below_idx
     abort_domain_sanity_violation(
       component = component,
       reason = sprintf("value dropped below tolerance (tol=%s)", format(tolerance, scientific = TRUE)),
@@ -124,25 +124,34 @@ assert_domain_sanity_state <- function(plants,
       )
     }
 
-    for (col in domain_sanity_required_plant_columns()) {
-      if (!col %in% names(plants)) {
-        abort_domain_sanity_violation(
-          component = paste0("plants$", col),
-          reason = "required plant column is missing",
-          day_of_simulation = day_of_simulation,
-          minute_of_day = minute_of_day,
-          phase = phase
-        )
-      }
-      if (!is.numeric(plants[[col]])) {
-        abort_domain_sanity_violation(
-          component = paste0("plants$", col),
-          reason = "plant column is not numeric",
-          day_of_simulation = day_of_simulation,
-          minute_of_day = minute_of_day,
-          phase = phase
-        )
-      }
+    required_cols <- domain_sanity_required_plant_columns()
+    plant_names <- names(plants)
+
+    missing_cols <- required_cols[!required_cols %in% plant_names]
+    if (length(missing_cols) > 0L) {
+      col <- missing_cols[[1]]
+      abort_domain_sanity_violation(
+        component = paste0("plants$", col),
+        reason = "required plant column is missing",
+        day_of_simulation = day_of_simulation,
+        minute_of_day = minute_of_day,
+        phase = phase
+      )
+    }
+
+    non_numeric <- required_cols[!vapply(plants[required_cols], is.numeric, logical(1))]
+    if (length(non_numeric) > 0L) {
+      col <- non_numeric[[1]]
+      abort_domain_sanity_violation(
+        component = paste0("plants$", col),
+        reason = "plant column is not numeric",
+        day_of_simulation = day_of_simulation,
+        minute_of_day = minute_of_day,
+        phase = phase
+      )
+    }
+
+    for (col in required_cols) {
       assert_domain_sanity_vector(
         values = plants[[col]],
         component = paste0("plants$", col),

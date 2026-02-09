@@ -218,3 +218,27 @@ test_that("domain sanity: state helper validates error branches", {
     )
   )
 })
+
+test_that("domain sanity failure payload stays stable for missing required column", {
+  sim <- init_simulation(temp_mode = "flat", veg_types = c(0, 1, 2), herbivore_mass = 5e5)
+  plants <- sim$plants
+  plants$ms <- NULL
+  herb <- calc_foraging_traits(reset_daily_variables(sim$herbivore))
+
+  cnd <- rlang::catch_cnd(
+    assert_domain_sanity_state(
+      plants = plants,
+      herbivore = herb,
+      day_of_simulation = 5L,
+      minute_of_day = 11L,
+      phase = "payload_test"
+    )
+  )
+
+  expect_s3_class(cnd, "herbivoreTTR_domain_sanity_violation")
+  expect_identical(cnd$component, "plants$ms")
+  expect_identical(cnd$reason, "required plant column is missing")
+  expect_identical(cnd$day, 5L)
+  expect_identical(cnd$minute, 11L)
+  expect_identical(cnd$phase, "payload_test")
+})

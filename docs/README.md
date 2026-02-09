@@ -7,6 +7,7 @@ This directory is organized to keep high-signal project control docs at the top 
 - `docs/product_brief.md`
 - `docs/roadmap.md`
 - `docs/roadmap_v2.md`
+- `docs/roadmap_v3.md`
 - `docs/architecture.md`
 - `docs/decisions.md`
 - `docs/workflow.md`

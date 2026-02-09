@@ -62,3 +62,25 @@ test_that("TTR guardrails fail fast on runaway daily multiplier", {
     class = "herbivoreTTR_domain_sanity_violation"
   )
 })
+
+test_that("TTR guardrail payload is stable for absolute pool cap violations", {
+  plants_prev <- init_plants(veg_types = c(0))
+  plants_prev <- plants_prev[1, , drop = FALSE]
+  plants_bad <- plants_prev
+  plants_bad$ms[1] <- CONSTANTS$TTR_MAX_POOL_ABS + 1
+
+  cnd <- rlang::catch_cnd(
+    assert_ttr_guardrails(
+      plants = plants_bad,
+      plants_previous = plants_prev,
+      day_of_simulation = 9L,
+      phase = "payload_test"
+    )
+  )
+
+  expect_s3_class(cnd, "herbivoreTTR_domain_sanity_violation")
+  expect_identical(cnd$component, "ttr$ms")
+  expect_match(cnd$reason, "pool exceeded absolute stability cap")
+  expect_identical(cnd$day, 9L)
+  expect_identical(cnd$phase, "payload_test")
+})

@@ -6,7 +6,7 @@
 #' @note Output used by orchestrator to update `ns`.
 calc_dNs_dt <- function(plant_row, FRACTION_N) {
   tauN <- plant_row$tauN; Gs <- plant_row$gs
-  if (any(sapply(list(tauN, Gs), is.null))) return(NA_real_)
+  if (is.null(tauN) || is.null(Gs)) return(NA_real_)
   val <- tauN - FRACTION_N * Gs
   if (!is.finite(val)) 0 else val
 }
