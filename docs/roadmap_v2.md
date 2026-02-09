@@ -165,6 +165,13 @@ Failure semantics:
 - [x] **WP-3.1.7 - Ecologist docs and vignette workflow updates**
 - [x] **WP-3.1.8 - Validation gates, artefact interpretation log, and queue closure**
 
+### Line 3.2.x - Audit-driven runtime and portal hardening
+- [x] **WP-A1 - Kernel diagnostics capture overhead hardening**
+- [x] **WP-A2 - Sensitivity plotting correctness (parameter-isolated effect views + baseline deltas)**
+- [x] **WP-A3 - Demo usability track (balanced/stress templates + ecological acceptance reporting)**
+- [x] **WP-A4 - Runtime side-effect cleanup (no global `%>%` mutation)**
+- [x] **WP-A5 - CI confidence recovery (nightly verification + CI-health log section)**
+
 ---
 
 ## 5) Milestone gates (commit and progress control)
@@ -178,6 +185,7 @@ Milestones are line-level completion points:
 - **Milestone M2.5:** all `WP-2.5.x` complete
 - **Milestone M2.6:** all `WP-2.6.x` complete
 - **Milestone M3.1:** all `WP-3.1.x` complete
+- **Milestone M3.2:** all `WP-A1` to `WP-A5` complete
 
 At each milestone:
 

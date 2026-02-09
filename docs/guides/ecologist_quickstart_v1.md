@@ -9,6 +9,8 @@ Templates are in:
 
 Start with:
 - `single_scenario_template.yaml` for one scenario run.
+- `balanced_demo_template.yaml` for a short-horizon lower-stress demo.
+- `stress_demo_template.yaml` for an explicit high-stress contrast demo.
 - `sensitivity_template.yaml` for sensitivity analysis.
 
 ## 2. Edit the YAML only
@@ -54,6 +56,8 @@ Outputs are written to:
 Key files:
 - `run_index.csv` (all runs and IDs)
 - `tables/*.csv` (summaries and sanity checks)
+- `tables/ecological_acceptance_summary.csv` or
+  `tables/sensitivity_ecological_acceptance_summary.csv` (interpretation checks)
 - `figures/*.png` (time, spatial, and comparison plots)
 - `reports/*.html` (run report)
 - `manifests/portal_run_manifest.json` (provenance)
@@ -75,6 +79,11 @@ Use the GUI to edit/save YAML and trigger the same backend run functions.
   - use dot paths from scenario structure, e.g. `runtime.days`
 - Missing report output:
   - Quarto may be missing from PATH; check `reports/report_render_notes.md`
+- Interpreting demo profile checks:
+  - `outputs.acceptance_profile: balanced_demo` expects moderate body condition
+    and less severe energy deficits over short runs.
+  - `outputs.acceptance_profile: stress_demo` expects strong stress signals and
+    severe energy deficits as an intentional contrast.
 - Slow large sensitivity runs:
   - reduce values in `sensitivity.parameters`
   - set `execution.parallel.execution_mode` to `multicore` on local workstation

@@ -300,3 +300,23 @@ Full and fractional visits are executed deterministically; outputs are explicitl
 **Decision:** Portal report rendering always targets requested formats explicitly and defaults to HTML-only unless PDF is requested. PDF rendering is treated as optional and non-failing, with outcomes logged to `reports/report_render_notes.md`.  
 **Rationale:** Requiring PDF toolchains for all users creates avoidable platform friction for non-coder workflows. HTML provides a robust baseline output for local inspection and sharing.  
 **Implications:** CI and local validation should treat HTML report generation as the required report artefact. Missing PDF output is informational unless explicitly configured as a project-level requirement.
+
+## 2026-02-09 — Minute-level kernel records are diagnostics-only (WP-A1)
+**Decision:** `run_daily_herbivore_simulation()` now allocates and fills `daily_record` only when `capture_diagnostics = TRUE`. Default runs return `daily_record = NULL`.  
+**Rationale:** Building minute-by-minute records in every run added avoidable overhead in CPU-bound workloads and inflated memory pressure during ensembles/sensitivity orchestration.  
+**Implications:** Workflows that require hourly/minute forensics must request diagnostics explicitly. Core ecological state outputs (`herbivore`, `plants`, `daily_summary`) remain unchanged for fixed seeds.
+
+## 2026-02-09 — Sensitivity effect reporting is parameter-isolated and baseline-centered (WP-A2)
+**Decision:** Sensitivity endpoint tables now include deterministic design metadata and baseline-centered deltas (`delta_final_total_shoot_biomass_kg`, `delta_mean_daily_dmi`). Effect figures are generated per parameter path, avoiding mixed-parameter x-axes.  
+**Rationale:** Combining heterogeneous parameter values on a single x-axis is visually convenient but ecologically misleading. Parameter-isolated views preserve interpretability for non-coder users.  
+**Implications:** Portal sensitivity artefacts now include additional effect panels (for example `sensitivity_effects_runtime_days.png`) and delta columns in `sensitivity_endpoint_summary.csv`.
+
+## 2026-02-09 — Demo templates use explicit ecological acceptance profiles (WP-A3)
+**Decision:** Portal output contract adds `outputs.acceptance_profile` with supported values `standard`, `balanced_demo`, and `stress_demo`. Runs write acceptance tables (`ecological_acceptance_summary.csv` / `sensitivity_ecological_acceptance_summary.csv`) as reporting checks, not hard execution gates.  
+**Rationale:** Non-coder ecological users need lightweight, explicit interpretation guardrails to distinguish expected stress-contrast runs from lower-pressure demonstrations.  
+**Implications:** New templates (`balanced_demo_template.yaml`, `stress_demo_template.yaml`) and report sections expose profile-specific checks while preserving deterministic run behavior.
+
+## 2026-02-09 — Portal Quarto render cache is run-scoped for concurrency safety (WP-A5 hardening)
+**Decision:** Portal report rendering sets `QUARTO_CACHE_DIR` to a run-specific cache under the run reports directory.  
+**Rationale:** Concurrent portal runs rendering the same template can collide in shared project cache paths, causing intermittent render failures.  
+**Implications:** Parallel portal invocations now isolate Quarto cache state and reduce spurious HTML render failures in multi-run workflows.

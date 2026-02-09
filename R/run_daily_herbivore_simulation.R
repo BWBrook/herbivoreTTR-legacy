@@ -117,8 +117,8 @@ run_daily_herbivore_simulation <- function(herbivore, plants, conditions,
   # 3) Optionally store daily water requirement if you want
   herbivore$daily_water_requirement <- calc_water_requirement(herbivore$mass)
 
-  # 4) Prepare a container for minute-by-minute records (if desired)
-  daily_record <- vector("list", minute_limit)
+  # 4) Prepare minute-by-minute records only when diagnostics are requested.
+  daily_record <- if (isTRUE(capture_diagnostics)) vector("list", minute_limit) else NULL
 
   # Determine if herbivory is active (post spin-up and not disabled)
   spin_up_days <- CONSTANTS$SPIN_UP_LENGTH * nrow(conditions)
@@ -152,22 +152,24 @@ run_daily_herbivore_simulation <- function(herbivore, plants, conditions,
     )
 
     # (d) Optionally record data for debugging
-    daily_record[[minute]] <- list(
-      minute              = minute,
-      xcor                = herbivore$xcor,
-      ycor                = herbivore$ycor,
-      gut_content         = herbivore$gut_content,
-      selected_plant_id   = herbivore$selected_plant_id,
-      behaviour           = herbivore$behaviour,
-      energy_balance      = herbivore$energy_balance,
-      water_balance       = herbivore$water_balance,
-      distance_moved      = herbivore$distance_moved,
-      intake_total_day    = herbivore$intake_total_day,
-      intake_pe_day       = herbivore$intake_PE_day,
-      intake_npe_day      = herbivore$intake_NPE_day,
-      intake_water_forage = herbivore$intake_water_forage,
-      intake_water_drink  = herbivore$intake_water_drinking
-    )
+    if (isTRUE(capture_diagnostics)) {
+      daily_record[[minute]] <- list(
+        minute              = minute,
+        xcor                = herbivore$xcor,
+        ycor                = herbivore$ycor,
+        gut_content         = herbivore$gut_content,
+        selected_plant_id   = herbivore$selected_plant_id,
+        behaviour           = herbivore$behaviour,
+        energy_balance      = herbivore$energy_balance,
+        water_balance       = herbivore$water_balance,
+        distance_moved      = herbivore$distance_moved,
+        intake_total_day    = herbivore$intake_total_day,
+        intake_pe_day       = herbivore$intake_PE_day,
+        intake_npe_day      = herbivore$intake_NPE_day,
+        intake_water_forage = herbivore$intake_water_forage,
+        intake_water_drink  = herbivore$intake_water_drinking
+      )
+    }
   } # end herbivory loop
 
   plants <- backend$apply_herbivory(plants)

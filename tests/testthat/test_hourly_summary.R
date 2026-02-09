@@ -7,7 +7,8 @@ test_that("summarise_hourly_herbivore_record aggregates minute data", {
     plants = sim$plants,
     conditions = sim$conditions,
     day_of_simulation = start_day,
-    minute_limit = 120L
+    minute_limit = 120L,
+    capture_diagnostics = TRUE
   )
 
   hourly <- summarise_hourly_herbivore_record(
@@ -51,7 +52,8 @@ test_that("write_hourly_herbivore_log writes csv and validates input", {
     plants = sim$plants,
     conditions = sim$conditions,
     day_of_simulation = start_day,
-    minute_limit = 60L
+    minute_limit = 60L,
+    capture_diagnostics = TRUE
   )
 
   out_dir <- file.path(tempdir(), "hourly-write-test", as.character(Sys.getpid()))

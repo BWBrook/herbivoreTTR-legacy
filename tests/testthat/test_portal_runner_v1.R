@@ -27,7 +27,8 @@ build_portal_test_plan_v1 <- function(mode,
     plan$sensitivity$design <- "one_at_a_time"
     plan$sensitivity$keep_baseline <- TRUE
     plan$sensitivity$parameters <- list(
-      list(path = "runtime.days", values = c(2, 3))
+      list(path = "runtime.days", values = c(2, 3)),
+      list(path = "runtime.forage_access_scale", values = c(0.7, 1.0))
     )
   } else {
     plan$sensitivity$enabled <- FALSE
@@ -59,6 +60,7 @@ test_that("single portal run writes expected tables, figures, and manifest", {
   expect_true(file.exists(out$daily_path))
   expect_true(file.exists(out$endpoint_path))
   expect_true(file.exists(out$sanity_path))
+  expect_true(file.exists(out$acceptance_path))
   expect_true(file.exists(out$manifest_path))
 
   expect_true(length(out$figure_paths) >= 2L)
@@ -70,6 +72,11 @@ test_that("single portal run writes expected tables, figures, and manifest", {
   expect_equal(sanity$structure_non_finite_count, 0)
   expect_equal(sanity$negative_biomass_violations, 0)
   expect_equal(sanity$gut_capacity_violations, 0)
+
+  acceptance <- utils::read.csv(out$acceptance_path, stringsAsFactors = FALSE)
+  expect_equal(nrow(acceptance), 4L)
+  expect_true(all(acceptance$acceptance_profile == "standard"))
+  expect_true(all(acceptance$pass))
 })
 
 test_that("sensitivity portal run writes deterministic design and endpoint bundles", {
@@ -83,19 +90,57 @@ test_that("sensitivity portal run writes deterministic design and endpoint bundl
   expect_true(file.exists(out$design_path))
   expect_true(file.exists(out$endpoint_path))
   expect_true(file.exists(out$sanity_path))
+  expect_true(file.exists(out$acceptance_path))
   expect_true(file.exists(out$manifest_path))
 
   design <- utils::read.csv(out$design_path, stringsAsFactors = FALSE)
   expect_true("baseline" %in% design$run_label)
-  expect_equal(nrow(design), 3L)
+  expect_equal(nrow(design), 5L)
 
   run_index <- utils::read.csv(out$run_index_path, stringsAsFactors = FALSE)
-  expect_equal(nrow(run_index), 3L)
+  expect_equal(nrow(run_index), 5L)
   expect_identical(run_index$run_index, as.integer(seq_len(nrow(run_index))))
+
+  endpoint <- utils::read.csv(out$endpoint_path, stringsAsFactors = FALSE)
+  expect_true(all(c(
+    "parameter_path",
+    "parameter_value",
+    "delta_final_total_shoot_biomass_kg",
+    "delta_mean_daily_dmi"
+  ) %in% names(endpoint)))
+  baseline_row <- endpoint[endpoint$run_label == "baseline", , drop = FALSE]
+  expect_equal(nrow(baseline_row), 1L)
+  expect_equal(baseline_row$delta_final_total_shoot_biomass_kg, 0)
+  expect_equal(baseline_row$delta_mean_daily_dmi, 0)
 
   sanity <- utils::read.csv(out$sanity_path, stringsAsFactors = FALSE)
   expect_true(all(sanity$herbivore_non_finite_count == 0))
   expect_true(all(sanity$structure_non_finite_count == 0))
+  acceptance <- utils::read.csv(out$acceptance_path, stringsAsFactors = FALSE)
+  expect_equal(nrow(acceptance), nrow(run_index) * 4L)
+  expect_true(all(acceptance$acceptance_profile == "standard"))
+  expect_true(all(acceptance$pass))
+
+  expect_true(any(grepl("sensitivity_effects_runtime_days", basename(unname(out$figure_paths)))))
+  expect_true(any(grepl("sensitivity_effects_runtime_forage_access_scale", basename(unname(out$figure_paths)))))
+})
+
+test_that("acceptance profiles add demo-specific ecological checks", {
+  base_dir <- tempfile("portal_runner_acceptance_")
+  dir.create(base_dir, recursive = TRUE, showWarnings = FALSE)
+  plan <- build_portal_test_plan_v1(mode = "single", base_dir = base_dir)
+  out <- run_portal_plan_v1(plan = plan)
+  run_result <- out$run_results[[1]]
+
+  balanced <- portal_acceptance_rows_for_run_v1(run_result, acceptance_profile = "balanced_demo")
+  stress <- portal_acceptance_rows_for_run_v1(run_result, acceptance_profile = "stress_demo")
+
+  expect_true("final_body_condition_at_least_0_5" %in% balanced$check_id)
+  expect_true("final_mean_energy_balance_at_least_minus_1e5" %in% balanced$check_id)
+  expect_true("stress_fraction_at_most_1_0" %in% balanced$check_id)
+  expect_true("final_body_condition_at_most_0_05" %in% stress$check_id)
+  expect_true("final_mean_energy_balance_at_most_minus_2e5" %in% stress$check_id)
+  expect_true("stress_fraction_at_least_0_9" %in% stress$check_id)
 })
 
 test_that("HTML-only portal report rendering does not require PDF output", {

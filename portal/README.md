@@ -24,9 +24,17 @@ Run artefacts are written to:
 Key outputs:
 - `run_index.csv`
 - `tables/*.csv`
+- `tables/ecological_acceptance_summary.csv` (single mode) or
+  `tables/sensitivity_ecological_acceptance_summary.csv` (sensitivity mode)
 - `figures/*.png`
 - `reports/*.html` (and optional PDF)
 - `manifests/portal_run_manifest.json`
+
+Template set:
+- `single_scenario_template.yaml` for generic single runs
+- `balanced_demo_template.yaml` for short-horizon lower-stress demonstrations
+- `stress_demo_template.yaml` for expected high-stress contrast demonstrations
+- `sensitivity_template.yaml` for one-at-a-time sensitivity runs
 
 ## Optional GUI stub
 

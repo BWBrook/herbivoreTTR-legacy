@@ -35,6 +35,7 @@ portal_plan_default_v1 <- function() {
     outputs = list(
       render_report = TRUE,
       report_formats = c("html"),
+      acceptance_profile = "standard",
       include_interactive = TRUE
     )
   )
@@ -680,6 +681,17 @@ validate_portal_plan_v1 <- function(plan) {
   }
   plan$outputs$render_report <- portal_parse_logical_scalar_v1(plan$outputs$render_report, TRUE, "outputs.render_report")
   plan$outputs$include_interactive <- portal_parse_logical_scalar_v1(plan$outputs$include_interactive, TRUE, "outputs.include_interactive")
+  acceptance_profile <- portal_parse_character_scalar_v1(plan$outputs$acceptance_profile, "outputs.acceptance_profile")
+  allowed_acceptance <- c("standard", "balanced_demo", "stress_demo")
+  if (!acceptance_profile %in% allowed_acceptance) {
+    portal_abort_v1(
+      "Field `outputs.acceptance_profile` contains unsupported value.",
+      class = "herbivoreTTR_portal_plan_invalid",
+      acceptance_profile = acceptance_profile,
+      allowed = allowed_acceptance
+    )
+  }
+  plan$outputs$acceptance_profile <- acceptance_profile
 
   formats <- plan$outputs$report_formats
   if (is.null(formats) || length(formats) < 1L) {

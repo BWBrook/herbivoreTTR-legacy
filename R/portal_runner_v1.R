@@ -124,6 +124,11 @@ render_portal_report_v1 <- function(run_dir,
   old_env <- Sys.getenv("HERBIVORE_PORTAL_RUN_DIR", unset = "")
   Sys.setenv(HERBIVORE_PORTAL_RUN_DIR = normalizePath(run_dir, winslash = "/", mustWork = TRUE))
   on.exit(Sys.setenv(HERBIVORE_PORTAL_RUN_DIR = old_env), add = TRUE)
+  cache_dir <- file.path(reports_dir, ".quarto_cache")
+  dir.create(cache_dir, recursive = TRUE, showWarnings = FALSE)
+  old_cache_env <- Sys.getenv("QUARTO_CACHE_DIR", unset = "")
+  Sys.setenv(QUARTO_CACHE_DIR = normalizePath(cache_dir, winslash = "/", mustWork = TRUE))
+  on.exit(Sys.setenv(QUARTO_CACHE_DIR = old_cache_env), add = TRUE)
 
   html_path <- NA_character_
   pdf_path <- NA_character_
@@ -294,6 +299,11 @@ run_portal_sensitivity_v1 <- function(plan,
   endpoint_all <- do.call(rbind, lapply(results, `[[`, "endpoint_summary"))
   endpoint_all <- endpoint_all[order(match(endpoint_all$run_label, run_index$run_label)), , drop = FALSE]
   rownames(endpoint_all) <- NULL
+  endpoint_all <- portal_join_endpoint_design_v1(
+    endpoint_summary = endpoint_all,
+    design_table = design$design_table
+  )
+  endpoint_all <- portal_add_sensitivity_deltas_v1(endpoint_all)
 
   sanity_all <- do.call(rbind, lapply(results, `[[`, "sanity_summary"))
   sanity_all <- sanity_all[order(match(sanity_all$run_label, run_index$run_label)), , drop = FALSE]
@@ -426,6 +436,18 @@ run_portal_plan_v1 <- function(plan,
     )
   }
 
+  acceptance_summary <- portal_build_acceptance_summary_v1(
+    run_results = result$run_results,
+    acceptance_profile = validated$outputs$acceptance_profile
+  )
+  acceptance_file <- if (identical(result$mode, "sensitivity")) {
+    "sensitivity_ecological_acceptance_summary.csv"
+  } else {
+    "ecological_acceptance_summary.csv"
+  }
+  acceptance_path <- file.path(result$dirs$tables, acceptance_file)
+  utils::write.csv(acceptance_summary, acceptance_path, row.names = FALSE)
+
   report <- list(html_path = NA_character_, pdf_path = NA_character_, note_path = NA_character_)
   if (isTRUE(validated$outputs$render_report)) {
     report <- render_portal_report_v1(
@@ -456,6 +478,9 @@ run_portal_plan_v1 <- function(plan,
   if (!is.null(result$sanity_path) && file.exists(result$sanity_path)) {
     output_files <- c(output_files, domain_sanity = portal_relativize_path_v1(result$sanity_path))
   }
+  if (file.exists(acceptance_path)) {
+    output_files <- c(output_files, ecological_acceptance = portal_relativize_path_v1(acceptance_path))
+  }
 
   if (!is.null(result$figure_paths) && length(result$figure_paths) > 0L) {
     output_files <- c(output_files, vapply(result$figure_paths, portal_relativize_path_v1, character(1L)))
@@ -478,7 +503,8 @@ run_portal_plan_v1 <- function(plan,
       plan_id = validated$plan_id,
       mode = result$mode,
       render_report = validated$outputs$render_report,
-      report_formats = validated$outputs$report_formats
+      report_formats = validated$outputs$report_formats,
+      acceptance_profile = validated$outputs$acceptance_profile
     ),
     output_files = output_files
   )
@@ -489,5 +515,7 @@ run_portal_plan_v1 <- function(plan,
   result$report <- report
   result$interactive_note_path <- interactive_note
   result$manifest_path <- manifest_path
+  result$acceptance_summary <- acceptance_summary
+  result$acceptance_path <- acceptance_path
   result
 }

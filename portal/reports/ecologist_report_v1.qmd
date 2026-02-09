@@ -32,6 +32,8 @@ domain_sanity <- read_safe(file.path(run_dir, "tables", "domain_sanity_summary.c
 sens_design <- read_safe(file.path(run_dir, "tables", "sensitivity_design.csv"))
 sens_endpoint <- read_safe(file.path(run_dir, "tables", "sensitivity_endpoint_summary.csv"))
 sens_sanity <- read_safe(file.path(run_dir, "tables", "sensitivity_domain_sanity_summary.csv"))
+acceptance_single <- read_safe(file.path(run_dir, "tables", "ecological_acceptance_summary.csv"))
+acceptance_sens <- read_safe(file.path(run_dir, "tables", "sensitivity_ecological_acceptance_summary.csv"))
 
 figure_files <- list.files(file.path(run_dir, "figures"), pattern = "[.]png$", full.names = TRUE)
 ```
@@ -90,6 +92,18 @@ if (!is.null(sens_endpoint)) {
 ```{r}
 if (!is.null(sens_sanity)) {
   knitr::kable(sens_sanity, digits = 3, caption = "Sensitivity domain sanity summary")
+}
+```
+
+## Ecological Acceptance Checks
+
+```{r}
+if (!is.null(acceptance_single)) {
+  knitr::kable(acceptance_single, digits = 3, caption = "Single-run ecological acceptance checks")
+} else if (!is.null(acceptance_sens)) {
+  knitr::kable(acceptance_sens, digits = 3, caption = "Sensitivity ecological acceptance checks")
+} else {
+  cat("No ecological acceptance table was found for this run.")
 }
 ```
 

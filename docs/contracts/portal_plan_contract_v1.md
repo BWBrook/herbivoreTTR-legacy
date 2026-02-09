@@ -81,11 +81,14 @@ Rules:
 Fields:
 - `outputs.render_report` (logical)
 - `outputs.report_formats` subset of `{html, pdf}`
+- `outputs.acceptance_profile` in `{standard, balanced_demo, stress_demo}`
 - `outputs.include_interactive` (logical)
 
 Notes:
 - HTML report render is the default.
 - PDF render is best-effort and depends on local Quarto/PDF toolchain.
+- `acceptance_profile` controls which ecological acceptance checks are reported
+  in run tables (reporting-only; it does not hard-fail runs).
 
 ## Artefact layout
 
@@ -104,6 +107,8 @@ Standard index/manifest files:
 - `manifests/portal_run_manifest.json`
 - `manifests/plan_input.yaml` (if run from file)
 - `manifests/plan_resolved.yaml`
+- `tables/ecological_acceptance_summary.csv` (single mode) or
+  `tables/sensitivity_ecological_acceptance_summary.csv` (sensitivity mode)
 
 ## Error semantics
 

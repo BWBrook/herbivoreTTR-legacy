@@ -33,4 +33,5 @@ sensitivity:
 outputs:
   render_report: true
   report_formats: ["html"]
+  acceptance_profile: "standard"
   include_interactive: true

@@ -27,10 +27,6 @@ run_herbivore_days <- function(days = 3L,
 
   with_optional_seed(seed, {
 
-  if (!exists("%>%", inherits = TRUE) && requireNamespace("magrittr", quietly = TRUE)) {
-    `%>%` <<- magrittr::`%>%`
-  }
-
   if (!is.numeric(days) || length(days) != 1L || is.na(days) || days < 1) {
     rlang::abort(
       "Argument `days` must be a positive scalar integer.",

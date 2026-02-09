@@ -1,0 +1,36 @@
+schema_version: "1.0.0"
+plan_id: "stress_demo_canonical"
+description: "Deliberate high-stress contrast run for ecological sensitivity interpretation."
+
+execution:
+  mode: "single"
+  base_dir: "artefacts/portal_runs"
+  dry_run: false
+  write_outputs: true
+  parallel:
+    execution_mode: "auto"
+    workers: null
+    reserve_cores: 1
+
+scenario:
+  source: "reference"
+  reference: "canonical_smoke_v1"
+  overrides:
+    runtime:
+      days: 14
+      minute_limit: 120
+      forage_access_scale: 0.8
+    climate:
+      mode: "flat"
+
+sensitivity:
+  enabled: false
+  design: "one_at_a_time"
+  keep_baseline: true
+  parameters: []
+
+outputs:
+  render_report: true
+  report_formats: ["html"]
+  acceptance_profile: "stress_demo"
+  include_interactive: true
