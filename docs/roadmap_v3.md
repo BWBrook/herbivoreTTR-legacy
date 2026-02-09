@@ -67,9 +67,9 @@ A WP is done only when all are true:
 - [x] **WP-3.3.3 - Post-optimization break-even re-baseline + CI perf sentinel**
 
 ### Line 3.4.x - Optional compiled acceleration (feature-flagged)
-- [ ] **WP-3.4.1 - Candidate kernel selection + parity harness for compiled path**
-- [ ] **WP-3.4.2 - Rcpp prototype (opt-in) with strict output parity checks**
-- [ ] **WP-3.4.3 - Hardware-tier defaults + ecologist-facing runtime guidance**
+- [x] **WP-3.4.1 - Candidate kernel selection + parity harness for compiled path**
+- [x] **WP-3.4.2 - Rcpp prototype (opt-in) with strict output parity checks**
+- [x] **WP-3.4.3 - Hardware-tier defaults + ecologist-facing runtime guidance**
 
 ---
 
@@ -181,6 +181,10 @@ At each milestone:
 - Candidate list ranked by hotspot share and implementation risk.
 - Parity harness design documented and tested for at least one candidate.
 
+**Completion notes (2026-02-09)**
+- Implemented and validated.
+- Candidate-ranking artefacts written under `artefacts/benchmarks/compiled_candidate_selection_v1/` with hotspot/risk ranking and parity harness outputs.
+
 ---
 
 ### WP-3.4.2 - Rcpp prototype (opt-in) with strict output parity checks
@@ -193,6 +197,11 @@ At each milestone:
 - Output parity checks pass on fixed-seed scenarios.
 - Fallback to pure R works automatically if compiled path unavailable.
 
+**Completion notes (2026-02-09)**
+- Implemented and validated.
+- Optional compiled resistance kernel is enabled via `HERBIVORETTR_USE_COMPILED_TTR=1` or option `herbivoreTTR.use_compiled_ttr=TRUE`, with automatic fallback and warning when unavailable.
+- Fixed-seed scenario parity artefacts written under `artefacts/benchmarks/compiled_scenario_parity_v1/`.
+
 ---
 
 ### WP-3.4.3 - Hardware-tier defaults + ecologist-facing runtime guidance
@@ -203,6 +212,11 @@ At each milestone:
 **Acceptance criteria**
 - Documented recommended worker settings by tier.
 - Portal docs include runtime guidance and trade-off explanations.
+
+**Completion notes (2026-02-09)**
+- Implemented and validated.
+- Hardware-tier default helpers now map `laptop/workstation/server` to conservative worker caps and reserve-core defaults.
+- Portal schema/docs/templates now include `execution.parallel.hardware_tier` guidance and explicit trade-off notes.
 
 ---
 

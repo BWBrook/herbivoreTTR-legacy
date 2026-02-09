@@ -16,6 +16,7 @@ portal_plan_default_v1 <- function() {
       write_outputs = TRUE,
       parallel = list(
         execution_mode = "auto",
+        hardware_tier = "auto",
         workers = NULL,
         reserve_cores = 1L
       )
@@ -590,6 +591,13 @@ validate_portal_plan_v1 <- function(plan) {
   plan$execution$parallel$execution_mode <- match.arg(
     portal_parse_character_scalar_v1(plan$execution$parallel$execution_mode, "execution.parallel.execution_mode"),
     choices = c("auto", "serial", "multicore")
+  )
+  if (is.null(plan$execution$parallel$hardware_tier)) {
+    plan$execution$parallel$hardware_tier <- "auto"
+  }
+  plan$execution$parallel$hardware_tier <- match.arg(
+    portal_parse_character_scalar_v1(plan$execution$parallel$hardware_tier, "execution.parallel.hardware_tier"),
+    choices = c("auto", "laptop", "workstation", "server")
   )
   plan$execution$parallel$workers <- portal_parse_integer_scalar_or_null_v1(plan$execution$parallel$workers, "execution.parallel.workers")
   reserve_cores <- portal_parse_integer_scalar_or_null_v1(

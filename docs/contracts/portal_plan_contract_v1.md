@@ -35,11 +35,17 @@ Required:
 - `execution.dry_run` (logical)
 - `execution.write_outputs` (logical)
 - `execution.parallel.execution_mode` in `{auto, serial, multicore}`
+- `execution.parallel.hardware_tier` in `{auto, laptop, workstation, server}`
 - `execution.parallel.workers` (integer or null)
 - `execution.parallel.reserve_cores` (integer >= 0)
 
 Behavior:
 - `auto` parallel mode uses serial on CI and multicore locally.
+- `hardware_tier` selects conservative default worker caps when `workers` is null:
+  - `laptop`: up to 6 workers, reserve 1 core
+  - `workstation`: up to 24 workers, reserve 2 cores
+  - `server`: up to 48 workers, reserve 4 cores
+  - `auto`: inferred from detected core count
 - output root is `artefacts/portal_runs/<plan_id_slug>/` by default.
 
 ## `scenario`

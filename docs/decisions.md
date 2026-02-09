@@ -340,3 +340,18 @@ Full and fractional visits are executed deterministically; outputs are explicitl
 **Decision:** Performance policy is refreshed using `post_v1_scaling_v2` artefacts, with break-even recommendations recorded from the updated kernel/guardrail stack. A conservative CI sentinel test now checks for severe transport-kernel regressions (`test_performance_sentinel_v3.R`) without enforcing fragile micro-timing.
 **Rationale:** After kernel and guardrail optimization, previous break-even summaries were stale. A lightweight but meaningful sentinel is needed to catch major regressions while avoiding CI flakiness.
 **Implications:** Parallel defaults remain non-blocking and hardware-aware, with benchmark evidence guiding tuning. Sentinel threshold adjustments require updated artefacts and explicit rationale in decisions/logs.
+
+## 2026-02-09 — Compiled-kernel candidate selection uses hotspot/risk ranking with low-coupling prototype choice (WP-3.4.1)
+**Decision:** Compiled-kernel candidate selection now ranks hotspots using profile self-time share divided by combined implementation/parity risk. Although `minute_loop_vector_kernel` ranks highest by score, the first prototype is fixed to `resistance_vector_kernel` due lower ecological coupling risk.  
+**Rationale:** The highest raw hotspot is not always the safest first compiled target. Choosing a low-coupling numeric kernel reduces scientific drift risk while still testing compiled infrastructure and parity harnesses.  
+**Implications:** Future compiled candidates should be promoted only after parity harness expansion and explicit risk reassessment. Candidate ranking/parity artefacts are captured under `artefacts/benchmarks/compiled_candidate_selection_v1/`.
+
+## 2026-02-09 — Compiled resistance kernel is opt-in with mandatory pure-R fallback and fixed-seed parity checks (WP-3.4.2)
+**Decision:** A compiled resistance helper (`compute_ttr_resistances_kernel_v1`) is introduced behind explicit opt-in (`HERBIVORETTR_USE_COMPILED_TTR` or option `herbivoreTTR.use_compiled_ttr`). Default behavior remains pure R. When compilation is unavailable, execution falls back automatically with a warning and unchanged outputs.  
+**Rationale:** Optional acceleration should not compromise portability or baseline reproducibility. A strict fallback contract avoids blocking users on toolchain availability.  
+**Implications:** Compiled-path adoption remains a runtime choice; fixed-seed parity evidence is required for any future compiled-kernel expansion. Scenario-level parity artefacts are recorded under `artefacts/benchmarks/compiled_scenario_parity_v1/`.
+
+## 2026-02-09 — Runtime worker defaults are mapped to hardware tiers for ecologist workflows (WP-3.4.3)
+**Decision:** Parallel runtime guidance is standardized via hardware tiers (`laptop`, `workstation`, `server`) with conservative default worker caps and reserve-core recommendations. Portal plan schema now includes `execution.parallel.hardware_tier` and documentation of tier trade-offs.  
+**Rationale:** Non-coder users need clear, predictable runtime tuning guidance that balances throughput against host responsiveness.  
+**Implications:** Tier defaults are now explicit in portal templates/docs and available to runners; benchmark workflows can still override with fixed worker counts for controlled comparisons.

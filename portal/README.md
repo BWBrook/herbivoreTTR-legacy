@@ -36,6 +36,29 @@ Template set:
 - `stress_demo_template.yaml` for expected high-stress contrast demonstrations
 - `sensitivity_template.yaml` for one-at-a-time sensitivity runs
 
+## Runtime guidance by hardware tier
+
+Set these in `execution.parallel` inside the plan YAML:
+
+- Laptop (<=8 cores): `execution_mode: auto`, `hardware_tier: laptop`, `workers: null`, `reserve_cores: 1`
+- Workstation (9-32 cores): `execution_mode: auto`, `hardware_tier: workstation`, `workers: null`, `reserve_cores: 2`
+- Server (>32 cores): `execution_mode: auto`, `hardware_tier: server`, `workers: null`, `reserve_cores: 4`
+
+Trade-off notes:
+- Lower `reserve_cores` gives more throughput but can make the host less responsive.
+- Explicit `workers` overrides tier defaults and is useful for reproducible benchmarking.
+- CI remains serial by default to reduce timing variance.
+
+## Optional compiled resistance kernel
+
+The compiled resistance helper is opt-in and defaults to pure R. Enable with:
+
+```bash
+HERBIVORETTR_USE_COMPILED_TTR=1 Rscript portal/run_plan.R portal/plans/templates/single_scenario_template.yaml
+```
+
+If compilation is unavailable, the run automatically falls back to pure R.
+
 ## Optional GUI stub
 
 ```bash

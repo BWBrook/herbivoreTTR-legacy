@@ -83,6 +83,40 @@ test_that("parallel execution plan resolves sensible worker bounds", {
   expect_lte(multi_plan$workers_used, 3L)
 })
 
+test_that("hardware-tier defaults provide conservative worker caps", {
+  laptop <- parallel_hardware_defaults_v1(
+    hardware_tier = "laptop",
+    total_cores = 8L,
+    running_on_ci = FALSE
+  )
+  workstation <- parallel_hardware_defaults_v1(
+    hardware_tier = "workstation",
+    total_cores = 32L,
+    running_on_ci = FALSE
+  )
+  server <- parallel_hardware_defaults_v1(
+    hardware_tier = "server",
+    total_cores = 64L,
+    running_on_ci = FALSE
+  )
+
+  expect_equal(laptop$hardware_tier_resolved, "laptop")
+  expect_equal(workstation$hardware_tier_resolved, "workstation")
+  expect_equal(server$hardware_tier_resolved, "server")
+  expect_gt(workstation$worker_cap, laptop$worker_cap)
+  expect_gte(server$worker_cap, workstation$worker_cap)
+
+  auto_plan <- resolve_parallel_execution_plan_v1(
+    execution_mode = "auto",
+    n_tasks = 64L,
+    reserve_cores = NULL,
+    hardware_tier = "server"
+  )
+  expect_true(auto_plan$workers_used >= 1L)
+  expect_true(auto_plan$default_worker_cap >= auto_plan$workers_used)
+  expect_identical(auto_plan$hardware_tier_resolved, "server")
+})
+
 test_that("claim registry evaluation and required-claim gating work", {
   claims <- read_claim_registry_v1()
   expect_true(nrow(claims) >= 3L)

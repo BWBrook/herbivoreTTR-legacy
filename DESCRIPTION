@@ -32,6 +32,7 @@ Suggests:
     pkgload,
     progressr,
     pryr,
+    Rcpp,
     renv,
     roxygen2,
     rmarkdown,

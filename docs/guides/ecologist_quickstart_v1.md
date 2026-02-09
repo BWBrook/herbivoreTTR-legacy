@@ -48,6 +48,26 @@ Sensitivity:
 Rscript portal/run_sensitivity.R portal/plans/templates/sensitivity_template.yaml
 ```
 
+### Runtime tuning by machine type
+
+In the YAML under `execution.parallel`:
+
+- Laptop (<=8 cores): `hardware_tier: laptop`, `workers: null`, `reserve_cores: 1`
+- Workstation (9-32 cores): `hardware_tier: workstation`, `workers: null`, `reserve_cores: 2`
+- Server (>32 cores): `hardware_tier: server`, `workers: null`, `reserve_cores: 4`
+
+Keep `execution_mode: auto` unless you need strict serial runs (`serial`) or fixed multicore behavior (`multicore`).
+
+### Optional compiled acceleration (resistance kernel)
+
+Default behavior remains pure R. To opt in for faster resistance calculations:
+
+```bash
+HERBIVORETTR_USE_COMPILED_TTR=1 Rscript portal/run_plan.R portal/plans/templates/single_scenario_template.yaml
+```
+
+If compilation is unavailable on the host, the run falls back to pure R automatically.
+
 ## 5. Inspect outputs
 
 Outputs are written to:

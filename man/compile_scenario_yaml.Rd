@@ -9,8 +9,8 @@ compile_scenario_yaml(path, enforce_pairing = TRUE)
 \arguments{
 \item{path}{Path to a scenario YAML file or a scenario slug.}
 
-\item{enforce_pairing}{Logical; when \code{TRUE}, paired-contrast parity rules
-are validated for scenarios that declare paired constraints.}
+\item{enforce_pairing}{Logical; when \code{TRUE}, paired-contrast scenarios are
+resolved and validated against declared pairing rules.}
 }
 \value{
 Validated scenario list.

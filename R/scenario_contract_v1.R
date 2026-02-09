@@ -658,6 +658,8 @@ validate_scenario_v1 <- function(scenario) {
 #' contract v1.
 #'
 #' @param path Path to a scenario YAML file or a scenario slug.
+#' @param enforce_pairing Logical; when `TRUE`, paired-contrast scenarios are
+#'   resolved and validated against declared pairing rules.
 #'
 #' @return Validated scenario list.
 #' @export

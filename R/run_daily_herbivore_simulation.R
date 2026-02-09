@@ -16,7 +16,10 @@
 #'   function call. The caller RNG state is restored afterwards.
 #' @param apply_growth Logical; if `TRUE` daily plant growth is applied before
 #'   herbivory. Set `FALSE` when growth was already applied by an outer runner.
-#' @param plant_backend Plant backend name or backend interface list.
+#' @param plant_backend Plant backend name or backend interface list. Supported
+#'   names include `"internal_ttr"` (default pure R) and
+#'   `"internal_ttr_compiled"` (optional compiled resistance kernel with
+#'   automatic fallback).
 #' @param forage_access_scale Scalar in `(0,1]` that scales effective
 #'   foraging time available in the day.
 #' @return List with updated `herbivore`, `plants`, `daily_record` (optional

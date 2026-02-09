@@ -4,7 +4,12 @@
 \alias{transport_resistance}
 \title{Thornley Transport Resistance orchestrator}
 \usage{
-transport_resistance(plants, conditions, day_index)
+transport_resistance(
+  plants,
+  conditions,
+  day_index,
+  use_compiled_kernel = FALSE
+)
 }
 \arguments{
 \item{plants}{data.frame of plant state. Expected columns include (lowercase):
@@ -17,6 +22,9 @@ columns such as \code{uc}, \code{un}, \code{rsC}, \code{rrC}, \code{rdC}, \code{
 \code{temp_mean}, \code{sw}, \code{N}.}
 
 \item{day_index}{integer index into \code{conditions}.}
+
+\item{use_compiled_kernel}{Logical; when \code{TRUE}, optional compiled helper
+kernels are used where available. Falls back to pure R automatically.}
 }
 \value{
 Updated plants data.frame after one day.

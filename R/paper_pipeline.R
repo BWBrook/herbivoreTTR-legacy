@@ -1,12 +1,11 @@
 # Quarto paper-pipeline rendering helpers.
 
-#' Render the paper pipeline Quarto report from existing artefacts
-#'
+#' Internal Quarto render helper for paper pipeline reports
 #' @param input Path to the `.qmd` report source.
 #' @param output_dir Directory where rendered outputs are written.
-#'
 #' @return Absolute path to the rendered HTML report.
-#' @export
+#' @keywords internal
+#' @noRd
 render_quarto_report_internal <- function(input, output_dir) {
   if (!file.exists(input)) {
     rlang::abort(

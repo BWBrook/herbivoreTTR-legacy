@@ -4,6 +4,10 @@ test_that("plant backend resolver validates interface", {
   expect_true(is.function(backend$step_day))
   expect_true(is.function(backend$apply_herbivory))
 
+  compiled_backend <- resolve_plant_backend("internal_ttr_compiled")
+  expect_identical(compiled_backend$name, "internal_ttr_compiled")
+  expect_true(is.function(compiled_backend$step_day))
+
   expect_error(
     resolve_plant_backend("unknown_backend"),
     class = "herbivoreTTR_backend_unknown"

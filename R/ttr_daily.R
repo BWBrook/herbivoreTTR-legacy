@@ -10,8 +10,10 @@
 #' @param conditions data.frame of daily environmental drivers with columns
 #'   `temp_mean`, `sw`, `N`.
 #' @param day_index integer index into `conditions`.
+#' @param use_compiled_kernel Logical; when `TRUE`, optional compiled helper
+#'   kernels are used where available. Falls back to pure R automatically.
 #' @return Updated plants data.frame after one day.
-transport_resistance <- function(plants, conditions, day_index) {
+transport_resistance <- function(plants, conditions, day_index, use_compiled_kernel = FALSE) {
   n <- nrow(plants)
   if (n == 0L) return(plants)
   plants_before <- plants
@@ -81,11 +83,20 @@ transport_resistance <- function(plants, conditions, day_index) {
   broot <- column_or_default("broot")
   veg_type <- if ("veg_type" %in% names(plants)) as.integer(plants$veg_type) else rep(0L, n)
 
-  rsC <- column_or_default("rsC")
-  rrC <- column_or_default("rrC")
+  resistance_kernel <- compute_ttr_resistances_kernel_v1(
+    ms = ms,
+    mr = mr,
+    tr_c = CONSTANTS$TR_C,
+    tr_n = CONSTANTS$TR_N,
+    q_scp = CONSTANTS$Q_SCP,
+    q_snp = CONSTANTS$Q_SCP,
+    use_compiled = use_compiled_kernel
+  )
+  rsC <- as.numeric(resistance_kernel$rsC)
+  rrC <- as.numeric(resistance_kernel$rrC)
+  rsN <- as.numeric(resistance_kernel$rsN)
+  rrN <- as.numeric(resistance_kernel$rrN)
   rdC <- column_or_default("rdC")
-  rsN <- column_or_default("rsN")
-  rrN <- column_or_default("rrN")
   rdN <- column_or_default("rdN")
   tauC <- column_or_default("tauC")
   tauN <- column_or_default("tauN")
@@ -115,10 +126,10 @@ transport_resistance <- function(plants, conditions, day_index) {
     brepr_i <- brepr[[i]]
 
     # Resistances
-    rsC_i <- calc_RsC(CONSTANTS$TR_C, ms_i, CONSTANTS$Q_SCP)
-    rrC_i <- calc_RrC(CONSTANTS$TR_C, mr_i, CONSTANTS$Q_SCP)
-    rsN_i <- calc_RsN(CONSTANTS$TR_N, ms_i, CONSTANTS$Q_SCP)
-    rrN_i <- calc_RrN(CONSTANTS$TR_N, mr_i, CONSTANTS$Q_SCP)
+    rsC_i <- rsC[[i]]
+    rrC_i <- rrC[[i]]
+    rsN_i <- rsN[[i]]
+    rrN_i <- rrN[[i]]
     if (defence_enabled) {
       rdC_i <- calc_RdC(CONSTANTS$TR_C, md_i, CONSTANTS$Q_SCP)
       rdN_i <- calc_RdN(CONSTANTS$TR_N, md_i, CONSTANTS$Q_SCP)

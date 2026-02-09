@@ -276,7 +276,8 @@ run_portal_sensitivity_v1 <- function(plan,
     execution_mode = validated$execution$parallel$execution_mode,
     workers = validated$execution$parallel$workers,
     n_tasks = length(specs),
-    reserve_cores = validated$execution$parallel$reserve_cores
+    reserve_cores = validated$execution$parallel$reserve_cores,
+    hardware_tier = validated$execution$parallel$hardware_tier
   )
 
   results <- execute_indexed_jobs_v1(
@@ -504,7 +505,10 @@ run_portal_plan_v1 <- function(plan,
       mode = result$mode,
       render_report = validated$outputs$render_report,
       report_formats = validated$outputs$report_formats,
-      acceptance_profile = validated$outputs$acceptance_profile
+      acceptance_profile = validated$outputs$acceptance_profile,
+      parallel_mode = validated$execution$parallel$execution_mode,
+      parallel_hardware_tier = validated$execution$parallel$hardware_tier,
+      parallel_workers_requested = validated$execution$parallel$workers
     ),
     output_files = output_files
   )

@@ -58,6 +58,7 @@ The repo provides a Makefile; use it where available:
 - `Rscript portal/run_plan.R portal/plans/templates/single_scenario_template.yaml` — non-coder single-run portal workflow
 - `Rscript portal/run_sensitivity.R portal/plans/templates/sensitivity_template.yaml` — non-coder sensitivity workflow
 - `Rscript portal/launch_gui_stub.R` — optional GUI stub over the same YAML+runner backend
+- `R -q -e "for (f in list.files('R', pattern = '\\\\.R$$', full.names = TRUE)) sys.source(f, envir = globalenv()); run_compiled_candidate_selection_v1()"` — generate compiled-candidate ranking + parity artefacts (roadmap v3.4)
 
 ## Failure handling
 - If tests fail: minimize the diff, reproduce deterministically, fix root cause, and add a regression test.
@@ -71,8 +72,13 @@ The repo provides a Makefile; use it where available:
   - `auto`: serial on CI, multicore on local hosts (subject to available cores).
   - `serial`: force one worker.
   - `multicore`: use process-level workers up to task/core limits.
+- Hardware-tier defaults:
+  - `laptop` (<=8 cores): reserve 1 core, cap 6 workers.
+  - `workstation` (9-32 cores): reserve 2 cores, cap 24 workers.
+  - `server` (>32 cores): reserve 4 cores, cap 48 workers.
 - Use `workers` and `reserve_cores` arguments on ensemble/stability/scaling helpers for explicit control.
 - Keep break-even gate non-blocking by default unless running on a controlled baseline machine.
+- Optional compiled resistance kernel remains opt-in only via `HERBIVORETTR_USE_COMPILED_TTR=1` (or option `herbivoreTTR.use_compiled_ttr=TRUE`).
 
 ## Documentation discipline
 - Public API changes require:

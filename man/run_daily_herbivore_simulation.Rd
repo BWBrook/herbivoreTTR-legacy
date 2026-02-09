@@ -38,9 +38,12 @@ function call. The caller RNG state is restored afterwards.}
 \item{apply_growth}{Logical; if \code{TRUE} daily plant growth is applied before
 herbivory. Set \code{FALSE} when growth was already applied by an outer runner.}
 
-\item{plant_backend}{Plant backend name or backend interface list.}
+\item{plant_backend}{Plant backend name or backend interface list. Supported
+names include \code{"internal_ttr"} (default pure R) and
+\code{"internal_ttr_compiled"} (optional compiled resistance kernel with
+automatic fallback).}
 
-\item{forage_access_scale}{Scalar in \code{(0,1]} that scales effective
+\item{forage_access_scale}{Scalar in \verb{(0,1]} that scales effective
 foraging time available in the day.}
 }
 \value{

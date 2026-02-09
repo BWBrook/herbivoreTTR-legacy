@@ -9,6 +9,7 @@ execution:
   write_outputs: true
   parallel:
     execution_mode: "auto"
+    hardware_tier: "auto"
     workers: null
     reserve_cores: 1
 
