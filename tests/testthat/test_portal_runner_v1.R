@@ -7,6 +7,10 @@ build_portal_test_plan_v1 <- function(mode,
   plan$execution$base_dir <- base_dir
   plan$execution$dry_run <- FALSE
   plan$execution$write_outputs <- FALSE
+  plan$execution$backend <- "internal_ttr"
+  plan$execution$compiled$enabled <- "auto"
+  plan$execution$compiled$strict <- FALSE
+  plan$execution$compiled$verbose <- FALSE
   plan$execution$parallel$execution_mode <- "serial"
   plan$execution$parallel$workers <- 1L
   plan$execution$parallel$reserve_cores <- 0L
@@ -77,6 +81,11 @@ test_that("single portal run writes expected tables, figures, and manifest", {
   expect_equal(nrow(acceptance), 4L)
   expect_true(all(acceptance$acceptance_profile == "standard"))
   expect_true(all(acceptance$pass))
+
+  manifest <- jsonlite::fromJSON(out$manifest_path, simplifyVector = TRUE)
+  expect_identical(manifest$execution_context$backend_requested, "internal_ttr")
+  expect_true(manifest$execution_context$compiled_enabled %in% c("auto", "true", "false"))
+  expect_true(manifest$execution_context$compiled_kernel_policy %in% c("resistance_only", "all_available"))
 })
 
 test_that("sensitivity portal run writes deterministic design and endpoint bundles", {
@@ -155,4 +164,49 @@ test_that("HTML-only portal report rendering does not require PDF output", {
   expect_true(file.exists(report$html_path))
   expect_true(is.na(report$pdf_path))
   expect_false(file.exists(file.path(out$run_dir, "reports", "ecologist_report_v1.pdf")))
+})
+
+test_that("portal strict compiled mode fails when compiled helper unavailable", {
+  base_dir <- tempfile("portal_runner_compiled_strict_")
+  dir.create(base_dir, recursive = TRUE, showWarnings = FALSE)
+  plan <- build_portal_test_plan_v1(mode = "single", base_dir = base_dir)
+  plan$execution$compiled$enabled <- "true"
+  plan$execution$compiled$strict <- TRUE
+
+  old_force <- Sys.getenv("HERBIVORETTR_COMPILED_TTR_FORCE_UNAVAILABLE", unset = "0")
+  on.exit(Sys.setenv(HERBIVORETTR_COMPILED_TTR_FORCE_UNAVAILABLE = old_force), add = TRUE)
+  Sys.setenv(HERBIVORETTR_COMPILED_TTR_FORCE_UNAVAILABLE = "1")
+
+  expect_error(
+    run_portal_plan_v1(plan = plan),
+    class = "herbivoreTTR_portal_compiled_unavailable"
+  )
+})
+
+test_that("portal backend and compiled fallback metadata are recorded in manifest", {
+  base_dir <- tempfile("portal_runner_compiled_manifest_")
+  dir.create(base_dir, recursive = TRUE, showWarnings = FALSE)
+  plan <- build_portal_test_plan_v1(mode = "single", base_dir = base_dir)
+  plan$execution$backend <- "internal_ttr_compiled"
+  plan$execution$compiled$enabled <- "true"
+  plan$execution$compiled$kernel_policy <- "resistance_only"
+  plan$execution$compiled$strict <- FALSE
+  plan$execution$compiled$verbose <- TRUE
+
+  old_force <- Sys.getenv("HERBIVORETTR_COMPILED_TTR_FORCE_UNAVAILABLE", unset = "0")
+  on.exit(Sys.setenv(HERBIVORETTR_COMPILED_TTR_FORCE_UNAVAILABLE = old_force), add = TRUE)
+  Sys.setenv(HERBIVORETTR_COMPILED_TTR_FORCE_UNAVAILABLE = "1")
+
+  expect_warning(
+    out <- run_portal_plan_v1(plan = plan),
+    regexp = "Compiled TTR kernel requested but unavailable"
+  )
+
+  manifest <- jsonlite::fromJSON(out$manifest_path, simplifyVector = TRUE)
+  params <- manifest$execution_context
+  expect_identical(params$backend_requested, "internal_ttr_compiled")
+  expect_true(params$compiled_requested)
+  expect_identical(params$compiled_kernel_policy, "resistance_only")
+  expect_true(params$compiled_last_fallback_used)
+  expect_identical(params$compiled_last_engine, "r")
 })

@@ -113,11 +113,13 @@ run_daily_herbivore_cohort <- function(herbivores,
                                        day_of_simulation,
                                        minute_limit,
                                        forage_access_scale = 1,
-                                       seed = NULL) {
+                                       seed = NULL,
+                                       plant_backend = "internal_ttr") {
   ordered <- sort_herbivore_cohort(herbivores)
 
+  backend <- resolve_plant_backend(plant_backend)
   day_index <- ((day_of_simulation - 1L) %% nrow(conditions)) + 1L
-  plants_state <- transport_resistance(plants, conditions, day_index)
+  plants_state <- backend$step_day(plants, conditions, day_index)
 
   updated <- vector("list", length(ordered))
   names(updated) <- names(ordered)
@@ -135,7 +137,8 @@ run_daily_herbivore_cohort <- function(herbivores,
       minute_limit = minute_limit,
       forage_access_scale = forage_access_scale,
       seed = local_seed,
-      apply_growth = FALSE
+      apply_growth = FALSE,
+      plant_backend = plant_backend
     )
 
     plants_state <- res$plants
@@ -164,7 +167,8 @@ run_herbivore_cohort_days <- function(herbivores,
                                       days,
                                       minute_limit,
                                       forage_access_scale = 1,
-                                      seed = NULL) {
+                                      seed = NULL,
+                                      plant_backend = "internal_ttr") {
   state_herbivores <- sort_herbivore_cohort(herbivores)
   state_plants <- plants
 
@@ -183,7 +187,8 @@ run_herbivore_cohort_days <- function(herbivores,
       day_of_simulation = current_day,
       minute_limit = minute_limit,
       forage_access_scale = forage_access_scale,
-      seed = day_seed
+      seed = day_seed,
+      plant_backend = plant_backend
     )
 
     state_herbivores <- day_res$herbivores
@@ -240,9 +245,11 @@ run_daily_implicit_representative <- function(representative_spec,
                                               minute_limit,
                                               forage_access_scale = 1,
                                               feedback = NULL,
-                                              seed = NULL) {
+                                              seed = NULL,
+                                              plant_backend = "internal_ttr") {
+  backend <- resolve_plant_backend(plant_backend)
   day_index <- ((day_of_simulation - 1L) %% nrow(conditions)) + 1L
-  plants_state <- transport_resistance(plants, conditions, day_index)
+  plants_state <- backend$step_day(plants, conditions, day_index)
 
   visit_rows <- list()
   visit_counter <- 0L
@@ -259,7 +266,8 @@ run_daily_implicit_representative <- function(representative_spec,
       minute_limit = minutes,
       forage_access_scale = forage_access_scale,
       seed = if (is.null(seed)) NULL else as.integer(seed + visit_seed_offset),
-      apply_growth = FALSE
+      apply_growth = FALSE,
+      plant_backend = plant_backend
     )
 
     plants_state <<- res$plants
@@ -426,17 +434,21 @@ normalise_herbivore_daily_output <- function(daily_df,
 #' @param scenario Scenario list or path/slug to a scenario YAML.
 #' @param base_dir Base directory for canonical artefacts.
 #' @param write_outputs Logical; when `FALSE`, returns in-memory outputs only.
+#' @param plant_backend Plant backend name or backend interface list passed
+#'   through to daily runner helpers.
 #'
 #' @return A list containing run metadata, output paths, and in-memory tables.
 #' @export
 run_scenario_v1 <- function(scenario,
                             base_dir = file.path("artefacts", "canonical_runs"),
-                            write_outputs = TRUE) {
+                            write_outputs = TRUE,
+                            plant_backend = "internal_ttr") {
   validated <- if (is.character(scenario)) {
     compile_scenario_yaml(scenario)
   } else {
     validate_scenario_v1(scenario)
   }
+  backend <- resolve_plant_backend(plant_backend)
 
   with_optional_seed(validated$runtime$seed, {
     conditions <- build_conditions_from_scenario(validated)
@@ -475,7 +487,8 @@ run_scenario_v1 <- function(scenario,
           minute_limit = validated$runtime$minute_limit,
           forage_access_scale = validated$runtime$forage_access_scale,
           seed = day_seed,
-          apply_growth = TRUE
+          apply_growth = TRUE,
+          plant_backend = backend
         )
 
         herb <- day_res$herbivore
@@ -508,7 +521,8 @@ run_scenario_v1 <- function(scenario,
         days = validated$runtime$days,
         minute_limit = validated$runtime$minute_limit,
         forage_access_scale = validated$runtime$forage_access_scale,
-        seed = validated$runtime$seed
+        seed = validated$runtime$seed,
+        plant_backend = backend
       )
 
       herb_daily <- cohort_res$daily_summary
@@ -548,7 +562,8 @@ run_scenario_v1 <- function(scenario,
           minute_limit = validated$runtime$minute_limit,
           forage_access_scale = validated$runtime$forage_access_scale,
           feedback = validated$feedback,
-          seed = day_seed
+          seed = day_seed,
+          plant_backend = backend
         )
 
         final_plants <- day_res$plants
@@ -592,6 +607,7 @@ run_scenario_v1 <- function(scenario,
       return(list(
         run_id = run_id,
         run_dir = run_dir,
+        plant_backend = backend$name,
         scenario = validated,
         first_day_plants = first_day_plants,
         final_plants = final_plants,
@@ -643,10 +659,12 @@ run_scenario_v1 <- function(scenario,
       )
     }
 
+    manifest_parameters <- validated
+    manifest_parameters$runtime$plant_backend <- backend$name
     manifest <- build_run_manifest(
       scenario_slug = validated$outputs$scenario_slug,
       seed = validated$runtime$seed,
-      scenario_parameters = validated,
+      scenario_parameters = manifest_parameters,
       output_files = output_files,
       run_id = run_id
     )
@@ -656,6 +674,7 @@ run_scenario_v1 <- function(scenario,
     list(
       run_id = run_id,
       run_dir = run_dir,
+      plant_backend = backend$name,
       scenario = validated,
       plants_first_path = plants_first_path,
       plants_last_path = plants_last_path,

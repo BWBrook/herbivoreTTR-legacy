@@ -7,7 +7,8 @@
 run_scenario_v1(
   scenario,
   base_dir = file.path("artefacts", "canonical_runs"),
-  write_outputs = TRUE
+  write_outputs = TRUE,
+  plant_backend = "internal_ttr"
 )
 }
 \arguments{
@@ -16,6 +17,9 @@ run_scenario_v1(
 \item{base_dir}{Base directory for canonical artefacts.}
 
 \item{write_outputs}{Logical; when \code{FALSE}, returns in-memory outputs only.}
+
+\item{plant_backend}{Plant backend name or backend interface list passed
+through to daily runner helpers.}
 }
 \value{
 A list containing run metadata, output paths, and in-memory tables.

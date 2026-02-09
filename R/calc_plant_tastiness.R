@@ -91,13 +91,19 @@ calc_plant_tastiness <- function(plants_in_range, herbivore, desired_dp_dc_ratio
     eligible <- eligible & reachable
   }
 
-  denom <- CONSTANTS$TASTINESS_EPSILON +
-    ratio_weight * ratio_diff +
-    CONSTANTS$TASTINESS_DISTANCE_WEIGHT * distance +
-    CONSTANTS$TASTINESS_DEFENCE_WEIGHT * defence
+  kernel_out <- compute_minute_loop_tastiness_kernel_v1(
+    functional_multiplier = functional_multiplier,
+    size_bonus = size_bonus,
+    ratio_diff = ratio_diff,
+    distance = distance,
+    defence = defence,
+    eligible = eligible,
+    ratio_weight = ratio_weight,
+    distance_weight = CONSTANTS$TASTINESS_DISTANCE_WEIGHT,
+    defence_weight = CONSTANTS$TASTINESS_DEFENCE_WEIGHT,
+    epsilon = CONSTANTS$TASTINESS_EPSILON,
+    use_compiled = FALSE
+  )
 
-  tastiness <- functional_multiplier * size_bonus / denom
-  tastiness[!is.finite(tastiness)] <- 0
-  tastiness[!eligible] <- 0
-  pmax(tastiness, 0)
+  kernel_out$scores
 }

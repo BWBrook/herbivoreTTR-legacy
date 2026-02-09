@@ -12,7 +12,8 @@ run_scenario_ensemble_v1(
   write_outputs = TRUE,
   execution_mode = c("auto", "serial", "multicore"),
   workers = NULL,
-  reserve_cores = 1L
+  reserve_cores = 1L,
+  plant_backend = "internal_ttr"
 )
 }
 \arguments{
@@ -31,6 +32,9 @@ run_scenario_ensemble_v1(
 \item{workers}{Optional worker count override.}
 
 \item{reserve_cores}{Number of CPU cores to keep free on the host.}
+
+\item{plant_backend}{Plant backend name or backend interface list passed
+through to each scenario replicate.}
 }
 \value{
 List with seed manifest, replicate summary, ensemble summary, and

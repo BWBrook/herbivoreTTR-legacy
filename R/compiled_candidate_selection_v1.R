@@ -123,6 +123,7 @@ rank_compiled_kernel_candidates_v1 <- function(profile) {
   ranking$risk_score <- as.numeric(risk_score)
   ranking$priority_score <- as.numeric(priority_score)
   ranking$selected_for_wp_3_4_2 <- ranking$candidate_id == "resistance_vector_kernel"
+  ranking$selected_for_wp_3_5_2 <- ranking$candidate_id == "minute_loop_vector_kernel"
   ranking <- ranking[order(-ranking$priority_score, -ranking$hotspot_self_pct), , drop = FALSE]
   ranking$priority_rank <- seq_len(nrow(ranking))
   rownames(ranking) <- NULL
@@ -171,6 +172,7 @@ run_compiled_resistance_parity_harness_v1 <- function(sample_size = 2000L,
       lapply(c("rsC", "rrC", "rsN", "rrN"), function(metric) {
         delta <- abs(as.numeric(compiled[[metric]]) - as.numeric(pure[[metric]]))
         data.frame(
+          candidate_id = "resistance_vector_kernel",
           metric = metric,
           max_abs_diff = max(delta),
           mean_abs_diff = mean(delta),
@@ -182,6 +184,83 @@ run_compiled_resistance_parity_harness_v1 <- function(sample_size = 2000L,
 
     summary <- data.frame(
       candidate_id = "resistance_vector_kernel",
+      engine = as.character(compiled$engine),
+      fallback_used = as.logical(compiled$fallback_used),
+      compiled_available = as.logical(identical(compiled$engine, "compiled_cpp")),
+      sample_size = as.integer(sample_n),
+      tolerance = as.numeric(tol),
+      max_abs_diff = max(metrics$max_abs_diff),
+      mean_abs_diff = mean(metrics$mean_abs_diff),
+      parity_pass = isTRUE(all(metrics$max_abs_diff <= tol)),
+      stringsAsFactors = FALSE
+    )
+
+    list(
+      summary = summary,
+      metrics = metrics
+    )
+  })
+}
+
+run_compiled_minute_loop_parity_harness_v1 <- function(sample_size = 2000L,
+                                                        seed = 20260209L,
+                                                        tolerance = 1e-12) {
+  sample_n <- max(16L, as.integer(sample_size[[1]]))
+  tol <- max(0, as.numeric(tolerance[[1]]))
+
+  with_optional_seed(seed, {
+    functional_multiplier <- stats::runif(sample_n, min = 0.4, max = 1.6)
+    size_bonus <- stats::runif(sample_n, min = 0, max = 2.5)
+    ratio_diff <- stats::runif(sample_n, min = 0, max = 3)
+    distance <- stats::runif(sample_n, min = 0, max = 20)
+    defence <- stats::runif(sample_n, min = 0, max = 60)
+    eligible <- stats::runif(sample_n) > 0.15
+    ratio_diff[[1]] <- Inf
+    ratio_diff[[2]] <- 0
+    eligible[[1]] <- FALSE
+
+    old_env_flag <- Sys.getenv("HERBIVORETTR_USE_COMPILED_MINUTE_LOOP", unset = "0")
+    on.exit(Sys.setenv(HERBIVORETTR_USE_COMPILED_MINUTE_LOOP = old_env_flag), add = TRUE)
+    Sys.setenv(HERBIVORETTR_USE_COMPILED_MINUTE_LOOP = "0")
+
+    pure <- compute_minute_loop_tastiness_kernel_v1(
+      functional_multiplier = functional_multiplier,
+      size_bonus = size_bonus,
+      ratio_diff = ratio_diff,
+      distance = distance,
+      defence = defence,
+      eligible = eligible,
+      ratio_weight = CONSTANTS$TASTINESS_RATIO_WEIGHT,
+      distance_weight = CONSTANTS$TASTINESS_DISTANCE_WEIGHT,
+      defence_weight = CONSTANTS$TASTINESS_DEFENCE_WEIGHT,
+      epsilon = CONSTANTS$TASTINESS_EPSILON,
+      use_compiled = FALSE
+    )
+    compiled <- compute_minute_loop_tastiness_kernel_v1(
+      functional_multiplier = functional_multiplier,
+      size_bonus = size_bonus,
+      ratio_diff = ratio_diff,
+      distance = distance,
+      defence = defence,
+      eligible = eligible,
+      ratio_weight = CONSTANTS$TASTINESS_RATIO_WEIGHT,
+      distance_weight = CONSTANTS$TASTINESS_DISTANCE_WEIGHT,
+      defence_weight = CONSTANTS$TASTINESS_DEFENCE_WEIGHT,
+      epsilon = CONSTANTS$TASTINESS_EPSILON,
+      use_compiled = TRUE
+    )
+
+    delta <- abs(as.numeric(compiled$scores) - as.numeric(pure$scores))
+    metrics <- data.frame(
+      candidate_id = "minute_loop_vector_kernel",
+      metric = "tastiness_scores",
+      max_abs_diff = max(delta),
+      mean_abs_diff = mean(delta),
+      stringsAsFactors = FALSE
+    )
+
+    summary <- data.frame(
+      candidate_id = "minute_loop_vector_kernel",
       engine = as.character(compiled$engine),
       fallback_used = as.logical(compiled$fallback_used),
       compiled_available = as.logical(identical(compiled$engine, "compiled_cpp")),
@@ -249,6 +328,9 @@ compiled_numeric_delta_table_v1 <- function(df_a,
 #' @param minute_limit Minutes per day.
 #' @param seed Deterministic seed for both runs.
 #' @param tolerance Maximum allowed absolute numeric delta.
+#' @param kernel_policy Compiled kernel scope for the compiled run:
+#'   `"resistance_only"` keeps minute-loop logic in R, `"all_available"` enables
+#'   all available compiled kernels.
 #'
 #' @return List with parity summary and artefact paths.
 run_compiled_scenario_parity_check_v1 <- function(base_dir = file.path("artefacts", "benchmarks"),
@@ -256,9 +338,11 @@ run_compiled_scenario_parity_check_v1 <- function(base_dir = file.path("artefact
                                                   days = 7L,
                                                   minute_limit = 120L,
                                                   seed = 4242L,
-                                                  tolerance = 1e-12) {
+                                                  tolerance = 1e-12,
+                                                  kernel_policy = c("resistance_only", "all_available")) {
   run_dir <- file.path(base_dir, scenario_slug)
   dir.create(run_dir, recursive = TRUE, showWarnings = FALSE)
+  resolved_policy <- match.arg(kernel_policy)
 
   scenario <- compile_scenario_yaml(scenario_contract_reference_path("canonical_smoke_v1"))
   scenario$runtime$days <- as.integer(days)
@@ -267,18 +351,24 @@ run_compiled_scenario_parity_check_v1 <- function(base_dir = file.path("artefact
   scenario$outputs$scenario_slug <- "compiled_scenario_parity_check_v1"
 
   old_flag <- Sys.getenv("HERBIVORETTR_USE_COMPILED_TTR", unset = "0")
+  old_flag_minute <- Sys.getenv("HERBIVORETTR_USE_COMPILED_MINUTE_LOOP", unset = "0")
   old_force <- Sys.getenv("HERBIVORETTR_COMPILED_TTR_FORCE_UNAVAILABLE", unset = "0")
   on.exit({
     Sys.setenv(HERBIVORETTR_USE_COMPILED_TTR = old_flag)
+    Sys.setenv(HERBIVORETTR_USE_COMPILED_MINUTE_LOOP = old_flag_minute)
     Sys.setenv(HERBIVORETTR_COMPILED_TTR_FORCE_UNAVAILABLE = old_force)
   }, add = TRUE)
   Sys.setenv(HERBIVORETTR_COMPILED_TTR_FORCE_UNAVAILABLE = "0")
 
   Sys.setenv(HERBIVORETTR_USE_COMPILED_TTR = "0")
+  Sys.setenv(HERBIVORETTR_USE_COMPILED_MINUTE_LOOP = "0")
   reset_compiled_ttr_kernel_v1()
   pure <- run_scenario_v1(scenario = scenario, base_dir = base_dir, write_outputs = FALSE)
 
   Sys.setenv(HERBIVORETTR_USE_COMPILED_TTR = "1")
+  Sys.setenv(
+    HERBIVORETTR_USE_COMPILED_MINUTE_LOOP = if (identical(resolved_policy, "all_available")) "1" else "0"
+  )
   reset_compiled_ttr_kernel_v1()
   compiled <- run_scenario_v1(scenario = scenario, base_dir = base_dir, write_outputs = FALSE)
 
@@ -314,11 +404,13 @@ run_compiled_scenario_parity_check_v1 <- function(base_dir = file.path("artefact
     days = as.integer(scenario$runtime$days),
     minute_limit = as.integer(scenario$runtime$minute_limit),
     seed = as.integer(scenario$runtime$seed),
+    kernel_policy = as.character(resolved_policy),
     max_abs_diff = max(metrics$max_abs_diff),
     mean_abs_diff = mean(metrics$mean_abs_diff),
     tolerance = tol,
     parity_pass = isTRUE(all(metrics$max_abs_diff <= tol)),
-    compiled_engine_available = isTRUE(compiled_ttr_kernel_available_v1()),
+    compiled_resistance_available = isTRUE(compiled_ttr_kernel_available_v1()),
+    compiled_minute_loop_available = isTRUE(compiled_minute_loop_kernel_available_v1()),
     stringsAsFactors = FALSE
   )
 
@@ -336,6 +428,7 @@ run_compiled_scenario_parity_check_v1 <- function(base_dir = file.path("artefact
     sprintf("- Days: `%d`", summary$days[[1]]),
     sprintf("- Minute limit: `%d`", summary$minute_limit[[1]]),
     sprintf("- Seed: `%d`", summary$seed[[1]]),
+    sprintf("- Kernel policy: `%s`", summary$kernel_policy[[1]]),
     "",
     "## Result",
     sprintf("- Max absolute diff: `%.3e`", summary$max_abs_diff[[1]]),
@@ -356,7 +449,8 @@ run_compiled_scenario_parity_check_v1 <- function(base_dir = file.path("artefact
       scenario_id = scenario$scenario_id,
       days = as.integer(days),
       minute_limit = as.integer(minute_limit),
-      tolerance = tol
+      tolerance = tol,
+      kernel_policy = resolved_policy
     ),
     output_files = c(
       metrics = file.path(base_dir, scenario_slug, basename(metrics_path)),
@@ -415,7 +509,10 @@ run_compiled_candidate_selection_v1 <- function(base_dir = file.path("artefacts"
 
   profile <- read_kernel_profile_by_self_v1(profile_path)
   ranking <- rank_compiled_kernel_candidates_v1(profile)
-  parity <- run_compiled_resistance_parity_harness_v1()
+  resistance_parity <- run_compiled_resistance_parity_harness_v1()
+  minute_loop_parity <- run_compiled_minute_loop_parity_harness_v1()
+  parity_summary <- rbind(resistance_parity$summary, minute_loop_parity$summary)
+  parity_metrics <- rbind(resistance_parity$metrics, minute_loop_parity$metrics)
 
   ranking_path <- file.path(run_dir, "compiled_candidate_ranking_v1.csv")
   parity_summary_path <- file.path(run_dir, "compiled_parity_summary_v1.csv")
@@ -423,8 +520,8 @@ run_compiled_candidate_selection_v1 <- function(base_dir = file.path("artefacts"
   report_path <- file.path(run_dir, "compiled_candidate_report_v1.md")
 
   utils::write.csv(ranking, ranking_path, row.names = FALSE)
-  utils::write.csv(parity$summary, parity_summary_path, row.names = FALSE)
-  utils::write.csv(parity$metrics, parity_metrics_path, row.names = FALSE)
+  utils::write.csv(parity_summary, parity_summary_path, row.names = FALSE)
+  utils::write.csv(parity_metrics, parity_metrics_path, row.names = FALSE)
 
   top <- ranking[1, , drop = FALSE]
   report_lines <- c(
@@ -444,11 +541,17 @@ run_compiled_candidate_selection_v1 <- function(base_dir = file.path("artefacts"
     "- Selected candidate: `resistance_vector_kernel`",
     "- Selection rationale: lowest ecological coupling risk while still targeting a measurable hotspot slice.",
     "",
-    "## Parity harness (selected candidate)",
-    sprintf("- Engine used: `%s`", parity$summary$engine[[1]]),
-    sprintf("- Fallback used: `%s`", tolower(as.character(parity$summary$fallback_used[[1]]))),
-    sprintf("- Max absolute diff: `%.3e`", parity$summary$max_abs_diff[[1]]),
-    sprintf("- Parity pass: `%s`", ifelse(parity$summary$parity_pass[[1]], "yes", "no")),
+    "## WP-3.5.2 prototype selection",
+    "- Selected candidate: `minute_loop_vector_kernel`",
+    "- Selection rationale: highest hotspot/risk score after compiled-path infrastructure was validated on resistance kernel.",
+    "",
+    "## Parity harnesses (selected candidates)",
+    paste0(
+      "- Candidate `", parity_summary$candidate_id, "`: engine=`", parity_summary$engine,
+      "`, fallback=`", tolower(as.character(parity_summary$fallback_used)),
+      "`, max_abs_diff=`", format(parity_summary$max_abs_diff, scientific = TRUE),
+      "`, parity_pass=`", ifelse(parity_summary$parity_pass, "yes", "no"), "`"
+    ),
     "",
     "## Outputs",
     sprintf("- Candidate ranking: `%s`", ranking_path),
@@ -462,7 +565,7 @@ run_compiled_candidate_selection_v1 <- function(base_dir = file.path("artefacts"
     seed = as.integer(20260209L),
     scenario_parameters = list(
       profile_self_path = profile_path,
-      selected_candidate = "resistance_vector_kernel"
+      selected_candidates = c("resistance_vector_kernel", "minute_loop_vector_kernel")
     ),
     output_files = c(
       ranking = file.path(base_dir, scenario_slug, basename(ranking_path)),
@@ -482,7 +585,7 @@ run_compiled_candidate_selection_v1 <- function(base_dir = file.path("artefacts"
     report_path = report_path,
     manifest_path = manifest_path,
     ranking = ranking,
-    parity_summary = parity$summary,
-    parity_metrics = parity$metrics
+    parity_summary = parity_summary,
+    parity_metrics = parity_metrics
   )
 }

@@ -35,6 +35,9 @@ Template set:
 - `balanced_demo_template.yaml` for short-horizon lower-stress demonstrations
 - `stress_demo_template.yaml` for expected high-stress contrast demonstrations
 - `sensitivity_template.yaml` for one-at-a-time sensitivity runs
+- `laptop_safe_template.yaml` for conservative laptop runs
+- `workstation_balanced_template.yaml` for balanced multicore runs
+- `throughput_max_template.yaml` for high-throughput hosts
 
 ## Runtime guidance by hardware tier
 
@@ -51,13 +54,29 @@ Trade-off notes:
 
 ## Optional compiled resistance kernel
 
-The compiled resistance helper is opt-in and defaults to pure R. Enable with:
+Compiled controls are YAML-first under `execution.backend` and
+`execution.compiled`:
+
+- `execution.backend`: `internal_ttr` or `internal_ttr_compiled`
+- `execution.compiled.enabled`: `auto`, `true`, or `false`
+- `execution.compiled.kernel_policy`: `resistance_only` or `all_available`
+- `execution.compiled.strict`: fail if requested kernels unavailable
+- `execution.compiled.verbose`: print runtime config diagnostics
+
+Typical safe setting:
+- backend compiled-capable with `enabled: auto`, `kernel_policy: resistance_only`, `strict: false`.
+
+If compilation is unavailable, runs automatically fall back to pure R when
+`strict: false`. Fallback state is recorded in
+`manifests/portal_run_manifest.json` under `execution_context`.
+
+## One-command profiles
 
 ```bash
-HERBIVORETTR_USE_COMPILED_TTR=1 Rscript portal/run_plan.R portal/plans/templates/single_scenario_template.yaml
+Rscript portal/run_plan.R portal/plans/templates/laptop_safe_template.yaml
+Rscript portal/run_plan.R portal/plans/templates/workstation_balanced_template.yaml
+Rscript portal/run_plan.R portal/plans/templates/throughput_max_template.yaml
 ```
-
-If compilation is unavailable, the run automatically falls back to pure R.
 
 ## Optional GUI stub
 

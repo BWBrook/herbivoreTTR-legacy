@@ -50,6 +50,23 @@ test_that("compiled resistance parity harness passes for selected candidate", {
   expect_true(max(parity$metrics$max_abs_diff) <= parity$summary$tolerance[[1]])
 })
 
+test_that("compiled minute-loop parity harness passes for selected candidate", {
+  old_force <- Sys.getenv("HERBIVORETTR_COMPILED_TTR_FORCE_UNAVAILABLE", unset = "0")
+  old_flag <- Sys.getenv("HERBIVORETTR_USE_COMPILED_MINUTE_LOOP", unset = "0")
+  on.exit({
+    Sys.setenv(HERBIVORETTR_COMPILED_TTR_FORCE_UNAVAILABLE = old_force)
+    Sys.setenv(HERBIVORETTR_USE_COMPILED_MINUTE_LOOP = old_flag)
+  }, add = TRUE)
+  Sys.setenv(HERBIVORETTR_COMPILED_TTR_FORCE_UNAVAILABLE = "0")
+  Sys.setenv(HERBIVORETTR_USE_COMPILED_MINUTE_LOOP = "0")
+
+  parity <- run_compiled_minute_loop_parity_harness_v1(sample_size = 256L, seed = 915L)
+  expect_true(is.data.frame(parity$summary))
+  expect_true(is.data.frame(parity$metrics))
+  expect_true(parity$summary$parity_pass[[1]])
+  expect_true(max(parity$metrics$max_abs_diff) <= parity$summary$tolerance[[1]])
+})
+
 test_that("compiled backend name resolves and preserves daily outputs", {
   sim <- init_simulation(temp_mode = "flat", veg_types = c(0, 1, 2), herbivore_mass = 5e5)
   day <- CONSTANTS$SPIN_UP_LENGTH * nrow(sim$conditions) + 1L
@@ -110,6 +127,9 @@ test_that("compiled candidate selection writes ranked outputs and parity artefac
   expect_true(file.exists(out$manifest_path))
   expect_true("resistance_vector_kernel" %in% out$ranking$candidate_id)
   expect_true(any(out$ranking$selected_for_wp_3_4_2))
+  expect_true("minute_loop_vector_kernel" %in% out$ranking$candidate_id)
+  expect_true(any(out$ranking$selected_for_wp_3_5_2))
+  expect_true(all(c("resistance_vector_kernel", "minute_loop_vector_kernel") %in% out$parity_summary$candidate_id))
 })
 
 test_that("fixed-seed scenario parity check passes for compiled path", {
@@ -132,4 +152,27 @@ test_that("fixed-seed scenario parity check passes for compiled path", {
   expect_true(file.exists(out$manifest_path))
   expect_true(out$summary$parity_pass[[1]])
   expect_true(max(out$metrics$max_abs_diff) <= out$summary$tolerance[[1]])
+})
+
+test_that("fixed-seed scenario parity supports all-available compiled policy", {
+  skip_on_cran()
+
+  tmp <- tempfile("compiled_scenario_parity_all_available_v1_")
+  dir.create(tmp, recursive = TRUE, showWarnings = FALSE)
+  out <- run_compiled_scenario_parity_check_v1(
+    base_dir = tmp,
+    scenario_slug = "compiled_scenario_parity_all_available_test_v1",
+    days = 2L,
+    minute_limit = 30L,
+    seed = 1201L,
+    tolerance = 1e-12,
+    kernel_policy = "all_available"
+  )
+
+  expect_true(file.exists(out$metrics_path))
+  expect_true(file.exists(out$summary_path))
+  expect_true(file.exists(out$report_path))
+  expect_true(file.exists(out$manifest_path))
+  expect_true(out$summary$parity_pass[[1]])
+  expect_identical(out$summary$kernel_policy[[1]], "all_available")
 })

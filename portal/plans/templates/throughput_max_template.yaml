@@ -1,0 +1,40 @@
+schema_version: "1.0.0"
+plan_id: "throughput_max_demo"
+description: "High-throughput profile for large hosts; may reduce responsiveness."
+
+execution:
+  mode: "single"
+  base_dir: "artefacts/portal_runs"
+  dry_run: false
+  write_outputs: true
+  backend: "internal_ttr_compiled"
+  compiled:
+    enabled: "true"
+    kernel_policy: "all_available"
+    strict: false
+    verbose: true
+  parallel:
+    execution_mode: "multicore"
+    hardware_tier: "server"
+    workers: null
+    reserve_cores: 1
+
+scenario:
+  source: "reference"
+  reference: "canonical_smoke_v1"
+  overrides:
+    runtime:
+      days: 21
+      minute_limit: 180
+
+sensitivity:
+  enabled: false
+  design: "one_at_a_time"
+  keep_baseline: true
+  parameters: []
+
+outputs:
+  render_report: true
+  report_formats: ["html"]
+  acceptance_profile: "standard"
+  include_interactive: true

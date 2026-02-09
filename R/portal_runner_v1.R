@@ -56,6 +56,110 @@ portal_resolve_run_root_v1 <- function(plan) {
   normalizePath(run_root, winslash = "/", mustWork = TRUE)
 }
 
+portal_compiled_execution_config_v1 <- function(plan) {
+  enabled <- as.character(plan$execution$compiled$enabled)
+  backend <- as.character(plan$execution$backend)
+  kernel_policy <- as.character(plan$execution$compiled$kernel_policy)
+  requested <- if (identical(enabled, "true")) {
+    TRUE
+  } else if (identical(enabled, "false")) {
+    FALSE
+  } else {
+    identical(backend, "internal_ttr_compiled")
+  }
+  requested_ttr <- isTRUE(requested)
+  requested_minute_loop <- isTRUE(requested) && identical(kernel_policy, "all_available")
+
+  list(
+    enabled = enabled,
+    requested = isTRUE(requested),
+    requested_ttr = requested_ttr,
+    requested_minute_loop = requested_minute_loop,
+    kernel_policy = kernel_policy,
+    strict = isTRUE(plan$execution$compiled$strict),
+    verbose = isTRUE(plan$execution$compiled$verbose),
+    backend = backend
+  )
+}
+
+portal_assert_compiled_ready_v1 <- function(config) {
+  if (!isTRUE(config$requested) || !isTRUE(config$strict)) {
+    return(invisible(FALSE))
+  }
+
+  reset_compiled_ttr_kernel_v1()
+  missing <- character()
+  if (isTRUE(config$requested_ttr) && !isTRUE(compiled_ttr_kernel_available_v1())) {
+    missing <- c(missing, "resistance_vector_kernel")
+  }
+  if (isTRUE(config$requested_minute_loop) && !isTRUE(compiled_minute_loop_kernel_available_v1())) {
+    missing <- c(missing, "minute_loop_vector_kernel")
+  }
+  if (length(missing) > 0L) {
+    portal_abort_v1(
+      sprintf(
+        "Compiled kernel strict mode requested unavailable kernels: %s.",
+        paste(missing, collapse = ", ")
+      ),
+      class = "herbivoreTTR_portal_compiled_unavailable",
+      backend = config$backend,
+      missing_kernels = missing
+    )
+  }
+  invisible(TRUE)
+}
+
+portal_with_compiled_context_v1 <- function(config,
+                                            expr) {
+  old_option <- getOption("herbivoreTTR.use_compiled_ttr", NULL)
+  old_option_minute <- getOption("herbivoreTTR.use_compiled_minute_loop", NULL)
+  old_env <- Sys.getenv("HERBIVORETTR_USE_COMPILED_TTR", unset = NA_character_)
+  old_env_minute <- Sys.getenv("HERBIVORETTR_USE_COMPILED_MINUTE_LOOP", unset = NA_character_)
+  on.exit({
+    if (is.null(old_option)) {
+      options(herbivoreTTR.use_compiled_ttr = NULL)
+    } else {
+      options(herbivoreTTR.use_compiled_ttr = old_option)
+    }
+    if (is.na(old_env)) {
+      Sys.unsetenv("HERBIVORETTR_USE_COMPILED_TTR")
+    } else {
+      Sys.setenv(HERBIVORETTR_USE_COMPILED_TTR = old_env)
+    }
+    if (is.null(old_option_minute)) {
+      options(herbivoreTTR.use_compiled_minute_loop = NULL)
+    } else {
+      options(herbivoreTTR.use_compiled_minute_loop = old_option_minute)
+    }
+    if (is.na(old_env_minute)) {
+      Sys.unsetenv("HERBIVORETTR_USE_COMPILED_MINUTE_LOOP")
+    } else {
+      Sys.setenv(HERBIVORETTR_USE_COMPILED_MINUTE_LOOP = old_env_minute)
+    }
+  }, add = TRUE)
+
+  options(herbivoreTTR.use_compiled_ttr = isTRUE(config$requested_ttr))
+  options(herbivoreTTR.use_compiled_minute_loop = isTRUE(config$requested_minute_loop))
+  Sys.setenv(HERBIVORETTR_USE_COMPILED_TTR = if (isTRUE(config$requested_ttr)) "1" else "0")
+  Sys.setenv(HERBIVORETTR_USE_COMPILED_MINUTE_LOOP = if (isTRUE(config$requested_minute_loop)) "1" else "0")
+
+  if (isTRUE(config$verbose)) {
+    message(
+      sprintf(
+        "Portal compiled config: backend=%s enabled=%s policy=%s request_ttr=%s request_minute_loop=%s strict=%s",
+        config$backend,
+        config$enabled,
+        config$kernel_policy,
+        config$requested_ttr,
+        config$requested_minute_loop,
+        config$strict
+      )
+    )
+  }
+
+  force(expr)
+}
+
 portal_resolve_base_scenario_v1 <- function(plan) {
   if (identical(plan$scenario$source, "reference")) {
     scenario_path <- scenario_contract_reference_path(plan$scenario$reference)
@@ -189,7 +293,8 @@ render_portal_report_v1 <- function(run_dir,
 portal_run_single_case_v1 <- function(base_scenario,
                                       spec,
                                       dirs,
-                                      write_outputs = TRUE) {
+                                      write_outputs = TRUE,
+                                      plant_backend = "internal_ttr") {
   scenario <- portal_apply_changes_v1(base_scenario, spec$changes)
   scenario$outputs$scenario_slug <- file.path("runs", spec$run_label)
 
@@ -197,7 +302,8 @@ portal_run_single_case_v1 <- function(base_scenario,
     run <- run_scenario_v1(
       scenario = scenario,
       base_dir = dirs$canonical_runs,
-      write_outputs = write_outputs
+      write_outputs = write_outputs,
+      plant_backend = plant_backend
     )
   })[["elapsed"]])
 
@@ -287,7 +393,8 @@ run_portal_sensitivity_v1 <- function(plan,
         base_scenario = base_scenario,
         spec = specs[[i]],
         dirs = dirs,
-        write_outputs = validated$execution$write_outputs
+        write_outputs = validated$execution$write_outputs,
+        plant_backend = validated$execution$backend
       )
     },
     execution_plan = parallel_plan
@@ -349,6 +456,7 @@ run_portal_plan_v1 <- function(plan,
                                dry_run = NULL,
                                force_mode = NULL) {
   validated <- if (is.character(plan)) compile_portal_plan_yaml(plan) else validate_portal_plan_v1(plan)
+  compiled_cfg <- portal_compiled_execution_config_v1(validated)
 
   if (!is.null(force_mode)) {
     validated$execution$mode <- match.arg(force_mode, choices = c("single", "sensitivity"))
@@ -374,7 +482,9 @@ run_portal_plan_v1 <- function(plan,
       scenario_slug = base_scenario$outputs$scenario_slug,
       seed = base_scenario$runtime$seed,
       days = base_scenario$runtime$days,
-      minute_limit = base_scenario$runtime$minute_limit
+      minute_limit = base_scenario$runtime$minute_limit,
+      backend = validated$execution$backend,
+      compiled = compiled_cfg
     ))
   }
 
@@ -386,56 +496,61 @@ run_portal_plan_v1 <- function(plan,
   }
   yaml::write_yaml(validated, file.path(dirs$manifests, "plan_resolved.yaml"))
 
-  result <- if (identical(validated$execution$mode, "sensitivity") || isTRUE(validated$sensitivity$enabled)) {
-    run_portal_sensitivity_v1(
-      plan = validated,
-      root_dir = root_dir,
-      base_scenario = base_scenario
-    )
-  } else {
-    spec <- list(
-      run_index = 1L,
-      run_label = "single_main",
-      changes = list(),
-      change_summary = "single_run",
-      design = "single"
-    )
+  portal_assert_compiled_ready_v1(compiled_cfg)
 
-    single <- portal_run_single_case_v1(
-      base_scenario = base_scenario,
-      spec = spec,
-      dirs = dirs,
-      write_outputs = validated$execution$write_outputs
-    )
+  result <- portal_with_compiled_context_v1(compiled_cfg, {
+    if (identical(validated$execution$mode, "sensitivity") || isTRUE(validated$sensitivity$enabled)) {
+      run_portal_sensitivity_v1(
+        plan = validated,
+        root_dir = root_dir,
+        base_scenario = base_scenario
+      )
+    } else {
+      spec <- list(
+        run_index = 1L,
+        run_label = "single_main",
+        changes = list(),
+        change_summary = "single_run",
+        design = "single"
+      )
 
-    run_index <- single$run_index_row
-    run_index_path <- file.path(dirs$root, "run_index.csv")
-    utils::write.csv(run_index, run_index_path, row.names = FALSE)
+      single <- portal_run_single_case_v1(
+        base_scenario = base_scenario,
+        spec = spec,
+        dirs = dirs,
+        write_outputs = validated$execution$write_outputs,
+        plant_backend = validated$execution$backend
+      )
 
-    daily_path <- file.path(dirs$tables, "daily_summary.csv")
-    endpoint_path <- file.path(dirs$tables, "endpoint_summary.csv")
-    sanity_path <- file.path(dirs$tables, "domain_sanity_summary.csv")
+      run_index <- single$run_index_row
+      run_index_path <- file.path(dirs$root, "run_index.csv")
+      utils::write.csv(run_index, run_index_path, row.names = FALSE)
 
-    utils::write.csv(single$daily_summary, daily_path, row.names = FALSE)
-    utils::write.csv(single$endpoint_summary, endpoint_path, row.names = FALSE)
-    utils::write.csv(single$sanity_summary, sanity_path, row.names = FALSE)
+      daily_path <- file.path(dirs$tables, "daily_summary.csv")
+      endpoint_path <- file.path(dirs$tables, "endpoint_summary.csv")
+      sanity_path <- file.path(dirs$tables, "domain_sanity_summary.csv")
 
-    list(
-      mode = "single",
-      run_dir = dirs$root,
-      dirs = dirs,
-      run_index = run_index,
-      run_index_path = run_index_path,
-      daily_summary = single$daily_summary,
-      endpoint_summary = single$endpoint_summary,
-      sanity_summary = single$sanity_summary,
-      daily_path = daily_path,
-      endpoint_path = endpoint_path,
-      sanity_path = sanity_path,
-      figure_paths = single$figure_paths,
-      run_results = list(single)
-    )
-  }
+      utils::write.csv(single$daily_summary, daily_path, row.names = FALSE)
+      utils::write.csv(single$endpoint_summary, endpoint_path, row.names = FALSE)
+      utils::write.csv(single$sanity_summary, sanity_path, row.names = FALSE)
+
+      list(
+        mode = "single",
+        run_dir = dirs$root,
+        dirs = dirs,
+        run_index = run_index,
+        run_index_path = run_index_path,
+        daily_summary = single$daily_summary,
+        endpoint_summary = single$endpoint_summary,
+        sanity_summary = single$sanity_summary,
+        daily_path = daily_path,
+        endpoint_path = endpoint_path,
+        sanity_path = sanity_path,
+        figure_paths = single$figure_paths,
+        run_results = list(single)
+      )
+    }
+  })
 
   acceptance_summary <- portal_build_acceptance_summary_v1(
     run_results = result$run_results,
@@ -497,6 +612,17 @@ run_portal_plan_v1 <- function(plan,
     output_files <- c(output_files, report_notes = portal_relativize_path_v1(report$note_path))
   }
 
+  backend_used <- unique(vapply(result$run_results, function(x) {
+    backend <- x$run$plant_backend
+    if (is.null(backend) || !nzchar(backend)) {
+      return("unknown")
+    }
+    as.character(backend)
+  }, character(1L)))
+  compiled_available_after <- isTRUE(compiled_ttr_kernel_available_v1())
+  compiled_last_engine <- compiled_ttr_last_engine_v1()
+  compiled_last_fallback <- isTRUE(compiled_ttr_last_fallback_used_v1())
+
   manifest <- build_run_manifest(
     scenario_slug = file.path("portal_runs", portal_slugify_id_v1(validated$plan_id)),
     seed = as.integer(base_scenario$runtime$seed),
@@ -506,11 +632,43 @@ run_portal_plan_v1 <- function(plan,
       render_report = validated$outputs$render_report,
       report_formats = validated$outputs$report_formats,
       acceptance_profile = validated$outputs$acceptance_profile,
+      backend_requested = validated$execution$backend,
+      backend_used = backend_used,
+      compiled_enabled = compiled_cfg$enabled,
+      compiled_requested = compiled_cfg$requested,
+      compiled_kernel_policy = compiled_cfg$kernel_policy,
+      compiled_ttr_requested = compiled_cfg$requested_ttr,
+      compiled_minute_loop_requested = compiled_cfg$requested_minute_loop,
+      compiled_strict = compiled_cfg$strict,
+      compiled_verbose = compiled_cfg$verbose,
+      compiled_kernel_available_after = compiled_available_after,
+      compiled_last_engine = compiled_last_engine,
+      compiled_last_fallback_used = compiled_last_fallback,
       parallel_mode = validated$execution$parallel$execution_mode,
       parallel_hardware_tier = validated$execution$parallel$hardware_tier,
       parallel_workers_requested = validated$execution$parallel$workers
     ),
     output_files = output_files
+  )
+  manifest$execution_context <- list(
+    backend_requested = validated$execution$backend,
+    backend_used = unname(as.character(backend_used)),
+    compiled_enabled = compiled_cfg$enabled,
+    compiled_requested = compiled_cfg$requested,
+    compiled_kernel_policy = compiled_cfg$kernel_policy,
+    compiled_ttr_requested = compiled_cfg$requested_ttr,
+    compiled_minute_loop_requested = compiled_cfg$requested_minute_loop,
+    compiled_strict = compiled_cfg$strict,
+    compiled_verbose = compiled_cfg$verbose,
+    compiled_kernel_available_after = compiled_available_after,
+    compiled_last_engine = compiled_last_engine,
+    compiled_last_fallback_used = compiled_last_fallback,
+    compiled_minute_loop_kernel_available_after = isTRUE(compiled_minute_loop_kernel_available_v1()),
+    compiled_minute_loop_last_engine = compiled_minute_loop_last_engine_v1(),
+    compiled_minute_loop_last_fallback_used = isTRUE(compiled_minute_loop_last_fallback_used_v1()),
+    parallel_mode = validated$execution$parallel$execution_mode,
+    parallel_hardware_tier = validated$execution$parallel$hardware_tier,
+    parallel_workers_requested = validated$execution$parallel$workers
   )
   manifest_path <- file.path(result$dirs$manifests, "portal_run_manifest.json")
   write_run_manifest(manifest, manifest_path)

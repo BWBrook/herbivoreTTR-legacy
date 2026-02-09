@@ -10,6 +10,11 @@ test_that("portal templates compile with v1 schema", {
     expect_identical(plan$schema_version, portal_plan_schema_version_v1())
     expect_identical(plan$scenario$source, "reference")
     expect_true(is.list(plan$scenario$overrides))
+    expect_true(plan$execution$backend %in% c("internal_ttr", "internal_ttr_compiled"))
+    expect_true(plan$execution$compiled$enabled %in% c("auto", "true", "false"))
+    expect_true(plan$execution$compiled$kernel_policy %in% c("resistance_only", "all_available"))
+    expect_true(is.logical(plan$execution$compiled$strict))
+    expect_true(is.logical(plan$execution$compiled$verbose))
     expect_true(is.logical(plan$outputs$render_report))
     expect_true(plan$outputs$acceptance_profile %in% c("standard", "balanced_demo", "stress_demo"))
   }
@@ -41,6 +46,43 @@ test_that("portal validator rejects unsupported schema versions", {
 test_that("portal validator enforces supported acceptance profiles", {
   plan <- portal_plan_default_v1()
   plan$outputs$acceptance_profile <- "unsupported_profile"
+
+  expect_error(
+    validate_portal_plan_v1(plan),
+    class = "herbivoreTTR_portal_plan_invalid"
+  )
+})
+
+test_that("portal validator parses compiled execution controls", {
+  plan <- portal_plan_default_v1()
+  plan$execution$compiled$enabled <- TRUE
+  validated_true <- validate_portal_plan_v1(plan)
+  expect_identical(validated_true$execution$compiled$enabled, "true")
+
+  plan$execution$compiled$enabled <- FALSE
+  validated_false <- validate_portal_plan_v1(plan)
+  expect_identical(validated_false$execution$compiled$enabled, "false")
+
+  plan$execution$compiled$enabled <- "auto"
+  validated_auto <- validate_portal_plan_v1(plan)
+  expect_identical(validated_auto$execution$compiled$enabled, "auto")
+  expect_identical(validated_auto$execution$compiled$kernel_policy, "resistance_only")
+})
+
+test_that("portal validator rejects compiled backend with compiled disabled", {
+  plan <- portal_plan_default_v1()
+  plan$execution$backend <- "internal_ttr_compiled"
+  plan$execution$compiled$enabled <- "false"
+
+  expect_error(
+    validate_portal_plan_v1(plan),
+    class = "herbivoreTTR_portal_plan_invalid"
+  )
+})
+
+test_that("portal validator rejects unsupported compiled kernel policies", {
+  plan <- portal_plan_default_v1()
+  plan$execution$compiled$kernel_policy <- "unsupported_policy"
 
   expect_error(
     validate_portal_plan_v1(plan),

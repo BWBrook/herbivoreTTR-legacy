@@ -34,6 +34,11 @@ Required:
 - `execution.base_dir` (output root)
 - `execution.dry_run` (logical)
 - `execution.write_outputs` (logical)
+- `execution.backend` in `{internal_ttr, internal_ttr_compiled}`
+- `execution.compiled.enabled` in `{auto, true, false}` (logical also accepted)
+- `execution.compiled.kernel_policy` in `{resistance_only, all_available}`
+- `execution.compiled.strict` (logical)
+- `execution.compiled.verbose` (logical)
 - `execution.parallel.execution_mode` in `{auto, serial, multicore}`
 - `execution.parallel.hardware_tier` in `{auto, laptop, workstation, server}`
 - `execution.parallel.workers` (integer or null)
@@ -41,6 +46,18 @@ Required:
 
 Behavior:
 - `auto` parallel mode uses serial on CI and multicore locally.
+- `execution.backend` controls plant backend routing:
+  - `internal_ttr`: pure-R backend
+  - `internal_ttr_compiled`: compiled-capable backend (still fallback-safe)
+- `execution.compiled.enabled` resolves compiled request policy:
+  - `false`: force pure-R kernels
+  - `true`: request compiled kernels
+  - `auto`: request compiled kernels only when `execution.backend` is compiled
+- `execution.compiled.kernel_policy` selects which compiled kernels are requested:
+  - `resistance_only`: resistance kernel only
+  - `all_available`: resistance + minute-loop tastiness kernel
+- `execution.compiled.strict: true` fails early if requested compiled kernels are unavailable.
+- `execution.compiled.verbose: true` emits runtime config diagnostics in logs.
 - `hardware_tier` selects conservative default worker caps when `workers` is null:
   - `laptop`: up to 6 workers, reserve 1 core
   - `workstation`: up to 24 workers, reserve 2 cores
@@ -115,6 +132,18 @@ Standard index/manifest files:
 - `manifests/plan_resolved.yaml`
 - `tables/ecological_acceptance_summary.csv` (single mode) or
   `tables/sensitivity_ecological_acceptance_summary.csv` (sensitivity mode)
+
+Manifest runtime metadata:
+- `execution_context.backend_requested`
+- `execution_context.backend_used`
+- `execution_context.compiled_enabled`
+- `execution_context.compiled_kernel_policy`
+- `execution_context.compiled_ttr_requested`
+- `execution_context.compiled_minute_loop_requested`
+- `execution_context.compiled_last_engine`
+- `execution_context.compiled_minute_loop_last_engine`
+- `execution_context.parallel_mode`
+- `execution_context.parallel_hardware_tier`
 
 ## Error semantics
 

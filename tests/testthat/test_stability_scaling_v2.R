@@ -94,3 +94,33 @@ test_that("parallel benchmark helpers compute break-even and gate", {
   expect_true(all(gate_pass$pass))
   expect_false(all(gate_fail$pass))
 })
+
+test_that("compiled throughput appendix writes matrix and break-even artefacts", {
+  skip_on_cran()
+
+  profiles <- data.frame(
+    profile_id = c("tiny", "small"),
+    days = c(2L, 3L),
+    minute_limit = c(30L, 40L),
+    stringsAsFactors = FALSE
+  )
+  out <- run_compiled_throughput_appendix_v1(
+    base_dir = tempdir(),
+    scenario_slug = "compiled_throughput_test_v1",
+    size_profiles = profiles,
+    replicate_grid = c(1L, 2L),
+    modes = c("pure_r", "compiled_resistance"),
+    execution_mode = "serial",
+    reserve_cores = 0L,
+    min_speedup = 1.0,
+    seed_base = 9100L
+  )
+
+  expect_true(file.exists(out$matrix_path))
+  expect_true(file.exists(out$break_even_path))
+  expect_true(file.exists(out$speedup_plot_path))
+  expect_true(file.exists(out$report_path))
+  expect_true(file.exists(out$manifest_path))
+  expect_true(all(c("profile_id", "compiled_mode", "speedup_vs_pure") %in% names(out$throughput)))
+  expect_true(all(out$throughput$elapsed_seconds > 0))
+})

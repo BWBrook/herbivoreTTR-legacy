@@ -12,6 +12,9 @@ Start with:
 - `balanced_demo_template.yaml` for a short-horizon lower-stress demo.
 - `stress_demo_template.yaml` for an explicit high-stress contrast demo.
 - `sensitivity_template.yaml` for sensitivity analysis.
+- `laptop_safe_template.yaml` for conservative laptop-friendly runs.
+- `workstation_balanced_template.yaml` for a balanced multicore profile.
+- `throughput_max_template.yaml` for high-throughput hosts.
 
 ## 2. Edit the YAML only
 
@@ -19,6 +22,7 @@ You usually only change:
 - `plan_id`
 - scenario overrides under `scenario.overrides`
 - sensitivity settings under `sensitivity.parameters`
+- optional runtime controls under `execution.backend` and `execution.compiled`
 
 Keep `schema_version` unchanged.
 
@@ -50,7 +54,27 @@ Rscript portal/run_sensitivity.R portal/plans/templates/sensitivity_template.yam
 
 ### Runtime tuning by machine type
 
-In the YAML under `execution.parallel`:
+Use profile templates directly:
+
+- Laptop-safe:
+
+```bash
+Rscript portal/run_plan.R portal/plans/templates/laptop_safe_template.yaml
+```
+
+- Workstation-balanced:
+
+```bash
+Rscript portal/run_plan.R portal/plans/templates/workstation_balanced_template.yaml
+```
+
+- Throughput-max:
+
+```bash
+Rscript portal/run_plan.R portal/plans/templates/throughput_max_template.yaml
+```
+
+Or tune manually in the YAML under `execution.parallel`:
 
 - Laptop (<=8 cores): `hardware_tier: laptop`, `workers: null`, `reserve_cores: 1`
 - Workstation (9-32 cores): `hardware_tier: workstation`, `workers: null`, `reserve_cores: 2`
@@ -58,15 +82,25 @@ In the YAML under `execution.parallel`:
 
 Keep `execution_mode: auto` unless you need strict serial runs (`serial`) or fixed multicore behavior (`multicore`).
 
-### Optional compiled acceleration (resistance kernel)
+### Optional compiled acceleration (YAML-first)
 
-Default behavior remains pure R. To opt in for faster resistance calculations:
+Control compiled usage in YAML under `execution.compiled`:
 
-```bash
-HERBIVORETTR_USE_COMPILED_TTR=1 Rscript portal/run_plan.R portal/plans/templates/single_scenario_template.yaml
-```
+- `enabled: false` forces pure R.
+- `enabled: true` requests compiled kernels.
+- `enabled: auto` requests compiled kernels when `execution.backend: internal_ttr_compiled`.
+- `kernel_policy: resistance_only` requests compiled resistance kernel only.
+- `kernel_policy: all_available` requests resistance + minute-loop kernels.
+- `strict: true` fails early if requested compiled kernels are unavailable.
 
-If compilation is unavailable on the host, the run falls back to pure R automatically.
+Default safe recommendation for most users:
+- `execution.backend: internal_ttr_compiled`
+- `execution.compiled.enabled: auto`
+- `execution.compiled.kernel_policy: resistance_only`
+- `execution.compiled.strict: false`
+
+If compilation is unavailable, fallback metadata is recorded in
+`manifests/portal_run_manifest.json` under `execution_context`.
 
 ## 5. Inspect outputs
 
@@ -81,6 +115,12 @@ Key files:
 - `figures/*.png` (time, spatial, and comparison plots)
 - `reports/*.html` (run report)
 - `manifests/portal_run_manifest.json` (provenance)
+
+Check compiled/parallel runtime context in manifest fields:
+- `execution_context.backend_used`
+- `execution_context.compiled_last_engine`
+- `execution_context.compiled_minute_loop_last_engine`
+- `execution_context.parallel_mode`
 
 ## 6. Optional GUI
 

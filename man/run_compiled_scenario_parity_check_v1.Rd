@@ -10,7 +10,8 @@ run_compiled_scenario_parity_check_v1(
   days = 7L,
   minute_limit = 120L,
   seed = 4242L,
-  tolerance = 1e-12
+  tolerance = 1e-12,
+  kernel_policy = c("resistance_only", "all_available")
 )
 }
 \arguments{
@@ -25,6 +26,10 @@ run_compiled_scenario_parity_check_v1(
 \item{seed}{Deterministic seed for both runs.}
 
 \item{tolerance}{Maximum allowed absolute numeric delta.}
+
+\item{kernel_policy}{Compiled kernel scope for the compiled run:
+\code{"resistance_only"} keeps minute-loop logic in R, \code{"all_available"} enables
+all available compiled kernels.}
 }
 \value{
 List with parity summary and artefact paths.

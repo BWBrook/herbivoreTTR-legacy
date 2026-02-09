@@ -7,6 +7,12 @@ execution:
   base_dir: "artefacts/portal_runs"
   dry_run: false
   write_outputs: true
+  backend: "internal_ttr"
+  compiled:
+    enabled: "auto"
+    kernel_policy: "resistance_only"
+    strict: false
+    verbose: false
   parallel:
     execution_mode: "auto"
     hardware_tier: "auto"

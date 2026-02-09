@@ -71,12 +71,20 @@ A WP is done only when all are true:
 - [x] **WP-3.4.2 - Rcpp prototype (opt-in) with strict output parity checks**
 - [x] **WP-3.4.3 - Hardware-tier defaults + ecologist-facing runtime guidance**
 
+### Line 3.5.x - Compiled-path usability + throughput governance
+- [x] **WP-3.5.1 - YAML-first compiled controls in portal plans**
+- [x] **WP-3.5.2 - Second compiled prototype (`minute_loop_vector_kernel`) with parity harness**
+- [x] **WP-3.5.3 - Compiled on/off throughput appendix + break-even summary**
+- [x] **WP-3.5.4 - Conditional CI performance guardrails with baseline thresholds**
+- [x] **WP-3.5.5 - Ecologist runtime profiles + one-command execution recipes**
+
 ---
 
 ## 4) Milestone gates
 
 - **Milestone M3.3:** all `WP-3.3.x` complete
 - **Milestone M3.4:** all `WP-3.4.x` complete
+- **Milestone M3.5:** all `WP-3.5.x` complete
 
 At each milestone:
 1. local gates green (`test`, `lint`, `smoke`, `check`),
@@ -217,6 +225,86 @@ At each milestone:
 - Implemented and validated.
 - Hardware-tier default helpers now map `laptop/workstation/server` to conservative worker caps and reserve-core defaults.
 - Portal schema/docs/templates now include `execution.parallel.hardware_tier` guidance and explicit trade-off notes.
+
+---
+
+### WP-3.5.1 - YAML-first compiled controls in portal plans
+
+**Outcome**
+- Ecologists can control compiled runtime behavior exclusively through portal YAML, with no shell env-variable edits required.
+
+**Acceptance criteria**
+- Portal schema validates `execution.backend` plus `execution.compiled.*` fields.
+- Strict mode fails early when requested compiled kernels are unavailable.
+- Non-strict mode falls back to pure-R kernels with explicit manifest diagnostics.
+
+**Completion notes (2026-02-09)**
+- Implemented and validated.
+- Added `execution.backend` and `execution.compiled` controls (`enabled`, `kernel_policy`, `strict`, `verbose`) to schema, templates, docs, and manifest `execution_context`.
+
+---
+
+### WP-3.5.2 - Second compiled prototype (`minute_loop_vector_kernel`) with parity harness
+
+**Outcome**
+- Added optional compiled minute-loop tastiness kernel under explicit feature policy, with deterministic parity evidence.
+
+**Acceptance criteria**
+- Prototype remains opt-in only; defaults preserve pure-R behavior.
+- Kernel-level parity harness and fixed-seed scenario parity checks pass within tolerance.
+- Candidate ranking reports include both compiled prototype paths.
+
+**Completion notes (2026-02-09)**
+- Implemented and validated.
+- Added `compute_minute_loop_tastiness_kernel_v1()` and candidate parity harness outputs for `minute_loop_vector_kernel`.
+
+---
+
+### WP-3.5.3 - Compiled on/off throughput appendix + break-even summary
+
+**Outcome**
+- Added benchmark matrix and appendix artefacts comparing pure-R and compiled paths across scenario sizes and replicate counts.
+
+**Acceptance criteria**
+- Matrix includes elapsed/cpu/throughput plus speedup vs pure-R baseline.
+- Break-even table reports replicate threshold for each profile/mode.
+- Appendix report artefacts (CSV + plot + markdown + Quarto render notes) are reproducible.
+
+**Completion notes (2026-02-09)**
+- Implemented and validated.
+- New driver `run_compiled_throughput_appendix_v1()` writes matrix, break-even summary, speedup plot, report, and manifest under `artefacts/benchmarks/compiled_throughput_appendix_v1/`.
+
+---
+
+### WP-3.5.4 - Conditional CI performance guardrails with baseline thresholds
+
+**Outcome**
+- Added targeted PR-time guardrails for hotspot runtime regressions without slowing unrelated CI paths.
+
+**Acceptance criteria**
+- Baseline thresholds versioned in-repo.
+- CI triggers performance guard job only for relevant runtime/hotspot path changes.
+- Guard evaluator emits actionable metric-level pass/fail outputs.
+
+**Completion notes (2026-02-09)**
+- Implemented and validated.
+- Added `run_performance_guard_v1()`, baseline file `inst/benchmarks/perf_guard_baseline_v1.csv`, and conditional `Performance guard` CI job.
+
+---
+
+### WP-3.5.5 - Ecologist runtime profiles + one-command execution recipes
+
+**Outcome**
+- Added explicit no-code runtime profiles and one-command examples for common hardware tiers.
+
+**Acceptance criteria**
+- Profile templates provided for laptop-safe, workstation-balanced, and throughput-max workflows.
+- Quickstart/portal docs include copy-paste commands and tradeoff explanations.
+- Profile templates validate under portal schema.
+
+**Completion notes (2026-02-09)**
+- Implemented and validated.
+- Added `laptop_safe_template.yaml`, `workstation_balanced_template.yaml`, and `throughput_max_template.yaml` plus updated quickstart/portal workflow docs.
 
 ---
 

@@ -60,7 +60,8 @@ run_single_ensemble_seed_v1 <- function(seed_index,
                                         parent_slug,
                                         ensemble_label,
                                         base_dir,
-                                        write_outputs) {
+                                        write_outputs,
+                                        plant_backend = "internal_ttr") {
   seed_value <- as.integer(seed_vec[[seed_index]])
   replicate_slug <- file.path(parent_slug, ensemble_label, sprintf("seed_%03d", seed_value))
 
@@ -71,7 +72,8 @@ run_single_ensemble_seed_v1 <- function(seed_index,
   run_result <- run_scenario_v1(
     scenario = replicate_scenario,
     base_dir = base_dir,
-    write_outputs = write_outputs
+    write_outputs = write_outputs,
+    plant_backend = plant_backend
   )
 
   list(
@@ -103,6 +105,8 @@ run_single_ensemble_seed_v1 <- function(seed_index,
 #' @param execution_mode Execution mode (`auto`, `serial`, or `multicore`).
 #' @param workers Optional worker count override.
 #' @param reserve_cores Number of CPU cores to keep free on the host.
+#' @param plant_backend Plant backend name or backend interface list passed
+#'   through to each scenario replicate.
 #'
 #' @return List with seed manifest, replicate summary, ensemble summary, and
 #'   optional written file paths.
@@ -113,12 +117,14 @@ run_scenario_ensemble_v1 <- function(scenario,
                                      write_outputs = TRUE,
                                      execution_mode = c("auto", "serial", "multicore"),
                                      workers = NULL,
-                                     reserve_cores = 1L) {
+                                     reserve_cores = 1L,
+                                     plant_backend = "internal_ttr") {
   validated <- if (is.character(scenario)) {
     compile_scenario_yaml(scenario)
   } else {
     validate_scenario_v1(scenario)
   }
+  backend <- resolve_plant_backend(plant_backend)
 
   seed_vec <- normalise_ensemble_seeds(seeds)
   parent_slug <- validated$outputs$scenario_slug
@@ -139,7 +145,8 @@ run_scenario_ensemble_v1 <- function(scenario,
         parent_slug = parent_slug,
         ensemble_label = ensemble_label,
         base_dir = base_dir,
-        write_outputs = write_outputs
+        write_outputs = write_outputs,
+        plant_backend = backend
       )
     },
     execution_plan = plan
@@ -183,6 +190,7 @@ run_scenario_ensemble_v1 <- function(scenario,
       parent_slug = parent_slug,
       ensemble_label = ensemble_label,
       seeds = seed_vec,
+      plant_backend = backend$name,
       execution_mode_requested = plan$execution_mode_requested,
       execution_mode_resolved = plan$execution_mode_resolved,
       workers_used = plan$workers_used

@@ -14,6 +14,13 @@ portal_plan_default_v1 <- function() {
       base_dir = file.path("artefacts", "portal_runs"),
       dry_run = FALSE,
       write_outputs = TRUE,
+      backend = "internal_ttr",
+      compiled = list(
+        enabled = "auto",
+        kernel_policy = "resistance_only",
+        strict = FALSE,
+        verbose = FALSE
+      ),
       parallel = list(
         execution_mode = "auto",
         hardware_tier = "auto",
@@ -136,6 +143,31 @@ portal_parse_integer_scalar_or_null_v1 <- function(x,
     )
   }
   as.integer(x)
+}
+
+portal_parse_compiled_enabled_v1 <- function(x,
+                                             field = "execution.compiled.enabled") {
+  if (is.null(x)) {
+    return("auto")
+  }
+
+  if (is.logical(x) && length(x) == 1L && !is.na(x)) {
+    return(if (isTRUE(x)) "true" else "false")
+  }
+
+  if (is.character(x) && length(x) == 1L && !is.na(x)) {
+    value <- tolower(trimws(x))
+    if (value %in% c("auto", "true", "false")) {
+      return(value)
+    }
+  }
+
+  portal_abort_v1(
+    sprintf("Field `%s` must be one of `auto`, `true`, `false` (or logical).", field),
+    class = "herbivoreTTR_portal_plan_invalid",
+    field = field,
+    value = x
+  )
 }
 
 portal_is_integer_token_v1 <- function(token) {
@@ -581,6 +613,54 @@ validate_portal_plan_v1 <- function(plan) {
   plan$execution$base_dir <- portal_parse_character_scalar_v1(plan$execution$base_dir, "execution.base_dir")
   plan$execution$dry_run <- portal_parse_logical_scalar_v1(plan$execution$dry_run, FALSE, "execution.dry_run")
   plan$execution$write_outputs <- portal_parse_logical_scalar_v1(plan$execution$write_outputs, TRUE, "execution.write_outputs")
+  plan$execution$backend <- match.arg(
+    portal_parse_character_scalar_v1(plan$execution$backend, "execution.backend"),
+    choices = c("internal_ttr", "internal_ttr_compiled")
+  )
+
+  if (is.null(plan$execution$compiled)) {
+    plan$execution$compiled <- list()
+  }
+  if (!is.list(plan$execution$compiled)) {
+    portal_abort_v1(
+      "Field `execution.compiled` must be a list.",
+      class = "herbivoreTTR_portal_plan_invalid"
+    )
+  }
+  plan$execution$compiled$enabled <- portal_parse_compiled_enabled_v1(plan$execution$compiled$enabled)
+  kernel_policy <- portal_parse_character_scalar_v1(
+    plan$execution$compiled$kernel_policy,
+    "execution.compiled.kernel_policy"
+  )
+  allowed_kernel_policy <- c("resistance_only", "all_available")
+  if (!kernel_policy %in% allowed_kernel_policy) {
+    portal_abort_v1(
+      "Field `execution.compiled.kernel_policy` contains unsupported value.",
+      class = "herbivoreTTR_portal_plan_invalid",
+      kernel_policy = kernel_policy,
+      allowed = allowed_kernel_policy
+    )
+  }
+  plan$execution$compiled$kernel_policy <- kernel_policy
+  plan$execution$compiled$strict <- portal_parse_logical_scalar_v1(
+    plan$execution$compiled$strict,
+    FALSE,
+    "execution.compiled.strict"
+  )
+  plan$execution$compiled$verbose <- portal_parse_logical_scalar_v1(
+    plan$execution$compiled$verbose,
+    FALSE,
+    "execution.compiled.verbose"
+  )
+  if (identical(plan$execution$backend, "internal_ttr_compiled") &&
+      identical(plan$execution$compiled$enabled, "false")) {
+    portal_abort_v1(
+      "Compiled backend cannot be combined with `execution.compiled.enabled: false`.",
+      class = "herbivoreTTR_portal_plan_invalid",
+      backend = plan$execution$backend,
+      compiled_enabled = plan$execution$compiled$enabled
+    )
+  }
 
   if (!is.list(plan$execution$parallel)) {
     portal_abort_v1(

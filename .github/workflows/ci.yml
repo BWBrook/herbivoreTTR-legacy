@@ -24,6 +24,7 @@ jobs:
       r_cmd_check: ${{ steps.filter.outputs.r_cmd_check }}
       tests: ${{ steps.filter.outputs.tests }}
       lint: ${{ steps.filter.outputs.lint }}
+      performance_guard: ${{ steps.filter.outputs.performance_guard }}
       targets_smoke_fast: ${{ steps.filter.outputs.targets_smoke_fast }}
       targets_smoke_deep: ${{ steps.filter.outputs.targets_smoke_deep }}
     steps:
@@ -60,6 +61,19 @@ jobs:
               - "tests/**"
               - "inst/**"
               - "vignettes/**"
+              - "renv.lock"
+              - "Makefile"
+              - ".github/workflows/**"
+            performance_guard:
+              - "DESCRIPTION"
+              - "R/ttr_daily.R"
+              - "R/calc_plant_tastiness.R"
+              - "R/compiled_ttr_kernel_v1.R"
+              - "R/compiled_candidate_selection_v1.R"
+              - "R/performance_guard_v1.R"
+              - "tests/testthat/test_performance_sentinel_v3.R"
+              - "tests/testthat/test_performance_guard_v1.R"
+              - "inst/benchmarks/perf_guard_baseline_v1.csv"
               - "renv.lock"
               - "Makefile"
               - ".github/workflows/**"
@@ -185,6 +199,28 @@ jobs:
 
       - name: Lint package
         run: make lint
+
+  performance-guard:
+    name: Performance guard
+    needs: changes
+    if: needs.changes.outputs.performance_guard == 'true'
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      - name: Install Linux system dependencies
+        run: sudo apt-get update && sudo apt-get install -y libglpk40
+
+      - uses: r-lib/actions/setup-renv@v2
+
+      - name: Run performance guard tests
+        run: R -q -e "testthat::test_dir('tests/testthat', filter='performance_guard_v1|performance_sentinel_v3')"
 
   targets-smoke-fast:
     name: Targets smoke (fast)
