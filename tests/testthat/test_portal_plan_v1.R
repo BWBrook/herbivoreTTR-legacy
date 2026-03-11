@@ -1,4 +1,4 @@
-test_that("portal templates compile with v1 schema", {
+test_that("portal templates compile with v2 schema", {
   repo_root <- scenario_find_repo_root(getwd())
   skip_if(is.null(repo_root), "Repository root not available in this test context.")
   template_dir <- file.path(repo_root, "portal", "plans", "templates")
@@ -7,7 +7,7 @@ test_that("portal templates compile with v1 schema", {
 
   for (plan_path in template_paths) {
     plan <- compile_portal_plan_yaml(plan_path)
-    expect_identical(plan$schema_version, portal_plan_schema_version_v1())
+    expect_identical(plan$schema_version, portal_plan_schema_version_v2())
     expect_identical(plan$scenario$source, "reference")
     expect_true(is.list(plan$scenario$overrides))
     expect_true(plan$execution$backend %in% c("internal_ttr", "internal_ttr_compiled"))
@@ -34,7 +34,7 @@ test_that("sensitivity template keeps parameter blocks after default merge", {
 })
 
 test_that("portal validator rejects unsupported schema versions", {
-  plan <- portal_plan_default_v1()
+  plan <- portal_plan_default_v2()
   plan$schema_version <- "9.9.9"
 
   expect_error(
@@ -44,7 +44,7 @@ test_that("portal validator rejects unsupported schema versions", {
 })
 
 test_that("portal validator enforces supported acceptance profiles", {
-  plan <- portal_plan_default_v1()
+  plan <- portal_plan_default_v2()
   plan$outputs$acceptance_profile <- "unsupported_profile"
 
   expect_error(
@@ -54,7 +54,7 @@ test_that("portal validator enforces supported acceptance profiles", {
 })
 
 test_that("portal validator parses compiled execution controls", {
-  plan <- portal_plan_default_v1()
+  plan <- portal_plan_default_v2()
   plan$execution$compiled$enabled <- TRUE
   validated_true <- validate_portal_plan_v1(plan)
   expect_identical(validated_true$execution$compiled$enabled, "true")
@@ -70,7 +70,7 @@ test_that("portal validator parses compiled execution controls", {
 })
 
 test_that("portal validator rejects compiled backend with compiled disabled", {
-  plan <- portal_plan_default_v1()
+  plan <- portal_plan_default_v2()
   plan$execution$backend <- "internal_ttr_compiled"
   plan$execution$compiled$enabled <- "false"
 
@@ -81,7 +81,7 @@ test_that("portal validator rejects compiled backend with compiled disabled", {
 })
 
 test_that("portal validator rejects unsupported compiled kernel policies", {
-  plan <- portal_plan_default_v1()
+  plan <- portal_plan_default_v2()
   plan$execution$compiled$kernel_policy <- "unsupported_policy"
 
   expect_error(
@@ -110,7 +110,7 @@ test_that("scenario overrides update known fields and reject unknown paths", {
 })
 
 test_that("one-at-a-time sensitivity expansion builds deterministic run specs", {
-  plan <- portal_plan_default_v1()
+  plan <- portal_plan_default_v2()
   plan$execution$mode <- "sensitivity"
   plan$scenario$source <- "reference"
   plan$scenario$reference <- "canonical_smoke_v1"

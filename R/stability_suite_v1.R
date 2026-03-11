@@ -1,8 +1,8 @@
 # Long-horizon stability suite for post-1.0 reliability checks.
 
 build_stability_scenarios_v1 <- function(days = 365L, minute_limit = 120L) {
-  canonical <- compile_scenario_yaml(scenario_contract_reference_path("canonical_smoke_v1"))
-  aridity_high <- compile_scenario_yaml(scenario_contract_reference_path("reference_aridity_high_v1"))
+  canonical <- compile_scenario_yaml_v2(scenario_contract_reference_path("canonical_smoke_v1"))
+  aridity_high <- compile_scenario_yaml_v2(scenario_contract_reference_path("reference_aridity_high_v1"))
 
   make_variant <- function(base, scenario_id, slug, forage_access_scale = 1, minute_limit_override = minute_limit) {
     out <- base
@@ -61,7 +61,7 @@ run_stability_job_v1 <- function(job_row, scenario_base, base_dir) {
     sprintf("%s_seed_%03d", job_row$scenario_name[[1]], scenario$runtime$seed)
   )
 
-  run <- run_scenario_v1(scenario = scenario, base_dir = base_dir)
+  run <- run_scenario_v2(scenario = scenario, base_dir = base_dir)
   herb <- run$herbivore_daily
 
   nan_inf_count <- count_non_finite_values(herb) + count_non_finite_values(run$structure_fuel_metrics)

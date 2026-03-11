@@ -1,43 +1,7 @@
 test_that("parity snapshots stay in sync with pipeline outputs", {
   skip_on_cran()
   withr::local_envvar(TARGETS_PROGRESS = "false")
-  find_targets_script <- function() {
-    find_up <- function(filename, start = getwd()) {
-      dir <- normalizePath(start, winslash = "/", mustWork = TRUE)
-      for (i in 0:10) {
-        candidate <- file.path(dir, filename)
-        if (file.exists(candidate)) return(candidate)
-        parent <- dirname(dir)
-        if (identical(parent, dir)) break
-        dir <- parent
-      }
-      NA_character_
-    }
-
-    find_check_root <- function(start = getwd()) {
-      dir <- normalizePath(start, winslash = "/", mustWork = TRUE)
-      for (i in 0:10) {
-        if (dir.exists(file.path(dir, "00_pkg_src"))) return(dir)
-        parent <- dirname(dir)
-        if (identical(parent, dir)) break
-        dir <- parent
-      }
-      NA_character_
-    }
-
-    candidates <- c(
-      find_up("_targets.R"),
-      file.path(find_check_root(), "00_pkg_src", "herbivoreTTR", "_targets.R")
-    )
-    candidates <- unique(candidates[!is.na(candidates) & nzchar(candidates)])
-    script <- candidates[file.exists(candidates)][1]
-    if (is.na(script) || !nzchar(script)) {
-      stop("Unable to locate '_targets.R' for parity test.")
-    }
-    normalizePath(script, winslash = "/", mustWork = TRUE)
-  }
-
-  script <- tryCatch(find_targets_script(), error = function(e) NA_character_)
+  script <- tryCatch(find_targets_script_for_tests(), error = function(e) NA_character_)
   if (is.na(script) || !nzchar(script) || !file.exists(script)) {
     testthat::skip("Parity test requires a source checkout with '_targets.R'.")
   }

@@ -20,7 +20,7 @@ list(
     scenario_contract_reference_path("canonical_smoke_v1"),
     format = "file"
   ),
-  targets::tar_target(canonical_scenario, compile_scenario_yaml(canonical_scenario_yaml_path)),
+  targets::tar_target(canonical_scenario, compile_scenario_yaml_v2(canonical_scenario_yaml_path)),
   targets::tar_target(canonical_seed, canonical_scenario$runtime$seed),
   targets::tar_target(canonical_scenario_slug, canonical_scenario$outputs$scenario_slug),
   targets::tar_target(canonical_run_id, build_run_id(canonical_scenario_slug, canonical_seed, canonical_scenario)),
@@ -274,15 +274,15 @@ list(
     scenario_contract_reference_path("cohort_smoke_v1"),
     format = "file"
   ),
-  targets::tar_target(cohort_scenario, compile_scenario_yaml(cohort_scenario_yaml_path)),
+  targets::tar_target(cohort_scenario, compile_scenario_yaml_v2(cohort_scenario_yaml_path)),
   targets::tar_target(
     cohort_bundle_files,
     {
-      out <- run_scenario_v1(cohort_scenario, base_dir = file.path("artefacts", "canonical_runs"))
+      out <- run_scenario_v2(cohort_scenario, base_dir = file.path("artefacts", "canonical_runs"))
       c(
         out$plants_first_path,
         out$plants_last_path,
-        out$herbivore_daily_path,
+        out$daily_output_path,
         out$structure_fuel_path,
         out$manifest_path
       )
@@ -295,15 +295,15 @@ list(
     scenario_contract_reference_path("implicit_stocking_v1"),
     format = "file"
   ),
-  targets::tar_target(implicit_scenario, compile_scenario_yaml(implicit_scenario_yaml_path)),
+  targets::tar_target(implicit_scenario, compile_scenario_yaml_v2(implicit_scenario_yaml_path)),
   targets::tar_target(
     implicit_bundle_files,
     {
-      out <- run_scenario_v1(implicit_scenario, base_dir = file.path("artefacts", "canonical_runs"))
+      out <- run_scenario_v2(implicit_scenario, base_dir = file.path("artefacts", "canonical_runs"))
       files <- c(
         out$plants_first_path,
         out$plants_last_path,
-        out$herbivore_daily_path,
+        out$daily_output_path,
         out$structure_fuel_path,
         out$manifest_path
       )

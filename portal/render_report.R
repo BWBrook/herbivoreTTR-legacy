@@ -7,14 +7,9 @@ if (length(args) < 1L || args[[1]] %in% c("-h", "--help")) {
 }
 
 full_args <- commandArgs(trailingOnly = FALSE)
-file_arg <- grep("^--file=", full_args, value = TRUE)
-script_path <- normalizePath(sub("^--file=", "", file_arg[[1]]), winslash = "/", mustWork = TRUE)
-repo_root <- normalizePath(file.path(dirname(script_path), ".."), winslash = "/", mustWork = TRUE)
-setwd(repo_root)
-
-for (f in list.files(file.path(repo_root, "R"), pattern = "[.]R$", full.names = TRUE)) {
-  sys.source(f, envir = globalenv())
-}
+script_path <- normalizePath(sub("^--file=", "", grep("^--file=", full_args, value = TRUE)[[1]]), winslash = "/", mustWork = TRUE)
+source(file.path(dirname(script_path), "bootstrap_runtime.R"), local = TRUE)
+repo_root <- portal_bootstrap_runtime_v1(start = dirname(script_path), envir = globalenv())
 
 run_dir <- args[[1]]
 formats <- if (length(args) >= 2L) strsplit(args[[2]], ",", fixed = TRUE)[[1]] else c("html")

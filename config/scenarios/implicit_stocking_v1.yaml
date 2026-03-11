@@ -1,4 +1,4 @@
-schema_version: "1.0.0"
+schema_version: "2.0.0"
 scenario_id: "implicit_stocking_v1"
 runtime:
   seed: 12
@@ -17,8 +17,8 @@ climate:
   sw_scale: 1
   n_scale: 1
 population:
-  mode: "implicit_representative"
-  representative:
+  mode: "implicit_pressure"
+  template_herbivore:
     herbivore_id: "representative_grazer"
     mass_g: 500000
     herb_type: 0

@@ -2,6 +2,33 @@
 
 All notable changes in this module are documented here.
 
+## [2.0.0] - 2026-03-11
+
+### Added
+- Scenario contract v2 primary entrypoints:
+  - `validate_scenario_v2()`
+  - `compile_scenario_yaml_v2()`
+  - `run_scenario_v2()`
+- New implicit-pressure daily output semantics for scenario bundles:
+  - `pressure_daily.csv`
+  - manifest field `daily_output_kind`
+- New v2 contract/governance docs:
+  - `docs/contracts/scenario_contract_v2.md`
+  - `docs/contracts/portal_plan_contract_v2.md`
+  - `docs/contracts/scenario_run_output_contract_v2.md`
+  - `docs/governance/api_surface_v2.md`
+  - `docs/guides/scenario_v2_migration.md`
+
+### Changed
+- First-party scenario YAMLs now use `schema_version: "2.0.0"`.
+- Implicit population mode has been redefined from `implicit_representative` to `implicit_pressure`.
+- Portal plan templates now use `schema_version: "2.0.0"`.
+- Portal single/sensitivity summaries and figures now branch on `daily_output_kind` so implicit pressure runs are reported without faux individual physiology.
+- First-party examples and targets now run through the v2 scenario surface.
+
+### Removed
+- Implicit-mode `herbivore_daily.csv` as a first-party output. Implicit pressure runs now write `pressure_daily.csv`.
+
 ## [1.1.0] - 2026-02-07
 
 ### Added

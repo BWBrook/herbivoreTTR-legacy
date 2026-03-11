@@ -120,6 +120,8 @@ build_run_id <- function(scenario_slug, seed, scenario_parameters = list()) {
 #' @param scenario_parameters List of scenario parameters.
 #' @param output_files Named character vector of relative output paths.
 #' @param run_id Optional deterministic run id. When NULL, generated automatically.
+#' @param daily_output_kind Optional daily output semantic kind (`explicit_individual`
+#'   or `implicit_pressure`) for scenario-run bundles.
 #' @param created_utc UTC timestamp in ISO-8601-like format.
 #' @return Named list suitable for JSON serialization.
 #' @keywords internal
@@ -129,6 +131,7 @@ build_run_manifest <- function(scenario_slug,
                                scenario_parameters,
                                output_files,
                                run_id = NULL,
+                               daily_output_kind = NULL,
                                created_utc = format(
                                  Sys.time(),
                                  "%Y-%m-%dT%H:%M:%SZ",
@@ -183,7 +186,7 @@ build_run_manifest <- function(scenario_slug,
     names(output_files)
   )
 
-  list(
+  manifest <- list(
     schema_version = output_schema_version(),
     run_id = run_id,
     package_version = resolve_package_version(),
@@ -194,6 +197,12 @@ build_run_manifest <- function(scenario_slug,
     outputs = outputs,
     created_utc = created_utc
   )
+
+  if (!is.null(daily_output_kind)) {
+    manifest$daily_output_kind <- as.character(daily_output_kind)
+  }
+
+  manifest
 }
 
 #' Write a run manifest JSON to disk

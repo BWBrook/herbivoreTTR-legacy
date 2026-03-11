@@ -343,7 +343,7 @@ portal_collect_override_leaf_paths_v1 <- function(x,
 portal_apply_scenario_overrides_v1 <- function(scenario,
                                                overrides) {
   if (is.null(overrides) || (is.list(overrides) && length(overrides) < 1L)) {
-    return(validate_scenario_v1(scenario))
+    return(validate_scenario_v2(scenario))
   }
   if (!is.list(overrides)) {
     portal_abort_v1(
@@ -359,7 +359,7 @@ portal_apply_scenario_overrides_v1 <- function(scenario,
     out <- portal_set_path_v1(out, path = path, value = leaves[[path]])
   }
 
-  validate_scenario_v1(out)
+  validate_scenario_v2(out)
 }
 
 portal_value_string_v1 <- function(x) {

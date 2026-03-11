@@ -7,13 +7,41 @@ release_candidate_label_v2 <- function(version = resolve_package_version()) {
   sprintf("v%s", version)
 }
 
+release_bundle_docs_v2 <- function() {
+  c(
+    "README.md",
+    "CHANGELOG.md",
+    file.path("docs", "roadmap_v2.md"),
+    file.path("docs", "contracts", "scenario_contract_v2.md"),
+    file.path("docs", "contracts", "scenario_run_output_contract_v2.md"),
+    file.path("docs", "contracts", "observational_data_contract_v1.md"),
+    file.path("docs", "contracts", "portal_plan_contract_v2.md"),
+    file.path("docs", "release_checklist.md"),
+    file.path("docs", "workflow.md"),
+    file.path("docs", "guides", "scenario_v2_migration.md"),
+    file.path("docs", "governance", "api_surface_v2.md"),
+    file.path("reports", "paper_pipeline_v2.qmd")
+  )
+}
+
+release_bundle_output_dirs_v2 <- function() {
+  c(
+    file.path("artefacts", "canonical_runs", "experiment_a_presence_removal_v2"),
+    file.path("artefacts", "canonical_runs", "experiment_c_aridity_gradient_v2"),
+    file.path("artefacts", "validation", "pilot_benchmark_v1"),
+    file.path("artefacts", "stability", "long_horizon_v1"),
+    file.path("artefacts", "benchmarks", "post_v1_scaling_v2"),
+    file.path("artefacts", "reports_v2")
+  )
+}
+
 release_expected_outputs_v2 <- function() {
   c(
     file.path("artefacts", "canonical_runs", "experiment_a_presence_removal_v2", "experiment_a_summary_v2.csv"),
     file.path("artefacts", "canonical_runs", "experiment_c_aridity_gradient_v2", "experiment_c_summary_v2.csv"),
     file.path("artefacts", "validation", "pilot_benchmark_v1", "pilot_metrics_summary_v1.csv"),
     file.path("artefacts", "stability", "long_horizon_v1", "stability_summary_v1.csv"),
-    file.path("artefacts", "benchmarks", "post_v1_scaling_v1", "scaling_summary_v1.csv"),
+    file.path("artefacts", "benchmarks", "post_v1_scaling_v2", "scaling_summary_v1.csv"),
     file.path("artefacts", "reports_v2", "paper_pipeline_v2.html"),
     file.path("artefacts", "reports_v2", "figure_table_manifest_v2.csv")
   )
@@ -25,6 +53,7 @@ run_release_reference_suite_v2 <- function() {
   run_pilot_validation_benchmark_v1()
   run_long_horizon_stability_suite_v1(days = 120L, seeds = 801:804)
   run_post_v1_scaling_profile(
+    scenario_slug = "post_v1_scaling_v2",
     ensemble_seeds = 1:12,
     stability_days = 40L,
     stability_seeds = 1:3,
@@ -94,28 +123,13 @@ build_release_bundle_v2 <- function(release_label = NULL,
 
   tarball_copy <- copy_release_file_v1(tarball, file.path(package_dir, basename(tarball)))
 
-  docs_to_copy <- c(
-    "README.md",
-    "CHANGELOG.md",
-    file.path("docs", "roadmap_v2.md"),
-    file.path("docs", "observational_data_contract_v1.md"),
-    file.path("docs", "release_checklist.md"),
-    file.path("docs", "workflow.md"),
-    file.path("reports", "paper_pipeline_v2.qmd")
-  )
+  docs_to_copy <- release_bundle_docs_v2()
   copied_docs <- character(length(docs_to_copy))
   for (i in seq_along(docs_to_copy)) {
     copied_docs[[i]] <- copy_release_file_v1(docs_to_copy[[i]], file.path(docs_dir, basename(docs_to_copy[[i]])))
   }
 
-  output_dirs <- c(
-    file.path("artefacts", "canonical_runs", "experiment_a_presence_removal_v2"),
-    file.path("artefacts", "canonical_runs", "experiment_c_aridity_gradient_v2"),
-    file.path("artefacts", "validation", "pilot_benchmark_v1"),
-    file.path("artefacts", "stability", "long_horizon_v1"),
-    file.path("artefacts", "benchmarks", "post_v1_scaling_v1"),
-    file.path("artefacts", "reports_v2")
-  )
+  output_dirs <- release_bundle_output_dirs_v2()
   copied_outputs <- vapply(
     normalizePath(output_dirs, winslash = "/", mustWork = TRUE),
     copy_release_dir_v1,

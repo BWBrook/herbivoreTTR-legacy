@@ -67,9 +67,9 @@ release_expected_run_slugs_v1 <- function() {
 }
 
 run_release_reference_suite_v1 <- function(base_dir = file.path("artefacts", "canonical_runs")) {
-  canonical <- run_scenario_v1(scenario_contract_reference_path("canonical_smoke_v1"), base_dir = base_dir)
-  cohort <- run_scenario_v1(scenario_contract_reference_path("cohort_smoke_v1"), base_dir = base_dir)
-  implicit <- run_scenario_v1(scenario_contract_reference_path("implicit_stocking_v1"), base_dir = base_dir)
+  canonical <- run_scenario_v2(scenario_contract_reference_path("canonical_smoke_v1"), base_dir = base_dir)
+  cohort <- run_scenario_v2(scenario_contract_reference_path("cohort_smoke_v1"), base_dir = base_dir)
+  implicit <- run_scenario_v2(scenario_contract_reference_path("implicit_stocking_v1"), base_dir = base_dir)
 
   reference <- run_reference_scenario_library(base_dir = base_dir)
   exp_a <- run_experiment_a_presence_removal(base_dir = base_dir)

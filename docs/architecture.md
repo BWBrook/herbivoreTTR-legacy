@@ -6,30 +6,30 @@
 It now supports three population execution modes behind a shared scenario contract:
 - `explicit_single`
 - `explicit_cohort`
-- `implicit_representative`
+- `implicit_pressure`
 
 Public API freeze status:
-- Scenario-first v1 entrypoints are now the primary stable user surface.
-- Full export inventory is documented in `docs/governance/api_surface_v1.md`.
+- Scenario-first v2 entrypoints are now the primary stable user surface.
+- Full export inventory is documented in `docs/governance/api_surface_v2.md`.
 - Deprecation and compatibility guarantees are documented in `docs/governance/deprecation_policy.md`.
 
 Canonical execution path:
-1. Compile scenario YAML (`compile_scenario_yaml()`).
-2. Validate and normalize (`validate_scenario_v1()`).
+1. Compile scenario YAML (`compile_scenario_yaml_v2()`).
+2. Validate and normalize (`validate_scenario_v2()`).
 3. Build conditions and initial state.
 4. Run daily coupling loops.
 5. Emit schema-versioned outputs + run manifest.
 
 ## Scenario Contract Boundary
 
-Scenario contract v1 (`schema_version = 1.0.0`) is the run-entry boundary.
-See `docs/contracts/scenario_contract_v1.md`.
+Scenario contract v2 (`schema_version = 2.0.0`) is the primary run-entry boundary.
+See `docs/contracts/scenario_contract_v2.md`.
 
 Core scenario sections:
 - `runtime`: seed, minute budget, day range.
 - `plot`: geometry + vegetation composition.
 - `climate`: forcing mode and scaling controls.
-- `population`: explicit cohort or implicit representative semantics.
+- `population`: explicit cohort or implicit pressure semantics.
 - `outputs`: scenario slug for artefact layout.
 
 Reference scenario files:
@@ -94,25 +94,30 @@ This boundary allows optional benchmark backends without changing herbivore orch
 - shared plant state updated sequentially within day
 - one growth step per day before first herbivore
 
-### Implicit Representative Mode
+### Implicit Pressure Mode
 
-`run_daily_implicit_representative()`:
+`run_daily_implicit_pressure_v2()`:
 - computes effective visits from:
   - stocking density (`per km2`)
   - plot area
   - visitation rate
 - executes full + fractional representative visits deterministically
-- outputs explicit visitation metadata for interpretation
+- emits pressure-only daily outputs plus explicit visitation metadata for interpretation
 
 ## Output Contracts
 
-Current canonical output schema: `1.0.0`.
+Low-level snapshot contract remains `1.0.0` for parity-oriented `plants_day*.csv`
+and `herb_day*.csv`.
 See `docs/contracts/output_contract_v1.md`.
+
+Scenario-run bundle semantics are versioned separately in
+`docs/contracts/scenario_run_output_contract_v2.md`.
 
 Key requirements:
 - `RunID` on plant/herbivore outputs
 - `HerbivoreID` on herbivore outputs
 - `run_id` in manifest
+- `daily_output_kind` in run manifests
 - deterministic run-id generation via `build_run_id()`
 
 Derived structure/fuel metrics:

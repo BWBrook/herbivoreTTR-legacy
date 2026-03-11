@@ -1,4 +1,4 @@
-schema_version: "1.0.0"
+schema_version: "2.0.0"
 scenario_id: "reference_presence_removed_v1"
 runtime:
   seed: 301
@@ -31,8 +31,8 @@ climate:
   sw_scale: 1
   n_scale: 1
 population:
-  mode: "implicit_representative"
-  representative:
+  mode: "implicit_pressure"
+  template_herbivore:
     herbivore_id: "removed_rep"
     mass_g: 500000
     herb_type: 0

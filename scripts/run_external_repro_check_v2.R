@@ -54,7 +54,7 @@ steps <- list(
       "run_experiment_c_aridity_gradient_v2(seeds = 701:706);",
       "run_pilot_validation_benchmark_v1();",
       "run_long_horizon_stability_suite_v1(days = 90L, seeds = 801:803);",
-      "run_post_v1_scaling_profile(ensemble_seeds = 1:8, stability_days = 30L, stability_seeds = 1:2)"
+      "run_post_v1_scaling_profile(scenario_slug = 'post_v1_scaling_v2', ensemble_seeds = 1:8, stability_days = 30L, stability_seeds = 1:2)"
     ),
     env
   ),
@@ -68,7 +68,7 @@ steps <- list(
       "'artefacts/canonical_runs/experiment_c_aridity_gradient_v2/experiment_c_claims_v2.csv',",
       "'artefacts/stability/long_horizon_v1/stability_summary_v1.csv',",
       "'artefacts/validation/pilot_benchmark_v1/pilot_metrics_summary_v1.csv',",
-      "'artefacts/benchmarks/post_v1_scaling_v1/scaling_summary_v1.csv');",
+      "'artefacts/benchmarks/post_v1_scaling_v2/scaling_summary_v1.csv');",
       "missing <- required[!file.exists(required)];",
       "if (length(missing)) stop(paste('Missing required v2 artefacts:', paste(missing, collapse = ', ')));",
       "a <- utils::read.csv('artefacts/canonical_runs/experiment_a_presence_removal_v2/experiment_a_summary_v2.csv', stringsAsFactors = FALSE);",

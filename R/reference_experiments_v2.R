@@ -104,9 +104,9 @@ run_experiment_a_presence_removal_v2 <- function(base_dir = file.path("artefacts
                                                  seeds = 301:330,
                                                  scenario_slug = "experiment_a_presence_removal_v2",
                                                  gate_claims = TRUE) {
-  present_base <- compile_scenario_yaml(scenario_contract_reference_path("reference_presence_present_v1"))
-  removal_base <- compile_scenario_yaml(scenario_contract_reference_path("reference_presence_removed_v1"))
-  validate_paired_contrast_parity(present_base, removal_base)
+  present_base <- compile_scenario_yaml_v2(scenario_contract_reference_path("reference_presence_present_v1"))
+  removal_base <- compile_scenario_yaml_v2(scenario_contract_reference_path("reference_presence_removed_v1"))
+  validate_paired_contrast_parity_v2(present_base, removal_base)
 
   seed_vec <- normalise_ensemble_seeds(seeds)
   run_rows <- vector("list", length(seed_vec))
@@ -122,8 +122,8 @@ run_experiment_a_presence_removal_v2 <- function(base_dir = file.path("artefacts
     removal_scenario$runtime$seed <- seed
     removal_scenario$outputs$scenario_slug <- file.path(scenario_slug, sprintf("removal_seed_%03d", seed))
 
-    present_run <- run_scenario_v1(present_scenario, base_dir = base_dir)
-    removal_run <- run_scenario_v1(removal_scenario, base_dir = base_dir)
+    present_run <- run_scenario_v2(present_scenario, base_dir = base_dir)
+    removal_run <- run_scenario_v2(removal_scenario, base_dir = base_dir)
 
     present_final <- read_final_structure_metrics_from_result(present_run)
     removal_final <- read_final_structure_metrics_from_result(removal_run)
@@ -311,7 +311,7 @@ build_aridity_access_matrix_v2 <- function() {
   idx <- 0L
 
   for (aridity_level in names(aridity_levels)) {
-    base <- compile_scenario_yaml(scenario_contract_reference_path(aridity_levels[[aridity_level]]))
+    base <- compile_scenario_yaml_v2(scenario_contract_reference_path(aridity_levels[[aridity_level]]))
     for (j in seq_len(nrow(access_levels))) {
       idx <- idx + 1L
       access_level <- access_levels$access_level[[j]]
@@ -462,7 +462,7 @@ run_experiment_c_aridity_gradient_v2 <- function(base_dir = file.path("artefacts
       scenario$runtime$seed <- as.integer(seed)
       scenario$outputs$scenario_slug <- file.path(scenario_slug, sprintf("%s_seed_%03d", scenario_id, seed))
 
-      run <- run_scenario_v1(scenario = scenario, base_dir = base_dir)
+      run <- run_scenario_v2(scenario = scenario, base_dir = base_dir)
       herb <- run$herbivore_daily
       final <- read_final_structure_metrics_from_result(run)
 

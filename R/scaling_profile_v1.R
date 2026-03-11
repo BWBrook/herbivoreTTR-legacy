@@ -150,7 +150,7 @@ profile_simulation_kernel_v1 <- function(scenario,
                                          run_dir,
                                          profile_slug = "kernel_profile_v1",
                                          interval = 0.002) {
-  scenario_profile <- validate_scenario_v1(scenario)
+  scenario_profile <- validate_scenario_v2(scenario)
   scenario_profile$scenario_id <- paste0(scenario_profile$scenario_id, "_kernel_profile")
   scenario_profile$outputs$scenario_slug <- paste0(profile_slug, "_run")
   scenario_profile$runtime$days <- max(7L, as.integer(scenario_profile$runtime$days))
@@ -163,7 +163,7 @@ profile_simulation_kernel_v1 <- function(scenario,
   chosen_interval <- max(0.01, as.numeric(interval))
   utils::Rprof(raw_path, interval = chosen_interval)
   on.exit(utils::Rprof(NULL), add = TRUE)
-  run_scenario_v1(
+  run_scenario_v2(
     scenario = scenario_profile,
     base_dir = file.path(run_dir, "kernel_profile_runs"),
     write_outputs = FALSE
@@ -305,10 +305,10 @@ run_post_v1_scaling_profile <- function(base_dir = file.path("artefacts", "bench
   dir.create(run_dir, recursive = TRUE, showWarnings = FALSE)
 
   canonical_path <- scenario_contract_reference_path("canonical_smoke_v1")
-  canonical <- compile_scenario_yaml(canonical_path)
+  canonical <- compile_scenario_yaml_v2(canonical_path)
 
   single <- measure_workload_v1(
-    run_scenario_v1(
+    run_scenario_v2(
       scenario = canonical,
       base_dir = file.path(run_dir, "workloads")
     )

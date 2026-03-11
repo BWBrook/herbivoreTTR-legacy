@@ -12,6 +12,7 @@ Use `renv` to reproduce the development environment:
 
 ```r
 install.packages("renv")
+Sys.setenv(RENV_CONFIG_PAK_ENABLED = "FALSE")
 renv::restore(prompt = FALSE)
 ```
 
@@ -37,14 +38,14 @@ library(herbivoreTTR)
 
 # 1) Load the canonical smoke scenario contract
 scenario_path <- scenario_contract_reference_path("canonical_smoke_v1")
-scenario <- compile_scenario_yaml(scenario_path)
+scenario <- compile_scenario_yaml_v2(scenario_path)
 
 # 2) Execute and write canonical artefacts
-run <- run_scenario_v1(scenario)
+run <- run_scenario_v2(scenario)
 
 # 3) Inspect outputs
 run$run_dir
-read.csv(run$herbivore_daily_path)
+read.csv(run$daily_output_path)
 read.csv(run$structure_fuel_path)
 ```
 
@@ -83,7 +84,7 @@ Rscript portal/launch_gui_stub.R
 
 See:
 - `portal/README.md`
-- `docs/contracts/portal_plan_contract_v1.md`
+- `docs/contracts/portal_plan_contract_v2.md`
 - `docs/guides/ecologist_quickstart_v1.md`
 
 ## Running The Targets Pipeline
@@ -106,16 +107,17 @@ targets::tar_make(callr_function = NULL)
 
 Depending on the runner and options, outputs include:
 
-* `plants_day*.csv` and `herbivore_daily.csv` (scenario-run outputs)
+* `plants_day*.csv` plus either `herbivore_daily.csv` (explicit modes) or `pressure_daily.csv` (implicit pressure mode)
 * `structure_fuel_daily.csv` (derived vegetation structure/fuel metrics)
 * optional minute/hourly diagnostics for behavioural contract scenarios
 * run manifests for all canonical scenarios and experiments
 
 See `docs/architecture.md` for state object schemas and invariants.
 See `docs/reference/parameter_units_reference.md` for parameter defaults, units, and cited allometric relationships.
-See `docs/contracts/output_contract_v1.md` for schema-level output details.
-See `docs/contracts/scenario_contract_v1.md` for scenario YAML schema.
-See `docs/governance/api_surface_v1.md` for the frozen public API surface.
+See `docs/contracts/output_contract_v1.md` for low-level snapshot schema details.
+See `docs/contracts/scenario_run_output_contract_v2.md` for scenario-run bundle output semantics.
+See `docs/contracts/scenario_contract_v2.md` for the primary scenario YAML schema.
+See `docs/governance/api_surface_v2.md` for the current public API surface.
 See `docs/governance/deprecation_policy.md` for compatibility and deprecation guarantees.
 
 ## Reproducibility

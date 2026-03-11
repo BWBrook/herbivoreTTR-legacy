@@ -3,6 +3,13 @@
 Output contract v1 extends v0 with explicit run/cohort identifiers required for
 multi-herbivore and scenario-traceable experiments.
 
+This low-level snapshot contract remains in use for parity-oriented
+`plants_day*.csv` / `herb_day*.csv` outputs.
+
+Scenario-run bundle outputs such as `herbivore_daily.csv` and
+`pressure_daily.csv` are documented separately in
+`docs/contracts/scenario_run_output_contract_v2.md`.
+
 ## Version mechanism
 
 - Schema version: `1.0.0`

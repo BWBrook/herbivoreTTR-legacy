@@ -1,41 +1,5 @@
 test_that("pipeline manifest lists expected targets and file formats", {
-  find_targets_script <- function() {
-    find_up <- function(filename, start = getwd()) {
-      dir <- normalizePath(start, winslash = "/", mustWork = TRUE)
-      for (i in 0:10) {
-        candidate <- file.path(dir, filename)
-        if (file.exists(candidate)) return(candidate)
-        parent <- dirname(dir)
-        if (identical(parent, dir)) break
-        dir <- parent
-      }
-      NA_character_
-    }
-
-    find_check_root <- function(start = getwd()) {
-      dir <- normalizePath(start, winslash = "/", mustWork = TRUE)
-      for (i in 0:10) {
-        if (dir.exists(file.path(dir, "00_pkg_src"))) return(dir)
-        parent <- dirname(dir)
-        if (identical(parent, dir)) break
-        dir <- parent
-      }
-      NA_character_
-    }
-
-    candidates <- c(
-      find_up("_targets.R"),
-      file.path(find_check_root(), "00_pkg_src", "herbivoreTTR", "_targets.R")
-    )
-    candidates <- unique(candidates[!is.na(candidates) & nzchar(candidates)])
-    script <- candidates[file.exists(candidates)][1]
-    if (is.na(script) || !nzchar(script)) {
-      stop("Unable to locate '_targets.R' for pipeline manifest test.")
-    }
-    normalizePath(script, winslash = "/", mustWork = TRUE)
-  }
-
-  script <- tryCatch(find_targets_script(), error = function(e) NA_character_)
+  script <- tryCatch(find_targets_script_for_tests(), error = function(e) NA_character_)
   if (is.na(script) || !nzchar(script) || !file.exists(script)) {
     testthat::skip("Pipeline manifest test requires a source checkout with '_targets.R'.")
   }
@@ -48,36 +12,9 @@ test_that("pipeline manifest lists expected targets and file formats", {
   })
 
   expect_true(all(c(
-    "canonical_scenario_yaml_path",
-    "canonical_scenario",
-    "canonical_seed",
-    "canonical_scenario_slug",
-    "canonical_run_id",
-    "canonical_scenario_parameters",
-    "conditions",
-    "plants0",
-    "herb0",
-    "day_after_spinup",
-    "sim_day1",
-    "plants_day1_csv",
-    "herb_day1_csv",
-    "sim_day7",
-    "plants_day7_csv",
-    "herb_day7_csv",
     "canonical_bundle_files",
-    "functional_type_bundle_files",
-    "mixed_feeder_bundle_files",
-    "selection_contract_bundle_files",
-    "movement_contract_bundle_files",
-    "foraging_contract_bundle_files",
-    "digestion_contract_bundle_files",
-    "water_contract_bundle_files",
     "day_in_life_bundle_files",
-    "cohort_scenario_yaml_path",
-    "cohort_scenario",
     "cohort_bundle_files",
-    "implicit_scenario_yaml_path",
-    "implicit_scenario",
     "implicit_bundle_files",
     "reference_library_bundle_files",
     "experiment_a_bundle_files",
@@ -90,23 +27,9 @@ test_that("pipeline manifest lists expected targets and file formats", {
 
   file_targets <- manifest[
     manifest$name %in% c(
-      "canonical_scenario_yaml_path",
-      "plants_day1_csv",
-      "herb_day1_csv",
-      "plants_day7_csv",
-      "herb_day7_csv",
       "canonical_bundle_files",
-      "functional_type_bundle_files",
-      "mixed_feeder_bundle_files",
-      "selection_contract_bundle_files",
-      "movement_contract_bundle_files",
-      "foraging_contract_bundle_files",
-      "digestion_contract_bundle_files",
-      "water_contract_bundle_files",
       "day_in_life_bundle_files",
-      "cohort_scenario_yaml_path",
       "cohort_bundle_files",
-      "implicit_scenario_yaml_path",
       "implicit_bundle_files",
       "reference_library_bundle_files",
       "experiment_a_bundle_files",

@@ -11,7 +11,7 @@ reference_scenario_metadata_v1 <- function() {
     ),
     purpose = c(
       "Herbivore-present baseline for presence/removal experiment.",
-      "Herbivore-removed counterfactual via implicit zero-visitation mode.",
+      "Herbivore-removed counterfactual via implicit-pressure zero-visitation mode.",
       "Functional-type reference: grazer strategy.",
       "Functional-type reference: browser strategy.",
       "Functional-type reference: mixed strategy."
@@ -49,7 +49,7 @@ run_reference_scenario_library <- function(base_dir = file.path("artefacts", "ca
 
   for (i in seq_len(nrow(meta))) {
     scenario_path <- scenario_contract_reference_path(meta$scenario_name[[i]])
-    runs[[i]] <- run_scenario_v1(
+    runs[[i]] <- run_scenario_v2(
       scenario = scenario_path,
       base_dir = base_dir,
       write_outputs = TRUE
@@ -110,8 +110,8 @@ read_final_structure_metrics <- function(run_result) {
 run_experiment_a_presence_removal <- function(base_dir = file.path("artefacts", "canonical_runs"),
                                               seed = 301L,
                                               scenario_slug = "experiment_a_presence_removal_v1") {
-  present <- run_scenario_v1(scenario_contract_reference_path("reference_presence_present_v1"), base_dir = base_dir)
-  removal <- run_scenario_v1(scenario_contract_reference_path("reference_presence_removed_v1"), base_dir = base_dir)
+  present <- run_scenario_v2(scenario_contract_reference_path("reference_presence_present_v1"), base_dir = base_dir)
+  removal <- run_scenario_v2(scenario_contract_reference_path("reference_presence_removed_v1"), base_dir = base_dir)
 
   present_final <- read_final_structure_metrics(present)
   removal_final <- read_final_structure_metrics(removal)
@@ -348,9 +348,9 @@ run_experiment_b_functional_types <- function(base_dir = file.path("artefacts", 
 run_experiment_c_aridity_gradient <- function(base_dir = file.path("artefacts", "canonical_runs"),
                                               seed = 501L,
                                               scenario_slug = "experiment_c_aridity_gradient_v1") {
-  low <- run_scenario_v1(scenario_contract_reference_path("reference_aridity_low_v1"), base_dir = base_dir)
-  mid <- run_scenario_v1(scenario_contract_reference_path("reference_aridity_mid_v1"), base_dir = base_dir)
-  high <- run_scenario_v1(scenario_contract_reference_path("reference_aridity_high_v1"), base_dir = base_dir)
+  low <- run_scenario_v2(scenario_contract_reference_path("reference_aridity_low_v1"), base_dir = base_dir)
+  mid <- run_scenario_v2(scenario_contract_reference_path("reference_aridity_mid_v1"), base_dir = base_dir)
+  high <- run_scenario_v2(scenario_contract_reference_path("reference_aridity_high_v1"), base_dir = base_dir)
 
   runs <- list(low = low, mid = mid, high = high)
   rows <- vector("list", length(runs))

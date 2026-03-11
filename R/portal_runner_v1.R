@@ -167,7 +167,7 @@ portal_resolve_base_scenario_v1 <- function(plan) {
     scenario_path <- resolve_scenario_yaml_path(plan$scenario$path)
   }
 
-  scenario <- compile_scenario_yaml(scenario_path)
+  scenario <- compile_scenario_yaml_v2(scenario_path)
   scenario <- portal_apply_scenario_overrides_v1(scenario, plan$scenario$overrides)
   scenario
 }
@@ -175,7 +175,7 @@ portal_resolve_base_scenario_v1 <- function(plan) {
 portal_apply_changes_v1 <- function(scenario,
                                     changes) {
   if (!is.list(changes) || length(changes) < 1L) {
-    return(validate_scenario_v1(scenario))
+    return(validate_scenario_v2(scenario))
   }
 
   out <- scenario
@@ -183,7 +183,7 @@ portal_apply_changes_v1 <- function(scenario,
     out <- portal_set_path_v1(out, path = path, value = changes[[path]])
   }
 
-  validate_scenario_v1(out)
+  validate_scenario_v2(out)
 }
 
 portal_template_report_path_v1 <- function() {
@@ -299,7 +299,7 @@ portal_run_single_case_v1 <- function(base_scenario,
   scenario$outputs$scenario_slug <- file.path("runs", spec$run_label)
 
   elapsed <- as.numeric(system.time({
-    run <- run_scenario_v1(
+    run <- run_scenario_v2(
       scenario = scenario,
       base_dir = dirs$canonical_runs,
       write_outputs = write_outputs,
@@ -308,8 +308,9 @@ portal_run_single_case_v1 <- function(base_scenario,
   })[["elapsed"]])
 
   daily_summary <- portal_build_daily_summary_v1(
-    herbivore_daily = run$herbivore_daily,
-    structure_fuel_metrics = run$structure_fuel_metrics
+    daily_output = run$daily_output,
+    structure_fuel_metrics = run$structure_fuel_metrics,
+    daily_output_kind = run$daily_output_kind
   )
   endpoint_summary <- portal_build_endpoint_summary_v1(daily_summary, run_label = spec$run_label)
   sanity_summary <- portal_domain_sanity_summary_v1(run, daily_summary, run_label = spec$run_label)
@@ -347,6 +348,7 @@ portal_run_single_case_v1 <- function(base_scenario,
       scenario_slug = as.character(run$scenario$outputs$scenario_slug),
       scenario_id = as.character(run$scenario$scenario_id),
       seed = as.integer(run$scenario$runtime$seed),
+      daily_output_kind = as.character(run$daily_output_kind),
       elapsed_seconds = elapsed,
       change_summary = as.character(spec$change_summary),
       design = as.character(spec$design),
@@ -622,6 +624,12 @@ run_portal_plan_v1 <- function(plan,
   compiled_available_after <- isTRUE(compiled_ttr_kernel_available_v1())
   compiled_last_engine <- compiled_ttr_last_engine_v1()
   compiled_last_fallback <- isTRUE(compiled_ttr_last_fallback_used_v1())
+  daily_output_kinds <- unique(vapply(result$run_results, function(x) {
+    if (is.null(x$run$daily_output_kind) || !nzchar(x$run$daily_output_kind)) {
+      return("explicit_individual")
+    }
+    as.character(x$run$daily_output_kind)
+  }, character(1L)))
 
   manifest <- build_run_manifest(
     scenario_slug = file.path("portal_runs", portal_slugify_id_v1(validated$plan_id)),
@@ -646,9 +654,11 @@ run_portal_plan_v1 <- function(plan,
       compiled_last_fallback_used = compiled_last_fallback,
       parallel_mode = validated$execution$parallel$execution_mode,
       parallel_hardware_tier = validated$execution$parallel$hardware_tier,
-      parallel_workers_requested = validated$execution$parallel$workers
+      parallel_workers_requested = validated$execution$parallel$workers,
+      daily_output_kinds = daily_output_kinds
     ),
-    output_files = output_files
+    output_files = output_files,
+    daily_output_kind = if (length(daily_output_kinds) == 1L) daily_output_kinds[[1]] else "mixed"
   )
   manifest$execution_context <- list(
     backend_requested = validated$execution$backend,
@@ -668,7 +678,8 @@ run_portal_plan_v1 <- function(plan,
     compiled_minute_loop_last_fallback_used = isTRUE(compiled_minute_loop_last_fallback_used_v1()),
     parallel_mode = validated$execution$parallel$execution_mode,
     parallel_hardware_tier = validated$execution$parallel$hardware_tier,
-    parallel_workers_requested = validated$execution$parallel$workers
+    parallel_workers_requested = validated$execution$parallel$workers,
+    daily_output_kinds = unname(as.character(daily_output_kinds))
   )
   manifest_path <- file.path(result$dirs$manifests, "portal_run_manifest.json")
   write_run_manifest(manifest, manifest_path)

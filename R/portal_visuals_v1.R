@@ -1,10 +1,12 @@
 # Portal table + figure builders for ecologist-facing outputs.
 
-portal_build_daily_summary_v1 <- function(herbivore_daily,
-                                          structure_fuel_metrics) {
-  if (!is.data.frame(herbivore_daily) || nrow(herbivore_daily) < 1L) {
+portal_build_daily_summary_v1 <- function(daily_output,
+                                          structure_fuel_metrics,
+                                          daily_output_kind = c("explicit_individual", "implicit_pressure")) {
+  kind <- match.arg(daily_output_kind)
+  if (!is.data.frame(daily_output) || nrow(daily_output) < 1L) {
     portal_abort_v1(
-      "`herbivore_daily` must be a non-empty data.frame.",
+      "`daily_output` must be a non-empty data.frame.",
       class = "herbivoreTTR_portal_summary_invalid"
     )
   }
@@ -15,27 +17,53 @@ portal_build_daily_summary_v1 <- function(herbivore_daily,
     )
   }
 
-  herb <- herbivore_daily
-  herb_agg <- stats::aggregate(
-    herb[, c(
-      "DailyDMI", "DailyDistMoved", "DailyForageWater", "DailyWaterDrinking",
-      "EnergyBalance", "WaterBalance", "BodyConditionIndex", "PhysiologicalStressFlag"
-    ), drop = FALSE],
-    by = list(Day = herb$Day),
-    FUN = mean
-  )
+  if (identical(kind, "explicit_individual")) {
+    herb <- daily_output
+    herb_agg <- stats::aggregate(
+      herb[, c(
+        "DailyDMI", "DailyDistMoved", "DailyForageWater", "DailyWaterDrinking",
+        "EnergyBalance", "WaterBalance", "BodyConditionIndex", "PhysiologicalStressFlag"
+      ), drop = FALSE],
+      by = list(Day = herb$Day),
+      FUN = mean
+    )
 
-  names(herb_agg) <- c(
-    "Day",
-    "mean_daily_dmi",
-    "mean_daily_dist_m",
-    "mean_daily_forage_water",
-    "mean_daily_drinking_water",
-    "mean_energy_balance",
-    "mean_water_balance",
-    "mean_body_condition_index",
-    "mean_physiological_stress_flag"
-  )
+    names(herb_agg) <- c(
+      "Day",
+      "mean_daily_dmi",
+      "mean_daily_dist_m",
+      "mean_daily_forage_water",
+      "mean_daily_drinking_water",
+      "mean_energy_balance",
+      "mean_water_balance",
+      "mean_body_condition_index",
+      "mean_physiological_stress_flag"
+    )
+  } else {
+    herb_agg <- daily_output[, c(
+      "Day",
+      "VisitCount",
+      "FullVisits",
+      "FractionalVisit",
+      "EffectiveVisitsPerDay",
+      "TotalPressureDMI",
+      "TotalPressureDistMoved",
+      "TotalPressureForageWater",
+      "TotalPressureDrinkingWater"
+    ), drop = FALSE]
+
+    names(herb_agg) <- c(
+      "Day",
+      "visit_count",
+      "full_visits",
+      "fractional_visit",
+      "effective_visits_per_day",
+      "total_pressure_dmi",
+      "total_pressure_dist_m",
+      "total_pressure_forage_water",
+      "total_pressure_drinking_water"
+    )
+  }
 
   structure <- structure_fuel_metrics[, c(
     "Day",
@@ -50,6 +78,7 @@ portal_build_daily_summary_v1 <- function(herbivore_daily,
   ), drop = FALSE]
 
   out <- merge(herb_agg, structure, by = "Day", all = FALSE, sort = TRUE)
+  out$daily_output_kind <- kind
   out <- out[order(out$Day), , drop = FALSE]
   rownames(out) <- NULL
   out
@@ -66,19 +95,43 @@ portal_build_endpoint_summary_v1 <- function(daily_summary,
   final <- daily_summary[which.max(daily_summary$Day), , drop = FALSE]
   final$run_label <- as.character(run_label)
 
-  out <- data.frame(
-    run_label = final$run_label,
-    final_day = as.integer(final$Day),
-    mean_daily_dmi = as.numeric(final$mean_daily_dmi),
-    mean_energy_balance = as.numeric(final$mean_energy_balance),
-    mean_water_balance = as.numeric(final$mean_water_balance),
-    mean_body_condition_index = as.numeric(final$mean_body_condition_index),
-    stress_flag_mean = as.numeric(final$mean_physiological_stress_flag),
-    final_total_shoot_biomass_kg = as.numeric(final$total_shoot_biomass_kg),
-    final_fine_fuel_proxy_kg = as.numeric(final$fine_fuel_proxy_kg),
-    final_browseable_biomass_kg = as.numeric(final$browseable_biomass_kg),
-    stringsAsFactors = FALSE
-  )
+  kind <- if ("daily_output_kind" %in% names(final)) {
+    as.character(final$daily_output_kind[[1]])
+  } else {
+    "explicit_individual"
+  }
+  if (identical(kind, "implicit_pressure")) {
+    out <- data.frame(
+      run_label = final$run_label,
+      daily_output_kind = kind,
+      final_day = as.integer(final$Day),
+      visit_count = as.integer(final$visit_count),
+      effective_visits_per_day = as.numeric(final$effective_visits_per_day),
+      total_pressure_dmi = as.numeric(final$total_pressure_dmi),
+      total_pressure_dist_m = as.numeric(final$total_pressure_dist_m),
+      total_pressure_forage_water = as.numeric(final$total_pressure_forage_water),
+      total_pressure_drinking_water = as.numeric(final$total_pressure_drinking_water),
+      final_total_shoot_biomass_kg = as.numeric(final$total_shoot_biomass_kg),
+      final_fine_fuel_proxy_kg = as.numeric(final$fine_fuel_proxy_kg),
+      final_browseable_biomass_kg = as.numeric(final$browseable_biomass_kg),
+      stringsAsFactors = FALSE
+    )
+  } else {
+    out <- data.frame(
+      run_label = final$run_label,
+      daily_output_kind = kind,
+      final_day = as.integer(final$Day),
+      mean_daily_dmi = as.numeric(final$mean_daily_dmi),
+      mean_energy_balance = as.numeric(final$mean_energy_balance),
+      mean_water_balance = as.numeric(final$mean_water_balance),
+      mean_body_condition_index = as.numeric(final$mean_body_condition_index),
+      stress_flag_mean = as.numeric(final$mean_physiological_stress_flag),
+      final_total_shoot_biomass_kg = as.numeric(final$total_shoot_biomass_kg),
+      final_fine_fuel_proxy_kg = as.numeric(final$fine_fuel_proxy_kg),
+      final_browseable_biomass_kg = as.numeric(final$browseable_biomass_kg),
+      stringsAsFactors = FALSE
+    )
+  }
 
   out
 }
@@ -128,12 +181,12 @@ portal_count_gut_violations_v1 <- function(final_herbivores,
 portal_domain_sanity_summary_v1 <- function(run_result,
                                             daily_summary,
                                             run_label) {
-  energy_jump <- if (nrow(daily_summary) > 1L) {
+  energy_jump <- if (nrow(daily_summary) > 1L && "mean_energy_balance" %in% names(daily_summary)) {
     max(abs(diff(daily_summary$mean_energy_balance)))
   } else {
     0
   }
-  water_jump <- if (nrow(daily_summary) > 1L) {
+  water_jump <- if (nrow(daily_summary) > 1L && "mean_water_balance" %in% names(daily_summary)) {
     max(abs(diff(daily_summary$mean_water_balance)))
   } else {
     0
@@ -141,7 +194,7 @@ portal_domain_sanity_summary_v1 <- function(run_result,
 
   data.frame(
     run_label = as.character(run_label),
-    herbivore_non_finite_count = portal_count_non_finite_df_v1(run_result$herbivore_daily),
+    daily_output_non_finite_count = portal_count_non_finite_df_v1(run_result$daily_output),
     structure_non_finite_count = portal_count_non_finite_df_v1(run_result$structure_fuel_metrics),
     negative_biomass_violations = portal_count_negative_biomass_v1(run_result$final_plants),
     gut_capacity_violations = portal_count_gut_violations_v1(run_result$final_herbivores),
@@ -227,13 +280,19 @@ portal_add_sensitivity_deltas_v1 <- function(endpoint_with_design) {
   baseline_idx <- baseline_idx[[1]]
 
   baseline_biomass <- as.numeric(endpoint_with_design$final_total_shoot_biomass_kg[[baseline_idx]])
-  baseline_dmi <- as.numeric(endpoint_with_design$mean_daily_dmi[[baseline_idx]])
   baseline_run <- as.character(endpoint_with_design$run_label[[baseline_idx]])
 
   out <- endpoint_with_design
   out$baseline_run_label <- baseline_run
   out$delta_final_total_shoot_biomass_kg <- as.numeric(out$final_total_shoot_biomass_kg) - baseline_biomass
-  out$delta_mean_daily_dmi <- as.numeric(out$mean_daily_dmi) - baseline_dmi
+  if ("mean_daily_dmi" %in% names(out)) {
+    baseline_dmi <- as.numeric(endpoint_with_design$mean_daily_dmi[[baseline_idx]])
+    out$delta_mean_daily_dmi <- as.numeric(out$mean_daily_dmi) - baseline_dmi
+  }
+  if ("total_pressure_dmi" %in% names(out)) {
+    baseline_pressure_dmi <- as.numeric(endpoint_with_design$total_pressure_dmi[[baseline_idx]])
+    out$delta_total_pressure_dmi <- as.numeric(out$total_pressure_dmi) - baseline_pressure_dmi
+  }
   out
 }
 
@@ -294,17 +353,26 @@ portal_acceptance_rows_for_run_v1 <- function(run_result,
   daily <- run_result$daily_summary
   endpoint <- run_result$endpoint_summary[1, , drop = FALSE]
   sanity <- run_result$sanity_summary[1, , drop = FALSE]
-  stress_fraction <- mean(as.numeric(daily$mean_physiological_stress_flag) >= 0.5, na.rm = TRUE)
+  kind <- if ("daily_output_kind" %in% names(endpoint)) {
+    as.character(endpoint$daily_output_kind[[1]])
+  } else {
+    "explicit_individual"
+  }
+  stress_fraction <- if ("mean_physiological_stress_flag" %in% names(daily)) {
+    mean(as.numeric(daily$mean_physiological_stress_flag) >= 0.5, na.rm = TRUE)
+  } else {
+    NA_real_
+  }
 
   rows <- list(
     portal_make_acceptance_row_v1(
       run_label = run_label,
       acceptance_profile = profile,
-      check_id = "herbivore_non_finite_count_zero",
-      metric = "herbivore_non_finite_count",
+      check_id = "daily_output_non_finite_count_zero",
+      metric = "daily_output_non_finite_count",
       comparator = "<=",
       threshold = 0,
-      observed = sanity$herbivore_non_finite_count[[1]],
+      observed = sanity$daily_output_non_finite_count[[1]],
       severity = "critical"
     ),
     portal_make_acceptance_row_v1(
@@ -326,20 +394,28 @@ portal_acceptance_rows_for_run_v1 <- function(run_result,
       threshold = 0,
       observed = sanity$negative_biomass_violations[[1]],
       severity = "critical"
-    ),
-    portal_make_acceptance_row_v1(
-      run_label = run_label,
-      acceptance_profile = profile,
-      check_id = "gut_capacity_violations_zero",
-      metric = "gut_capacity_violations",
-      comparator = "<=",
-      threshold = 0,
-      observed = sanity$gut_capacity_violations[[1]],
-      severity = "critical"
     )
   )
 
-  if (identical(profile, "balanced_demo")) {
+  if (identical(kind, "explicit_individual")) {
+    rows <- c(
+      rows,
+      list(
+        portal_make_acceptance_row_v1(
+          run_label = run_label,
+          acceptance_profile = profile,
+          check_id = "gut_capacity_violations_zero",
+          metric = "gut_capacity_violations",
+          comparator = "<=",
+          threshold = 0,
+          observed = sanity$gut_capacity_violations[[1]],
+          severity = "critical"
+        )
+      )
+    )
+  }
+
+  if (identical(profile, "balanced_demo") && identical(kind, "explicit_individual")) {
     rows <- c(
       rows,
       list(
@@ -377,7 +453,7 @@ portal_acceptance_rows_for_run_v1 <- function(run_result,
     )
   }
 
-  if (identical(profile, "stress_demo")) {
+  if (identical(profile, "stress_demo") && identical(kind, "explicit_individual")) {
     rows <- c(
       rows,
       list(
@@ -452,39 +528,78 @@ portal_write_single_figures_v1 <- function(run_result,
 
   graphics::par(mfrow = c(2, 2), mar = c(4.2, 4.2, 2.2, 1.2))
 
-  graphics::plot(
-    daily_summary$Day,
-    daily_summary$mean_daily_dmi,
-    type = "l",
-    lwd = 2,
-    col = "#2a9d8f",
-    xlab = "Day",
-    ylab = "kg/day",
-    main = "Daily dry matter intake"
-  )
-  graphics::plot(
-    daily_summary$Day,
-    daily_summary$mean_energy_balance,
-    type = "l",
-    lwd = 2,
-    col = "#457b9d",
-    xlab = "Day",
-    ylab = "kJ/day",
-    main = "Energy balance"
-  )
-  graphics::abline(h = 0, lty = 2, col = "#6c757d")
+  kind <- if ("daily_output_kind" %in% names(daily_summary)) {
+    as.character(daily_summary$daily_output_kind[[1]])
+  } else {
+    "explicit_individual"
+  }
 
-  graphics::plot(
-    daily_summary$Day,
-    daily_summary$mean_water_balance,
-    type = "l",
-    lwd = 2,
-    col = "#1d3557",
-    xlab = "Day",
-    ylab = "L/day",
-    main = "Water balance"
-  )
-  graphics::abline(h = 0, lty = 2, col = "#6c757d")
+  if (identical(kind, "implicit_pressure")) {
+    graphics::plot(
+      daily_summary$Day,
+      daily_summary$total_pressure_dmi,
+      type = "l",
+      lwd = 2,
+      col = "#2a9d8f",
+      xlab = "Day",
+      ylab = "kg/day",
+      main = "Daily pressure DMI"
+    )
+    graphics::plot(
+      daily_summary$Day,
+      daily_summary$effective_visits_per_day,
+      type = "l",
+      lwd = 2,
+      col = "#457b9d",
+      xlab = "Day",
+      ylab = "visits/day",
+      main = "Effective visits per day"
+    )
+    graphics::plot(
+      daily_summary$Day,
+      daily_summary$total_pressure_dist_m,
+      type = "l",
+      lwd = 2,
+      col = "#1d3557",
+      xlab = "Day",
+      ylab = "m/day",
+      main = "Pressure distance equivalent"
+    )
+  } else {
+    graphics::plot(
+      daily_summary$Day,
+      daily_summary$mean_daily_dmi,
+      type = "l",
+      lwd = 2,
+      col = "#2a9d8f",
+      xlab = "Day",
+      ylab = "kg/day",
+      main = "Daily dry matter intake"
+    )
+    graphics::plot(
+      daily_summary$Day,
+      daily_summary$mean_energy_balance,
+      type = "l",
+      lwd = 2,
+      col = "#457b9d",
+      xlab = "Day",
+      ylab = "kJ/day",
+      main = "Energy balance"
+    )
+    graphics::abline(h = 0, lty = 2, col = "#6c757d")
+
+    graphics::plot(
+      daily_summary$Day,
+      daily_summary$mean_water_balance,
+      type = "l",
+      lwd = 2,
+      col = "#1d3557",
+      xlab = "Day",
+      ylab = "L/day",
+      main = "Water balance"
+    )
+    graphics::abline(h = 0, lty = 2, col = "#6c757d")
+  }
 
   graphics::plot(
     daily_summary$Day,
@@ -585,6 +700,17 @@ portal_write_sensitivity_figures_v1 <- function(endpoint_summary,
   graphics::par(mfrow = c(2, 1), mar = c(4.2, 4.2, 2.2, 1.2))
   run_ord <- order(merged$delta_final_total_shoot_biomass_kg, decreasing = TRUE)
   bar_cols <- ifelse(merged$parameter_path == "baseline", "#a8a8a8", "#457b9d")
+  delta_intake_col <- if ("delta_mean_daily_dmi" %in% names(merged)) {
+    "delta_mean_daily_dmi"
+  } else {
+    "delta_total_pressure_dmi"
+  }
+  intake_ylab <- if (identical(delta_intake_col, "delta_mean_daily_dmi")) "kg/day" else "pressure kg/day"
+  intake_title <- if (identical(delta_intake_col, "delta_mean_daily_dmi")) {
+    "Delta mean daily DMI vs baseline"
+  } else {
+    "Delta total pressure DMI vs baseline"
+  }
   graphics::barplot(
     height = merged$delta_final_total_shoot_biomass_kg[run_ord],
     names.arg = merged$run_label[run_ord],
@@ -597,13 +723,13 @@ portal_write_sensitivity_figures_v1 <- function(endpoint_summary,
   graphics::abline(h = 0, lty = 2, col = "#6c757d")
 
   graphics::barplot(
-    height = merged$delta_mean_daily_dmi[run_ord],
+    height = merged[[delta_intake_col]][run_ord],
     names.arg = merged$run_label[run_ord],
     las = 2,
     col = bar_cols[run_ord],
     border = NA,
-    ylab = "kg/day",
-    main = "Delta mean daily DMI vs baseline"
+    ylab = intake_ylab,
+    main = intake_title
   )
   graphics::abline(h = 0, lty = 2, col = "#6c757d")
 
@@ -639,12 +765,16 @@ portal_write_sensitivity_figures_v1 <- function(endpoint_summary,
 
       graphics::plot(
         as.numeric(merged$parameter_value[finite_idx]),
-        merged$delta_mean_daily_dmi[finite_idx],
+        merged[[delta_intake_col]][finite_idx],
         pch = 19,
         col = "#2a9d8f",
         xlab = "Parameter value",
-        ylab = "Delta kg/day",
-        main = sprintf("%s effect on mean daily DMI", param)
+        ylab = intake_ylab,
+        main = if (identical(delta_intake_col, "delta_mean_daily_dmi")) {
+          sprintf("%s effect on mean daily DMI", param)
+        } else {
+          sprintf("%s effect on total pressure DMI", param)
+        }
       )
       graphics::abline(h = 0, lty = 2, col = "#6c757d")
     } else {

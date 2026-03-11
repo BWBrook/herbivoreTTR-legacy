@@ -100,7 +100,7 @@ run_pilot_validation_benchmark_v1 <- function(base_dir = file.path("artefacts", 
   obs_herb <- adapt_herbivore_timeseries_v1(herb_raw)
   observed <- validate_observational_data_v1(rbind(obs_veg, obs_herb))
 
-  model_run <- run_scenario_v1(
+  model_run <- run_scenario_v2(
     scenario = scenario_contract_reference_path("canonical_smoke_v1"),
     base_dir = base_dir
   )

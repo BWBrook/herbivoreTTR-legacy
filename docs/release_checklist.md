@@ -44,8 +44,8 @@ This checklist must be satisfied before tagging a release.
 - [ ] Long-horizon stability suite output present:
   - `artefacts/stability/long_horizon_v1/stability_summary_v1.csv`
 - [ ] Scaling profile output + regression table present:
-  - `artefacts/benchmarks/post_v1_scaling_v1/scaling_summary_v1.csv`
-  - `artefacts/benchmarks/post_v1_scaling_v1/scaling_regression_check_v1.csv`
+  - `artefacts/benchmarks/post_v1_scaling_v2/scaling_summary_v1.csv`
+  - `artefacts/benchmarks/post_v1_scaling_v2/scaling_regression_check_v1.csv`
 - [ ] v2 report artefacts + deterministic manifest present:
   - `artefacts/reports_v2/paper_pipeline_v2.html`
   - `artefacts/reports_v2/figure_table_manifest_v2.csv`

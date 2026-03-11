@@ -1,30 +1,3 @@
-find_repo_root_local <- function(start) {
-  dir <- normalizePath(start, winslash = "/", mustWork = TRUE)
-  for (i in 0:10) {
-    if (file.exists(file.path(dir, "DESCRIPTION"))) {
-      return(dir)
-    }
-    parent <- dirname(dir)
-    if (identical(parent, dir)) {
-      break
-    }
-    dir <- parent
-  }
-  NULL
-}
-
-load_portal_runtime_local <- function(repo_root) {
-  if (exists("run_portal_plan_v1", mode = "function", inherits = TRUE)) {
-    return(invisible(TRUE))
-  }
-
-  files <- list.files(file.path(repo_root, "R"), pattern = "[.]R$", full.names = TRUE)
-  for (f in files) {
-    sys.source(f, envir = globalenv())
-  }
-  invisible(TRUE)
-}
-
 resolve_app_start_dir <- function() {
   frame1 <- tryCatch(sys.frame(1), error = function(e) NULL)
   ofile <- if (!is.null(frame1)) frame1$ofile else NULL
@@ -37,12 +10,8 @@ resolve_app_start_dir <- function() {
 }
 
 this_dir <- resolve_app_start_dir()
-repo_root <- find_repo_root_local(this_dir)
-if (is.null(repo_root)) {
-  stop("Could not locate repository root from portal/gui/app.R")
-}
-
-load_portal_runtime_local(repo_root)
+source(file.path(this_dir, "..", "bootstrap_runtime.R"), local = TRUE)
+repo_root <- portal_bootstrap_runtime_v1(start = this_dir, envir = globalenv())
 
 template_dir <- file.path(repo_root, "portal", "plans", "templates")
 template_files <- list.files(template_dir, pattern = "[.]ya?ml$", full.names = TRUE)

@@ -7,6 +7,7 @@ This guide covers bootstrap, quality gates, pipeline runs, and release/repro che
 From project root:
 
 ```r
+Sys.setenv(RENV_CONFIG_PAK_ENABLED = "FALSE")
 renv::restore(prompt = FALSE)
 renv::status()
 ```
@@ -30,8 +31,8 @@ make rc-gates
 
 ```r
 library(herbivoreTTR)
-scenario <- compile_scenario_yaml(scenario_contract_reference_path("canonical_smoke_v1"))
-run <- run_scenario_v1(scenario)
+scenario <- compile_scenario_yaml_v2(scenario_contract_reference_path("canonical_smoke_v1"))
+run <- run_scenario_v2(scenario)
 run$run_dir
 ```
 
@@ -76,5 +77,5 @@ Evidence location:
 
 See also:
 - `docs/governance/reproducibility_runbook_v1.md`
-- `docs/governance/api_surface_v1.md`
+- `docs/governance/api_surface_v2.md`
 - `docs/governance/deprecation_policy.md`

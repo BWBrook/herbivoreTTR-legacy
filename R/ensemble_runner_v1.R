@@ -69,7 +69,7 @@ run_single_ensemble_seed_v1 <- function(seed_index,
   replicate_scenario$runtime$seed <- seed_value
   replicate_scenario$outputs$scenario_slug <- replicate_slug
 
-  run_result <- run_scenario_v1(
+  run_result <- run_scenario_v2(
     scenario = replicate_scenario,
     base_dir = base_dir,
     write_outputs = write_outputs,
@@ -120,9 +120,9 @@ run_scenario_ensemble_v1 <- function(scenario,
                                      reserve_cores = 1L,
                                      plant_backend = "internal_ttr") {
   validated <- if (is.character(scenario)) {
-    compile_scenario_yaml(scenario)
+    compile_scenario_yaml_v2(scenario)
   } else {
-    validate_scenario_v1(scenario)
+    validate_scenario_v2(scenario)
   }
   backend <- resolve_plant_backend(plant_backend)
 

@@ -1,5 +1,8 @@
 # Portal Plan Contract v1 (`schema_version = 1.0.0`)
 
+Superseded by `docs/contracts/portal_plan_contract_v2.md` for first-party
+portal workflows. v1 remains supported only as migration input.
+
 The portal plan is the non-coder single-source-of-truth YAML for running
 scenarios and sensitivity analyses from the `portal/` entrypoint.
 

@@ -1,5 +1,8 @@
 # Scenario Contract v1 (`schema_version = 1.0.0`)
 
+Superseded by `docs/contracts/scenario_contract_v2.md` for first-party runs.
+v1 remains supported only as migration input.
+
 This document defines the canonical experiment-entry contract used by `compile_scenario_yaml()`,
 `validate_scenario_v1()`, and `run_scenario_v1()`.
 

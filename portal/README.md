@@ -2,6 +2,8 @@
 
 This folder is the non-coder entrypoint for running herbivoreTTR.
 
+Primary portal plans now use `schema_version: "2.0.0"` and scenario v2.
+
 ## Quickstart
 
 1. Copy a template plan YAML from `portal/plans/templates/`.
@@ -24,6 +26,9 @@ Run artefacts are written to:
 Key outputs:
 - `run_index.csv`
 - `tables/*.csv`
+- single-run tables depend on `daily_output_kind`:
+  - explicit runs: individual-oriented summaries
+  - implicit pressure runs: pressure-oriented summaries
 - `tables/ecological_acceptance_summary.csv` (single mode) or
   `tables/sensitivity_ecological_acceptance_summary.csv` (sensitivity mode)
 - `figures/*.png`

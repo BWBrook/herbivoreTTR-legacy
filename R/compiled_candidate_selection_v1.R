@@ -344,7 +344,7 @@ run_compiled_scenario_parity_check_v1 <- function(base_dir = file.path("artefact
   dir.create(run_dir, recursive = TRUE, showWarnings = FALSE)
   resolved_policy <- match.arg(kernel_policy)
 
-  scenario <- compile_scenario_yaml(scenario_contract_reference_path("canonical_smoke_v1"))
+  scenario <- compile_scenario_yaml_v2(scenario_contract_reference_path("canonical_smoke_v1"))
   scenario$runtime$days <- as.integer(days)
   scenario$runtime$minute_limit <- as.integer(minute_limit)
   scenario$runtime$seed <- as.integer(seed)
@@ -363,14 +363,14 @@ run_compiled_scenario_parity_check_v1 <- function(base_dir = file.path("artefact
   Sys.setenv(HERBIVORETTR_USE_COMPILED_TTR = "0")
   Sys.setenv(HERBIVORETTR_USE_COMPILED_MINUTE_LOOP = "0")
   reset_compiled_ttr_kernel_v1()
-  pure <- run_scenario_v1(scenario = scenario, base_dir = base_dir, write_outputs = FALSE)
+  pure <- run_scenario_v2(scenario = scenario, base_dir = base_dir, write_outputs = FALSE)
 
   Sys.setenv(HERBIVORETTR_USE_COMPILED_TTR = "1")
   Sys.setenv(
     HERBIVORETTR_USE_COMPILED_MINUTE_LOOP = if (identical(resolved_policy, "all_available")) "1" else "0"
   )
   reset_compiled_ttr_kernel_v1()
-  compiled <- run_scenario_v1(scenario = scenario, base_dir = base_dir, write_outputs = FALSE)
+  compiled <- run_scenario_v2(scenario = scenario, base_dir = base_dir, write_outputs = FALSE)
 
   order_by_keys <- function(df, keys) {
     key_vec <- keys[keys %in% names(df)]
@@ -497,7 +497,7 @@ run_compiled_candidate_selection_v1 <- function(base_dir = file.path("artefacts"
     }
   }
   if (is.null(profile_path)) {
-    canonical <- compile_scenario_yaml(scenario_contract_reference_path("canonical_smoke_v1"))
+    canonical <- compile_scenario_yaml_v2(scenario_contract_reference_path("canonical_smoke_v1"))
     prof <- profile_simulation_kernel_v1(
       scenario = canonical,
       run_dir = run_dir,

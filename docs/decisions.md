@@ -380,3 +380,28 @@ Full and fractional visits are executed deterministically; outputs are explicitl
 **Decision:** Portal now ships profile templates (`laptop_safe`, `workstation_balanced`, `throughput_max`) as first-class, no-code runtime entrypoints.  
 **Rationale:** Non-coder users need stable, interpretable defaults for different hardware classes without manually tuning parallel/compiled controls.  
 **Implications:** User onboarding and support should start from profile templates, then apply minimal YAML overrides for scenario-specific needs.
+
+## 2026-03-11 — Verified CI posture is Linux-first until cross-platform jobs are reinstated
+**Decision:** The verified blocking CI posture is currently Ubuntu-only for `R CMD check`, tests, lint, and targets smoke. Linux remains the only continuously validated OS in the checked-in workflow definitions. macOS/Windows remain support goals, but are not claimed as currently verified CI lanes until explicit jobs are present again.  
+**Rationale:** Current executable truth should take precedence over stale claims in control docs. The checked-in PR workflow only defines `ubuntu-latest` jobs, so describing multi-OS CI as already active overstates the evidence.  
+**Implications:** Current docs and release guidance should describe Linux-first verification. Reintroducing macOS/Windows CI becomes an explicit follow-up slice with observed evidence, not an assumed property of the repository.
+
+## 2026-03-11 — Canonical restore flow disables pak during renv restore
+**Decision:** Manual and automated restore flows should set `RENV_CONFIG_PAK_ENABLED=FALSE` before calling `renv::restore(prompt = FALSE)` until the current restore-path instability is resolved and re-verified.  
+**Rationale:** The repository’s clean-library reproducibility scripts already rely on the non-`pak` restore path, and local verification reproduced restore instability on the default `pak`-enabled path. A single documented restore policy is preferable to divergent “works locally” instructions.  
+**Implications:** README/developer/setup guidance and helper bootstrap code should align on the same restore command. If `pak` is reinstated later, that change should be accompanied by a fresh reproducibility check and decision-log update.
+
+## 2026-03-11 — Scenario contract v2 is the primary first-party run surface
+**Decision:** The primary first-party scenario interface is now contract v2 (`schema_version = "2.0.0"`) via `validate_scenario_v2()`, `compile_scenario_yaml_v2()`, and `run_scenario_v2()`. Legacy v1 scenario objects remain supported only as migration input.  
+**Rationale:** The redesign introduces a meaning-level break for implicit mode and makes that break explicit through a versioned contract instead of silent wrapper behavior.  
+**Implications:** Checked-in scenario YAMLs, portal templates, targets, and user-facing docs should point to v2. Migration helpers/tests are required for v1 input.
+
+## 2026-03-11 — Implicit mode is redefined as pressure-only (`implicit_pressure`)
+**Decision:** `implicit_representative` is superseded by `implicit_pressure`. The mode still computes effective visits from stocking density, plot area, and visitation rate, but it is interpreted as vegetation pressure only, not as a coherent individual herbivore trajectory.  
+**Rationale:** The previous implementation averaged synthetic visit physiology into outputs that looked like an individual daily state, which was not scientifically coherent. The repo’s actual use of implicit mode is primarily counterfactual/pressure analysis, especially for zero-visitation removal scenarios.  
+**Implications:** Implicit runs now emit `pressure_daily.csv` instead of `herbivore_daily.csv`; individual-physiology fields such as body condition, deficit streaks, stress flags, and maintenance requirements are intentionally absent from the pressure output.
+
+## 2026-03-11 — Scenario-run bundle contract adds `daily_output_kind`
+**Decision:** Scenario-run manifests now include `daily_output_kind`, with allowed values `explicit_individual` and `implicit_pressure`. Portal/report logic must branch on this field rather than assuming every scenario run produces individual-herbivore daily physiology.  
+**Rationale:** The scenario-run bundle surface now contains two scientifically distinct daily-output products. Making the kind explicit avoids ambiguous downstream interpretation.  
+**Implications:** Portal tables/figures, first-party tests, and future downstream analyses should treat implicit pressure outputs as their own contract, not as a variant of explicit `herbivore_daily.csv`.

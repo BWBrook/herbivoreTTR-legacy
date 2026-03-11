@@ -2,14 +2,14 @@
 
 run_performance_budget_profile <- function(base_dir = file.path("artefacts", "canonical_runs"),
                                            scenario_slug = "performance_budget_v1") {
-  scenario <- compile_scenario_yaml(scenario_contract_reference_path("canonical_smoke_v1"))
+  scenario <- compile_scenario_yaml_v2(scenario_contract_reference_path("canonical_smoke_v1"))
   scenario$runtime$days <- 2L
   scenario$runtime$minute_limit <- 30L
   scenario$outputs$scenario_slug <- "performance_budget_smoke_v1"
 
   gc_before <- gc(reset = TRUE)
   elapsed <- as.numeric(system.time({
-    run <- run_scenario_v1(scenario = scenario, base_dir = base_dir)
+    run <- run_scenario_v2(scenario = scenario, base_dir = base_dir)
   })[["elapsed"]])
   gc_after <- gc()
 

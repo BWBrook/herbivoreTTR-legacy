@@ -13,7 +13,7 @@ Nothing special needs to be exported before running R; simply call `R`, `Rscript
 ## 2. Typical Workflow
 ```bash
 # restore packages from renv.lock
-R -q -e 'renv::restore(prompt = FALSE)'
+RENV_CONFIG_PAK_ENABLED=FALSE R -q -e 'renv::restore(prompt = FALSE)'
 
 # check consistency
 R -q -e 'renv::status()'
@@ -34,7 +34,7 @@ The project library is stored under `~/.cache/R/renv/library/<project-id>/...` a
 - Commands can also be run manually, e.g. `R -q -e 'targets::tar_make()'`.
 
 ## 4. Troubleshooting & Notes
-- If `requireNamespace("tarchetypes")` (or other packages) fail, run `renv::restore()` to reinstall from the lockfile.
+- If `requireNamespace("tarchetypes")` (or other packages) fail, rerun `RENV_CONFIG_PAK_ENABLED=FALSE R -q -e 'renv::restore(prompt = FALSE)'` to reinstall from the lockfile.
 - Base packages (e.g. `parallel`) are used directly from the system library; no extra configuration is required.
 - `renv::clean()` removes unused packages from the project library; the shared cache retains binaries for reuse.
 

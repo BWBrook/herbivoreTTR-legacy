@@ -52,6 +52,15 @@ bootstrap_renv <- function(action = c("restore", "init"), lockfile = "renv.lock"
   action <- match.arg(action)
   if (!requireNamespace("renv", quietly = TRUE)) utils::install.packages("renv")
   if (action == "restore" && file.exists(lockfile)) {
+    old_pak <- Sys.getenv("RENV_CONFIG_PAK_ENABLED", unset = NA_character_)
+    on.exit({
+      if (is.na(old_pak)) {
+        Sys.unsetenv("RENV_CONFIG_PAK_ENABLED")
+      } else {
+        Sys.setenv(RENV_CONFIG_PAK_ENABLED = old_pak)
+      }
+    }, add = TRUE)
+    Sys.setenv(RENV_CONFIG_PAK_ENABLED = "FALSE")
     restore <- getExportedValue("renv", "restore")
     restore(lockfile = lockfile, prompt = FALSE)
   } else if (action == "init") {

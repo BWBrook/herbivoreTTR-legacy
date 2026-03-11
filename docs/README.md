@@ -18,14 +18,18 @@ This directory is organized to keep high-signal project control docs at the top 
 ## Contracts (`docs/contracts/`)
 
 - `docs/contracts/scenario_contract_v1.md`
+- `docs/contracts/scenario_contract_v2.md`
 - `docs/contracts/output_contract_v1.md`
 - `docs/contracts/output_contract_v0.md`
+- `docs/contracts/scenario_run_output_contract_v2.md`
 - `docs/contracts/observational_data_contract_v1.md`
 - `docs/contracts/portal_plan_contract_v1.md`
+- `docs/contracts/portal_plan_contract_v2.md`
 
 ## Governance (`docs/governance/`)
 
 - `docs/governance/api_surface_v1.md`
+- `docs/governance/api_surface_v2.md`
 - `docs/governance/deprecation_policy.md`
 - `docs/governance/reproducibility_runbook_v1.md`
 
@@ -34,6 +38,7 @@ This directory is organized to keep high-signal project control docs at the top 
 - `docs/guides/ecologist_quickstart_v1.md`
 - `docs/guides/README-dev.md`
 - `docs/guides/closure_tests.md`
+- `docs/guides/scenario_v2_migration.md`
 
 ## Reference (`docs/reference/`)
 

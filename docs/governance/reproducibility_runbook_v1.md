@@ -17,7 +17,7 @@ This executes `scripts/run_external_repro_check.R`.
 
 ## What the script does
 1. Creates an isolated library at `artefacts/reproducibility/external_run_v1/renv_library`.
-2. Runs `renv::restore(prompt = FALSE)` with that isolated library.
+2. Runs `renv::restore(prompt = FALSE)` with that isolated library and `RENV_CONFIG_PAK_ENABLED=FALSE`.
 3. Runs CI-profile pipeline:
 
 ```r

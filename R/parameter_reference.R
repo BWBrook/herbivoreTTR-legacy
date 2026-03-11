@@ -3,7 +3,7 @@
 canonical_smoke_parameters <- function(conditions = init_conditions(mode = "flat")) {
   scenario_path <- scenario_contract_reference_path("canonical_smoke_v1")
   if (file.exists(scenario_path)) {
-    scenario <- compile_scenario_yaml(scenario_path)
+    scenario <- compile_scenario_yaml_v2(scenario_path)
     return(scenario_to_canonical_parameters(scenario, conditions = conditions))
   }
 

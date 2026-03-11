@@ -4,7 +4,7 @@ This policy governs compatibility for all exported R functions and schema-versio
 
 ## Scope
 - Exported functions listed in `NAMESPACE`
-- Scenario contract schema (`docs/contracts/scenario_contract_v1.md`)
+- Scenario contract schema (`docs/contracts/scenario_contract_v2.md`; v1 retained only for migration)
 - Output schema (`docs/contracts/output_contract_v1.md`)
 
 ## Compatibility guarantees

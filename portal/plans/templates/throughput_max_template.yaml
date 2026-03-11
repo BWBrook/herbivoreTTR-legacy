@@ -1,4 +1,4 @@
-schema_version: "1.0.0"
+schema_version: "2.0.0"
 plan_id: "throughput_max_demo"
 description: "High-throughput profile for large hosts; may reduce responsiveness."
 

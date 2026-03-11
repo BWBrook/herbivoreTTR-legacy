@@ -2,7 +2,7 @@
 
 ## Initialise the project: install packages via renv, set up pre-commit
 setup:
-	R -q -e "source('R/packages.R'); renv::init(bare = TRUE); renv::restore(prompt = FALSE)"
+	R -q -e "source('R/packages.R'); Sys.setenv(RENV_CONFIG_PAK_ENABLED = 'FALSE'); renv::init(bare = TRUE); renv::restore(prompt = FALSE)"
 	- pre-commit install || true
 
 ## Run the full pipeline
