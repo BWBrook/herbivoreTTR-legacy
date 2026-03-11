@@ -15,7 +15,7 @@ You own implementation details. You have control over project scope, but should 
 ## Scope & constraints
 - Work only inside this repo.
 - You may create local commits.
-- Do not push to remotes or modify repository settings.
+- You may push to remotes only when the human explicitly requests it for the current task. Do not push by default, and do not modify repository settings.
 - Prefer minimal dependencies in core simulation code. Keep heavy data wrangling packages out of hot loops.
 
 ## Where to write things
