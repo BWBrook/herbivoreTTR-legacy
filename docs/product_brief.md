@@ -46,7 +46,7 @@ Explicitly out of scope unless the roadmap says otherwise:
 - A full GUI; this is a package + scripts + vignettes
 
 ## Constraints
-- Preferred stack: R 4.5.2, `renv`, `pak`, `targets`, `testthat`, `dplyr`
+- Preferred stack: R 4.5.3, `renv`, `pak`, `targets`, `testthat`, `dplyr`
 - License: MIT
 - Cross-platform: Linux/macOS/Windows (WSL acceptable)
 - CI must run without secrets and without external paid services
