@@ -38,7 +38,11 @@ env <- c(
 steps <- list(
   run_step(
     "01_restore",
-    "options(renv.consent = TRUE); renv::restore(prompt = FALSE)",
+    paste(
+      "options(renv.consent = TRUE, renv.config.pak.enabled = FALSE);",
+      "Sys.setenv(RENV_CONFIG_PAK_ENABLED = 'FALSE');",
+      "renv::restore(prompt = FALSE)"
+    ),
     env
   ),
   run_step(
