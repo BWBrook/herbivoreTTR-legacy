@@ -131,6 +131,10 @@ manifest_path <- file.path(out_dir, "repro_check_manifest.json")
 writeLines(jsonlite::toJSON(manifest, auto_unbox = TRUE, pretty = TRUE), con = manifest_path)
 
 if (!all(summary_df$passed)) {
+  message("External reproducibility run-through v1 failed.")
+  print(summary_df)
+  message(sprintf("Summary: %s", summary_path))
+  message(sprintf("Report: %s", report_path))
   stop("External reproducibility run-through failed. Inspect logs under artefacts/reproducibility/.")
 }
 

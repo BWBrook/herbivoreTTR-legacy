@@ -24,9 +24,10 @@ jobs:
           use-public-rspm: true
 
       - uses: r-lib/actions/setup-pandoc@v2
+      - uses: quarto-dev/quarto-actions/setup@v2
 
       - name: Install Linux system dependencies
-        run: sudo apt-get update && sudo apt-get install -y qpdf libglpk40
+        run: sudo apt-get update && sudo apt-get install -y qpdf libcurl4-openssl-dev libglpk-dev
 
       - uses: r-lib/actions/setup-renv@v2
 
@@ -37,6 +38,7 @@ jobs:
         run: Rscript scripts/run_external_repro_check_v2.R
 
       - name: Upload reproducibility artefacts
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: weekly-repro-artefacts

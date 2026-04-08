@@ -14,11 +14,11 @@ The scheduled workflow `Weekly Repro Check` was failing in the `External reprodu
 
 The job log showed the wrapper script failing after `renv::restore()` entered the `pak` restore path and hit a known solver/subprocess error. Downstream steps then failed because the isolated library was only partially restored.
 
-## Root cause
+## Root causes
 
-`scripts/run_external_repro_check_v2.R` was setting `RENV_CONFIG_PAK_ENABLED=FALSE` only in the child process environment. In this workflow path, that was insufficient to keep `renv::restore()` off the `pak` restore code path.
+1. `scripts/run_external_repro_check_v2.R` was setting `RENV_CONFIG_PAK_ENABLED=FALSE` only in the child process environment. In this workflow path, that was insufficient to keep `renv::restore()` off the `pak` restore code path.
 
-The result was a restore failure of the form:
+   The result was a local isolated-library restore failure of the form:
 
 ```text
 Error:
@@ -27,7 +27,9 @@ Caused by error in `if (!version_satisfies(candidate$version, resolution$remote[
 ! missing value where TRUE/FALSE needed
 ```
 
-The legacy `scripts/run_external_repro_check.R` wrapper used the same brittle restore pattern.
+   The legacy `scripts/run_external_repro_check.R` wrapper used the same brittle restore pattern.
+
+2. After fixing the restore path and re-running the GitHub workflow, the remote failure moved into `targets::tar_make()` rather than restore. Inspection of `_targets.R` showed that the `ci` profile still renders report targets that require `quarto`, but `.github/workflows/weekly_repro.yml` installed Pandoc only, not Quarto. That mismatch explains why the workflow failed on GitHub while the same script passed locally on a machine with Quarto installed.
 
 ## Change made
 
@@ -40,6 +42,14 @@ Files changed:
 
 - `scripts/run_external_repro_check_v2.R`
 - `scripts/run_external_repro_check.R`
+- `.github/workflows/weekly_repro.yml`
+
+Additional workflow hardening:
+
+- Added `quarto-dev/quarto-actions/setup@v2` to the weekly workflow.
+- Replaced the GLPK runtime-only apt package with development/system packages needed by reproducibility installs: `libcurl4-openssl-dev` and `libglpk-dev`.
+- Changed reproducibility artefact upload to `if: always()` so future failures leave inspectable logs/artefacts in GitHub Actions.
+- Updated the wrapper scripts to print their step summary/report locations before stopping, improving failure visibility in CI logs.
 
 ## Verification
 
@@ -65,6 +75,12 @@ Evidence paths:
 - `artefacts/reproducibility/external_run_v2_local/01_restore.log`
 - `artefacts/reproducibility/external_run_v2_local_fix/repro_check_summary.csv`
 - `artefacts/reproducibility/external_run_v2_local_fix/repro_check_report.md`
+
+Remote verification:
+
+- Pushed fix commit: `93d3ccb`
+- Triggered workflow-dispatch run: `24112490684`
+- The first rerun confirmed the restore fix worked by moving the failure from restore into the `targets` smoke stage, which exposed the missing-Quarto workflow dependency.
 
 ## Follow-up notes
 
