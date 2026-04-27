@@ -28,3 +28,5 @@ Local verification was limited to workflow inspection because the failing behavi
 ## Follow-up
 
 After the nightly patch was pushed, the manual `Nightly Deep Checks` run `24979273993` passed on commit `e7da1cd`. The push-triggered `CI PR` workflow for the same commit failed because its matrix jobs still used the implicit R version and old runtime-only GLPK dependency. Logs for run `24979269220` showed the same R 4.6.0 cold-restore `Rcpp` failure. The same R 4.5.3 pin and cold-cache system dependency fix was therefore applied to `CI PR`.
+
+The scheduled `Weekly Repro Check` run `24980179008` then failed on commit `6fc2595` at `setup-renv` for the same reason: `weekly_repro.yml` already had the cold-cache system dependencies but still used the implicit R version, so the runner installed R 4.6.0 and missed the R 4.5.3 cache. The weekly workflow was pinned to R 4.5.3 as well.
