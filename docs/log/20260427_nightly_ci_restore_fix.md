@@ -24,3 +24,7 @@ The same workflow on the same commit succeeded on 2026-04-24 with R 4.5.3 and an
 ## Verification
 
 Local verification was limited to workflow inspection because the failing behavior occurs inside GitHub-hosted Actions images and renv cache state. The relevant remote evidence was inspected with `gh run view` and job logs for runs `24949253426`, `24923236912`, and successful comparator run `24873901621`.
+
+## Follow-up
+
+After the nightly patch was pushed, the manual `Nightly Deep Checks` run `24979273993` passed on commit `e7da1cd`. The push-triggered `CI PR` workflow for the same commit failed because its matrix jobs still used the implicit R version and old runtime-only GLPK dependency. Logs for run `24979269220` showed the same R 4.6.0 cold-restore `Rcpp` failure. The same R 4.5.3 pin and cold-cache system dependency fix was therefore applied to `CI PR`.
