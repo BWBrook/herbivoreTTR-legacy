@@ -9,6 +9,9 @@ concurrency:
   group: weekly-repro-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  RENV_CONFIG_PAK_ENABLED: "FALSE"
+
 jobs:
   weekly-repro:
     runs-on: ubuntu-latest
@@ -16,6 +19,9 @@ jobs:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       RENV_CONFIG_REPOS_OVERRIDE: https://cloud.r-project.org
       TARGETS_PROFILE: ci
+      REPRO_V2_OUT_DIR: artefacts/reproducibility/weekly_repro_v2
+      REPRO_V2_LIB_DIR: artefacts/reproducibility/weekly_repro_v2_library
+      REPRO_V2_TARGETS_STORE: artefacts/reproducibility/weekly_repro_v2_targets
     steps:
       - uses: actions/checkout@v4
 
@@ -36,7 +42,7 @@ jobs:
         run: R -q -e "sessionInfo()"
 
       - name: External reproducibility run-through v2
-        run: Rscript scripts/run_external_repro_check_v2.R
+        run: Rscript scripts/run_external_repro_check_v2.R "$REPRO_V2_OUT_DIR" "$REPRO_V2_LIB_DIR" "$REPRO_V2_TARGETS_STORE"
 
       - name: Upload reproducibility artefacts
         if: always()
@@ -45,4 +51,4 @@ jobs:
           name: weekly-repro-artefacts
           if-no-files-found: warn
           path: |
-            artefacts/reproducibility/external_run_v2/**
+            artefacts/reproducibility/weekly_repro_v2/**

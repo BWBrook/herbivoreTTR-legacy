@@ -49,10 +49,17 @@ make repro-check
 ```
 
 This runs `scripts/run_external_repro_check.R`, which:
-- restores dependencies into an isolated `renv` library path
-- executes the CI-profile targets pipeline in that environment
-- verifies required artefacts and basic domain sanity conditions
-- writes logs and summary files under `artefacts/reproducibility/external_run_v1/`
+- creates fresh sibling output, isolated-library, and targets-store paths with a
+  unique run ID;
+- restores with `clean = TRUE` and `RENV_CONFIG_PAK_ENABLED=FALSE`;
+- executes the CI-profile targets pipeline in the fresh store;
+- verifies marker-based freshness plus plant/herbivore snapshot contracts;
+- writes logs, a pre-run snapshot, summaries, and a manifest under the unique
+  output path.
+
+Set `REPRO_V1_OUT_DIR`, `REPRO_V1_LIB_DIR`, and
+`REPRO_V1_TARGETS_STORE` when a reviewed run needs stable path names. Never
+reuse a populated destination.
 
 ## Full release gate command
 

@@ -13,6 +13,7 @@
 ^\.Renviron$
 ^\.Rhistory$
 ^\.vscode$
+^\.superpowers$
 ^data$
 ^artefacts$
 ^CITATION\.cff$

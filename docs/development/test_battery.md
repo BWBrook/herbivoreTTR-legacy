@@ -69,7 +69,8 @@
 
 ### 10. Performance & Regression Monitoring
 - **Benchmarks**: microbench for key hotspots (`calc_tau*`, `make_foraging_decision`) with thresholds recorded; log warns if exceeding baseline by >20%.
-- **Memory usage**: integration test capturing peak memory for 7-day run using `pryr::mem_change()`; log to track regressions.
+- **Memory usage**: integration test measuring retained heap growth after a
+  7-day run with `lobstr::mem_used()`; log to track regressions.
 
 ## Execution Strategy
 - **Test Phases**:

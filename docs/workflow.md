@@ -53,7 +53,10 @@ The repo provides a Makefile; use it where available:
 - `make test-battery` — run the full battery (pipeline + tests + optional coverage)
 - `make render-v2` — render the post-1.0 paper pipeline report
 - `make repro-check-v2` — run v2 clean-library reproducibility run-through
-- `make release-bundle-v2` — build the v1.1 RC bundle with v2 artefacts
+- `make release-bundle-v2` — build the v2.0 RC bundle with v2 artefacts
+- Bare release/replay Make targets generate a UTC run ID and use fresh sibling
+  evidence paths; set the documented Make variables when a reviewed run needs
+  an exact label or destination.
 - `R -q -e "for (f in list.files('R', pattern = '\\\\.R$$', full.names = TRUE)) sys.source(f, envir = globalenv()); run_post_v1_scaling_profile(scenario_slug = 'post_v1_scaling_v2')"` — refresh scaling + kernel + break-even benchmark artefacts
 - `Rscript portal/run_plan.R portal/plans/templates/single_scenario_template.yaml` — non-coder single-run portal workflow
 - `Rscript portal/run_sensitivity.R portal/plans/templates/sensitivity_template.yaml` — non-coder sensitivity workflow
@@ -98,7 +101,7 @@ The repo provides a Makefile; use it where available:
 - `make rc-gates` — full local release gate set (tests + lint + smoke + check)
 - `make release-bundle` — assemble release-candidate bundle under `artefacts/release_candidates/`
 - `make repro-check` — run clean-library reproducibility run-through and write evidence logs
-- `make release-bundle-v2` — assemble the post-1.0 hardening RC bundle
+- `make release-bundle-v2` — assemble the v2.0 release-candidate bundle
 - `make repro-check-v2` — clean-library v2 reproducibility run-through
 
 ## CI tiers (v2)

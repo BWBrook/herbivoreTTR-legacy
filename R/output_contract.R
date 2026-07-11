@@ -88,7 +88,9 @@ resolve_package_version <- function() {
 #' @noRd
 resolve_git_sha <- function() {
   sha <- tryCatch(
-    system2("git", c("rev-parse", "HEAD"), stdout = TRUE, stderr = FALSE),
+    suppressWarnings(
+      system2("git", c("rev-parse", "HEAD"), stdout = TRUE, stderr = FALSE)
+    ),
     error = function(e) character()
   )
   if (length(sha) == 1L && nzchar(sha)) {

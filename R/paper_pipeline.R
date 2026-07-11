@@ -3,10 +3,13 @@
 #' Internal Quarto render helper for paper pipeline reports
 #' @param input Path to the `.qmd` report source.
 #' @param output_dir Directory where rendered outputs are written.
+#' @param execute_dir Working directory used by report code chunks.
 #' @return Absolute path to the rendered HTML report.
 #' @keywords internal
 #' @noRd
-render_quarto_report_internal <- function(input, output_dir) {
+render_quarto_report_internal <- function(input,
+                                          output_dir,
+                                          execute_dir = getwd()) {
   if (!file.exists(input)) {
     rlang::abort(
       "Paper pipeline input `.qmd` does not exist.",
@@ -18,9 +21,17 @@ render_quarto_report_internal <- function(input, output_dir) {
   dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
   input_abs <- normalizePath(input, winslash = "/", mustWork = TRUE)
   output_dir_abs <- normalizePath(output_dir, winslash = "/", mustWork = TRUE)
+  execute_dir_abs <- normalizePath(execute_dir, winslash = "/", mustWork = TRUE)
 
   cmd <- "quarto"
-  args <- c("render", input_abs, "--output-dir", output_dir_abs)
+  args <- c(
+    "render",
+    input_abs,
+    "--output-dir",
+    output_dir_abs,
+    "--execute-dir",
+    execute_dir_abs
+  )
   status <- tryCatch(
     system2(cmd, args = args, stdout = TRUE, stderr = TRUE),
     error = function(e) {
@@ -69,6 +80,11 @@ render_paper_pipeline_report <- function(input = file.path("reports", "paper_pip
   render_quarto_report_internal(input = input, output_dir = output_dir)
 }
 
+paper_pipeline_input_files_v2 <- function(
+    input = file.path("reports", "paper_pipeline_v2.qmd")) {
+  c(input, unname(paper_pipeline_generated_input_files_v2()))
+}
+
 #' Render the post-1.0 paper pipeline report and write deterministic manifest
 #'
 #' @param input Path to the v2 `.qmd` report source.
@@ -84,7 +100,7 @@ render_paper_pipeline_report_v2 <- function(input = file.path("reports", "paper_
   if (isTRUE(create_manifest)) {
     manifest_path <- write_report_artifact_manifest_v2(
       output_dir = output_dir,
-      input_files = c(input)
+      input_files = paper_pipeline_input_files_v2(input)
     )
   }
   list(

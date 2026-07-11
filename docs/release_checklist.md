@@ -9,7 +9,8 @@ This checklist must be satisfied before tagging a release.
 
 ## Reproducibility
 - [ ] `renv.lock` updated and consistent with repository code
-- [ ] Fresh install test: `renv::restore()` succeeds on a clean machine/container
+- [ ] Fresh install test succeeds on a clean machine/container:
+  - `R -q -e "Sys.setenv(RENV_CONFIG_PAK_ENABLED = 'FALSE'); renv::restore(prompt = FALSE, clean = TRUE)"`
 - [ ] External reproducibility run-through passes (`make repro-check`)
 
 ## Quality gates
@@ -36,7 +37,7 @@ This checklist must be satisfied before tagging a release.
 - [ ] Domain sanity checks reviewed (finite state, non-negativity, plausible budgets)
 - [ ] `docs/decisions.md` updated if assumptions changed
 
-## Post-1.0 hardening (v1.1 track)
+## Post-1.0 hardening (v2.0 track)
 - [ ] Tiered CI definitions present and validated:
   - `.github/workflows/ci.yml`
   - `.github/workflows/nightly.yml`
@@ -51,5 +52,5 @@ This checklist must be satisfied before tagging a release.
   - `artefacts/reports_v2/figure_table_manifest_v2.csv`
 - [ ] External v2 reproducibility run-through passes:
   - `make repro-check-v2`
-- [ ] v1.1 release bundle generated:
+- [ ] v2.0 release bundle generated:
   - `make release-bundle-v2`

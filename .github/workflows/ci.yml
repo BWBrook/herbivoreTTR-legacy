@@ -16,6 +16,9 @@ concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  RENV_CONFIG_PAK_ENABLED: "FALSE"
+
 jobs:
   changes:
     name: Detect changed paths

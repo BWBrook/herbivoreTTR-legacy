@@ -7,11 +7,12 @@ release_candidate_label_v1 <- function(version = resolve_package_version()) {
   sprintf("v%s", version)
 }
 
-build_source_package_tarball <- function(package_name = "herbivoreTTR") {
+build_source_package_tarball <- function(package_name = "herbivoreTTR",
+                                         r_executable = resolve_current_r_runtime()$executable) {
   before <- Sys.glob(sprintf("%s_*.tar.gz", package_name))
 
   output <- system2(
-    "R",
+    r_executable,
     c("CMD", "build", "."),
     stdout = TRUE,
     stderr = TRUE

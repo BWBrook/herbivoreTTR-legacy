@@ -83,6 +83,16 @@ test_that("run manifest includes required schema-v1 metadata", {
   expect_identical(manifest$created_utc, "2026-02-06T00:00:00Z")
 })
 
+test_that("git SHA resolution is quiet outside a Git checkout", {
+  outside_checkout <- tempfile(pattern = "no-git-checkout-")
+  dir.create(outside_checkout)
+  on.exit(unlink(outside_checkout, recursive = TRUE, force = TRUE), add = TRUE)
+
+  expect_no_warning(
+    expect_identical(withr::with_dir(outside_checkout, resolve_git_sha()), "unknown")
+  )
+})
+
 test_that("build_run_id is deterministic for same inputs", {
   id_a <- build_run_id(
     scenario_slug = "smoke_v0",
