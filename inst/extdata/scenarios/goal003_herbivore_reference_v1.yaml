@@ -1,0 +1,108 @@
+goal_id: "003-herbivore-only-daily-clamped-forage-reference"
+profile_schema_version: "1.0.0"
+description: "Fixed-seed finite but demonstrably non-binding daily forage reference; not an unlimited-resource or empirical model."
+
+runtime:
+  seed: 2002
+  days: 120
+  start_day: 6
+  minute_limit: 720
+  forage_access_scale: 1.0
+  plant_backend: "internal_ttr"
+  apply_growth: false
+  daily_plant_reset: true
+  extra_digestion_ticks: 0
+
+population:
+  mode: "explicit_single"
+  herbivore_count: 1
+  herbivore:
+    herbivore_id: "goal002_grazer_1"
+    label: "simplified_grey_kangaroo_like_grazer"
+    empirical_parameterisation: false
+    mass_g: 50000
+    herb_type: 0
+    MRT_hours: 24
+    foraging_mode: "nutrient_targeting"
+    xcor_m: 50
+    ycor_m: 50
+    behaviour: "MOVING"
+    selected_plant_id: null
+    movement_disruption_prob: 0.1
+    mixed_browser_weight: 0.5
+
+external_forcing:
+  temperature_c: 25
+  soil_water: 0.5
+  soil_nitrogen: 0.5
+
+forage:
+  forage_type_count: 1
+  veg_types: [0]
+  forage_type_label: "homogeneous_grass_like_diagnostic_resource"
+  empirical_parameterisation: false
+
+initial_plant_state:
+  plant_id: 1
+  xcor: 50
+  ycor: 50
+  veg_type: 0
+  ms: 50
+  mr: 50
+  cs: 22.5
+  cr: 22.5
+  ns: 1
+  nr: 1
+  cd: 0
+  nd: 0
+  bleaf: 49.995
+  bstem: 0
+  bdef: 0.005
+  md: 0.005
+  broot: 50
+  brepr: 0
+  height: 1
+  qroot: 400
+  qshoot: 400
+  gs: 0
+  gr: 0
+  gd: 0
+  uc: 0
+  un: 0
+  rsC: 0
+  rrC: 0
+  rdC: 0
+  rsN: 0
+  rrN: 0
+  rdN: 0
+  tauC: 0
+  tauN: 0
+  tauCd: 0
+  tauNd: 0
+
+feedback:
+  enabled: true
+  initial_bci: 0.8
+  gain_coeff: 0.05
+  loss_coeff: 0.08
+  effort_threshold: 0.4
+  stress_threshold: 0.2
+  max_foraging_boost: 0.15
+
+stochasticity:
+  initial_coordinates: "explicit_profile_values"
+  daily_seed_offset: 100000
+  fixed_seed_repeatability: true
+
+nonbinding:
+  min_shoot_kg: 0.001
+  m_ref_kg: 10
+  tolerance: 1.0e-10
+
+outputs:
+  artefact_names:
+    - "run_manifest.json"
+    - "daily_diagnostics.csv"
+    - "plant_diagnostics.csv"
+    - "diagnostic_summary.json"
+    - "diagnostic_trajectories.png"
