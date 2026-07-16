@@ -1,0 +1,116 @@
+goal_id: "004-herbivore-energy-budget-forensic-decomposition"
+profile_schema_version: "1.0.0"
+description: "Diagnostic-only forensic decomposition of the accepted Goal 003 trajectory."
+
+goal003_profile_path: "inst/extdata/scenarios/goal003_herbivore_reference_v1.yaml"
+
+runtime:
+  seed: 2002
+  days: 120
+  start_day: 6
+  minute_limit: 720
+  forage_access_scale: 1.0
+  plant_backend: "internal_ttr"
+  apply_growth: false
+  daily_plant_reset: true
+  completed_clock_extra_ticks: 12
+  serialization_version: 3
+
+comparator:
+  commit: "abf68b691b4e30020625d1871dcabe56a5926bc1"
+  production_base: "e45a6b79b4fb5474609e916aa91e49b4ccc878e2"
+  tree_sha256: "03423aa5ec512ed4fda695a0ad55f828c3c308d1a7992ee20e09adc5af3a0d48"
+  profile_sha256: "07b99b21cdb48d34eac570a246c626d2b82931126bb4173aaf298c6327b85403"
+  runner_sha256: "b071096e431ee26c8e4b5946881dfcff35ec5bded0af379b267a04150722fb3b"
+  test_sha256: "1f5ea23dfea3ab379141596c9830c97715522f83b6b4be71ad9e7a140e221530"
+  manifest_sha256: "7e9ad004137e2a1c3b8a7233f183fcbbed02ef6bfdcf94f43dfded82a707538f"
+
+probes:
+  observer: "observer_only_event_capture"
+  tick_phase: "unit_impulse_before_after_hourly_boundary"
+  completed_clock: "exactly_12_digestion_only_ticks_at_minute_720"
+  capacity: "720_direct_herbivore_eat_calls_target_plant_1"
+  intake_attribution: "raw_pre_bite_limits_and_eligible_no_bite_reasons"
+  demand: "algebraic_zero_locomotion_only"
+  bci: "feedback_disabled_matched_start"
+  endpoint: "inclusive_minute_720_foraging_window_only"
+
+allowed_paths:
+  observer_daily_closed: []
+  completed_clock_preclosure:
+    - "herbivore.digestion"
+    - "herbivore.gut_content"
+    - "herbivore.intake_digest_carbs_day"
+    - "herbivore.intake_digest_protein_day"
+    - "herbivore.intake_NPE_day"
+    - "herbivore.intake_PE_day"
+    - "herbivore.metabolic_water_day"
+  completed_clock_closed:
+    - "herbivore.digestion"
+    - "herbivore.gut_content"
+    - "herbivore.intake_digest_carbs_day"
+    - "herbivore.intake_digest_protein_day"
+    - "herbivore.intake_NPE_day"
+    - "herbivore.intake_PE_day"
+    - "herbivore.metabolic_water_day"
+    - "herbivore.intake_water_drinking"
+    - "herbivore.distance_moved"
+    - "herbivore.daily_net_water_balance"
+    - "herbivore.daily_water_intake_total"
+    - "herbivore.water_requirement_day"
+    - "herbivore.water_balance_ratio"
+    - "herbivore.water_balance"
+    - "herbivore.maintenance_energy_requirement_day"
+    - "herbivore.total_energy_requirement_day"
+    - "herbivore.daily_energy_intake"
+    - "herbivore.daily_energy_delta"
+    - "herbivore.energy_balance_ratio"
+    - "herbivore.energy_balance"
+    - "herbivore.energy_deficit_streak_days"
+    - "herbivore.water_deficit_streak_days"
+    - "herbivore.physiological_stress_flag"
+    - "herbivore.body_condition_index"
+    - "daily_output.gut_content_g"
+    - "daily_output.intake_PE_kJ"
+    - "daily_output.intake_NPE_kJ"
+    - "daily_output.energy_intake_kJ"
+    - "daily_output.total_energy_requirement_kJ"
+    - "daily_output.energy_delta_kJ"
+    - "daily_output.EnergyBalance"
+    - "daily_output.cumulative_energy_balance_kJ"
+    - "daily_output.metabolic_water_g"
+    - "daily_output.drinking_water_g"
+    - "daily_output.water_input_total_g"
+    - "daily_output.daily_net_water_g"
+    - "daily_output.WaterBalance"
+    - "daily_output.cumulative_water_balance_g"
+    - "daily_output.distance_moved_m"
+    - "daily_output.EnergyDeficitStreakDays"
+    - "daily_output.WaterDeficitStreakDays"
+    - "daily_output.BodyConditionIndex"
+    - "daily_output.PhysiologicalStressFlag"
+    - "daily_output.energy_daily_residual_kJ"
+    - "daily_output.energy_cumulative_residual_kJ"
+    - "daily_output.water_daily_residual_g"
+    - "daily_output.water_cumulative_residual_g"
+
+outputs:
+  artefact_names:
+    - "run_manifest.json"
+    - "baseline_projection.csv"
+    - "baseline_daily_diagnostics.csv"
+    - "baseline_plant_diagnostics.csv"
+    - "baseline_diagnostic_summary.json"
+    - "hourly_queue_ledger.csv"
+    - "daily_energy_budget.csv"
+    - "minute_intake_limits.csv"
+    - "probe_comparison.csv"
+    - "probe_invariants.csv"
+    - "probe_state_snapshots.rds"
+    - "classification_summary.json"
+    - "energy_budget_diagnostics.png"
+
+classification:
+  dominant_cause_claim: false
+  carried_policy_status: "not_run"
+  carried_policy_reason: "Isolated probes provide the required decision evidence; a carried branch would add a non-identifiable total downstream contrast."
