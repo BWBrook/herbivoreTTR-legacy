@@ -1,5 +1,7 @@
 # herbivoreTTR
 
+> **Status:** developed in the open as a working record. This is work in progress: contents may change, and nothing here is peer-reviewed unless stated.
+
 Coupled plant–herbivore simulation in R: a Thornley Transport Resistance (TTR) plant growth model linked to an individual-based herbivore foraging model with nutrient-targeted plant selection.
 
 ## Status
